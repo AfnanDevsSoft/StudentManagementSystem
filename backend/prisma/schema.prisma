@@ -1,0 +1,967 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Branches
+model Branch {
+  id              String   @id @default(uuid()) @db.Uuid
+  name            String   @unique
+  code            String   @unique
+  address         String?
+  city            String?
+  state           String?
+  country         String?
+  phone           String?
+  email           String?
+  principal_name  String?
+  principal_email String?
+  timezone        String   @default("UTC")
+  currency        String   @default("USD")
+  is_active       Boolean  @default(true)
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  users                    User[]
+  students                 Student[]
+  teachers                 Teacher[]
+  courses                  Course[]
+  academic_years           AcademicYear[]
+  branches_users           UserBranch[]
+  admissions_applications  AdmissionApplication[]
+  payroll_records          PayrollRecord[]
+  audit_logs               AuditLog[]
+  communication_logs       CommunicationLog[]
+  reports                  Report[]
+  analytics_metrics        AnalyticsMetric[]
+
+  @@index([code])
+  @@map("branches")
+}
+
+// Roles
+model Role {
+  id          String   @id @default(uuid()) @db.Uuid
+  branch_id   String?  @db.Uuid
+  name        String
+  description String?
+  permissions Json?
+  is_system   Boolean  @default(false)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  users User[]
+
+  @@unique([name, branch_id])
+  @@map("roles")
+}
+
+// Users
+model User {
+  id              String   @id @default(uuid()) @db.Uuid
+  branch_id       String   @db.Uuid
+  role_id         String   @db.Uuid
+  username        String   @unique
+  email           String   @unique
+  password_hash   String
+  first_name      String
+  last_name       String
+  phone           String?
+  profile_photo   String?
+  is_active       Boolean  @default(true)
+  last_login      DateTime?
+  login_attempts  Int      @default(0)
+  locked_until    DateTime?
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  branch              Branch       @relation(fields: [branch_id], references: [id], onDelete: Restrict)
+  role                Role         @relation(fields: [role_id], references: [id])
+  user_branches       UserBranch[]
+  student             Student?
+  teacher             Teacher?
+  created_by_users    User[]       @relation("CreatedBy")
+  user_created_by     User?        @relation("CreatedBy", fields: [created_by_id], references: [id])
+  created_by_id       String?      @db.Uuid
+  updated_by_users    User[]       @relation("UpdatedBy")
+  user_updated_by     User?        @relation("UpdatedBy", fields: [updated_by_id], references: [id])
+  updated_by_id       String?      @db.Uuid
+  audit_logs          AuditLog[]
+  communication_logs  CommunicationLog[]
+  sent_messages       DirectMessage[] @relation("sent_messages")
+  user_roles          UserRole[]
+  received_messages   DirectMessage[] @relation("received_messages")
+
+  @@index([email])
+  @@index([branch_id])
+  @@map("users")
+}
+
+// User Branches
+model UserBranch {
+  user_id      String   @db.Uuid
+  branch_id    String   @db.Uuid
+  access_level String?
+  created_at   DateTime @default(now())
+
+  user   User   @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  branch Branch @relation(fields: [branch_id], references: [id], onDelete: Cascade)
+
+  @@id([user_id, branch_id])
+  @@map("user_branches")
+}
+
+// Students
+model Student {
+  id                     String   @id @default(uuid()) @db.Uuid
+  branch_id              String   @db.Uuid
+  user_id                String?  @db.Uuid @unique
+  student_code           String   @unique
+  first_name             String
+  last_name              String
+  date_of_birth          DateTime
+  gender                 String?
+  blood_group            String?
+  nationality            String?
+  cnic                   String?
+  passport_number        String?
+  permanent_address      String?
+  current_address        String?
+  city                   String?
+  postal_code            String?
+  personal_phone         String?
+  personal_email         String?
+  admission_date         DateTime
+  admission_status       String   @default("pending")
+  current_grade_level_id String?  @db.Uuid
+  previous_school        String?
+  profile_photo          String?
+  is_active              Boolean  @default(true)
+  graduation_date        DateTime?
+  graduation_status      String?
+  created_at             DateTime @default(now())
+  updated_at             DateTime @updatedAt
+
+  branch              Branch                  @relation(fields: [branch_id], references: [id], onDelete: Restrict)
+  user                User?                   @relation(fields: [user_id], references: [id])
+  parents             ParentGuardian[]        @relation("StudentParents")
+  enrollments         StudentEnrollment[]
+  attendance          Attendance[]
+  grades              Grade[]
+  communication_logs  CommunicationLog[]
+  fee_payments        FeePayment[]
+  scholarships        Scholarship[]
+
+  @@unique([branch_id, student_code])
+  @@index([student_code])
+  @@map("students")
+}
+
+// Parents/Guardians
+model ParentGuardian {
+  id            String   @id @default(uuid()) @db.Uuid
+  first_name    String
+  last_name     String
+  relationship  String // father, mother, guardian
+  primary_phone String
+  email         String?
+  occupation    String?
+  organization  String?
+  address       String?
+  city          String?
+  cnic          String?
+  is_active     Boolean  @default(true)
+  created_at    DateTime @default(now())
+
+  students       Student[]   @relation("StudentParents")
+  communications CommunicationLog[]
+
+  @@map("parents_guardians")
+}
+
+// Teachers
+model Teacher {
+  id                String   @id @default(uuid()) @db.Uuid
+  branch_id         String   @db.Uuid
+  user_id           String?  @db.Uuid @unique
+  employee_code     String   @unique
+  first_name        String
+  last_name         String
+  email             String
+  phone             String?
+  date_of_birth     DateTime?
+  gender            String?
+  nationality       String?
+  cnic              String?
+  hire_date         DateTime
+  employment_type   String // full_time, part_time, contract
+  department        String?
+  designation       String?
+  qualification     String?
+  years_experience  Int?
+  office_phone      String?
+  office_location   String?
+  personal_address  String?
+  salary_grade      String?
+  is_active         Boolean  @default(true)
+  employment_status String   @default("active")
+  profile_photo     String?
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  branch               Branch               @relation(fields: [branch_id], references: [id], onDelete: Restrict)
+  user                 User?                @relation(fields: [user_id], references: [id])
+  courses              Course[]
+  attendance           TeacherAttendance[]
+  payroll_records      PayrollRecord[]
+  leave_requests       LeaveRequest[]
+  grades_created       Grade[]
+
+  @@unique([branch_id, employee_code])
+  @@index([employee_code])
+  @@map("teachers")
+}
+
+// Academic Years
+model AcademicYear {
+  id          String   @id @default(uuid()) @db.Uuid
+  branch_id   String   @db.Uuid
+  year        String // e.g., "2024-2025"
+  start_date  DateTime
+  end_date    DateTime
+  is_current  Boolean  @default(false)
+  created_at  DateTime @default(now())
+
+  branch  Branch   @relation(fields: [branch_id], references: [id], onDelete: Restrict)
+  courses Course[]
+  grades  Grade[]
+
+  @@unique([branch_id, year])
+  @@map("academic_years")
+}
+
+// Grade Levels
+model GradeLevel {
+  id         String   @id @default(uuid()) @db.Uuid
+  branch_id  String   @db.Uuid
+  name       String
+  code       String
+  sort_order Int?
+  is_active  Boolean  @default(true)
+  created_at DateTime @default(now())
+
+  courses Course[]
+
+  @@unique([branch_id, code])
+  @@map("grade_levels")
+}
+
+// Subjects
+model Subject {
+  id         String   @id @default(uuid()) @db.Uuid
+  branch_id  String   @db.Uuid
+  name       String
+  code       String
+  description String?
+  credits    Int?
+  is_active  Boolean  @default(true)
+  created_at DateTime @default(now())
+
+  courses Course[]
+
+  @@unique([branch_id, code])
+  @@map("subjects")
+}
+
+// Courses
+model Course {
+  id               String   @id @default(uuid()) @db.Uuid
+  branch_id        String   @db.Uuid
+  academic_year_id String   @db.Uuid
+  subject_id       String   @db.Uuid
+  grade_level_id   String   @db.Uuid
+  teacher_id       String   @db.Uuid
+  course_name      String
+  course_code      String   @unique
+  description      String?
+  max_students     Int      @default(40)
+  room_number      String?
+  building         String?
+  schedule         Json?    // {monday: {start: "09:00", end: "10:00"}}
+  is_active        Boolean  @default(true)
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+
+  branch              Branch                @relation(fields: [branch_id], references: [id])
+  academic_year       AcademicYear         @relation(fields: [academic_year_id], references: [id])
+  subject             Subject              @relation(fields: [subject_id], references: [id])
+  grade_level         GradeLevel           @relation(fields: [grade_level_id], references: [id])
+  teacher             Teacher              @relation(fields: [teacher_id], references: [id])
+  enrollments         StudentEnrollment[]
+  attendance          Attendance[]
+  grades              Grade[]
+  course_contents     CourseContent[]
+  announcements       ClassAnnouncement[]
+
+  @@index([course_code])
+  @@map("courses")
+}
+
+// Student Enrollments
+model StudentEnrollment {
+  id              String   @id @default(uuid()) @db.Uuid
+  student_id      String   @db.Uuid
+  course_id       String   @db.Uuid
+  enrollment_date DateTime
+  status          String   @default("enrolled") // enrolled, completed, dropped
+  final_grade     String?
+  gpa_points      Decimal? @db.Decimal(3, 2)
+  created_at      DateTime @default(now())
+
+  student Student @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  course  Course  @relation(fields: [course_id], references: [id], onDelete: Cascade)
+
+  @@unique([student_id, course_id])
+  @@index([student_id])
+  @@map("student_enrollments")
+}
+
+// Student Attendance
+model Attendance {
+  id          String   @id @default(uuid()) @db.Uuid
+  student_id  String   @db.Uuid
+  course_id   String   @db.Uuid
+  date        DateTime
+  status      String   // present, absent, late, excused
+  remarks     String?
+  recorded_by String   @db.Uuid
+  created_at  DateTime @default(now())
+
+  student Student @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  course  Course  @relation(fields: [course_id], references: [id])
+
+  @@unique([student_id, course_id, date])
+  @@index([student_id])
+  @@map("attendance")
+}
+
+// Grades
+model Grade {
+  id              String   @id @default(uuid()) @db.Uuid
+  student_id      String   @db.Uuid
+  course_id       String   @db.Uuid
+  academic_year_id String  @db.Uuid
+  assessment_type String   // quiz, assignment, midterm, final
+  assessment_name String
+  score           Decimal  @db.Decimal(5, 2)
+  max_score       Decimal  @db.Decimal(5, 2) @default(100)
+  weight          Decimal? @db.Decimal(5, 2)
+  grade_date      DateTime
+  graded_by       String   @db.Uuid
+  remarks         String?
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  student      Student      @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  course       Course       @relation(fields: [course_id], references: [id])
+  academic_year AcademicYear @relation(fields: [academic_year_id], references: [id])
+  graded_by_teacher Teacher   @relation(fields: [graded_by], references: [id])
+
+  @@index([student_id])
+  @@map("grades")
+}
+
+// Teacher Attendance
+model TeacherAttendance {
+  id          String   @id @default(uuid()) @db.Uuid
+  teacher_id  String   @db.Uuid
+  date        DateTime
+  check_in    DateTime?
+  check_out   DateTime?
+  status      String   // present, absent, half_day, on_leave
+  remarks     String?
+  created_at  DateTime @default(now())
+
+  teacher Teacher @relation(fields: [teacher_id], references: [id], onDelete: Cascade)
+
+  @@unique([teacher_id, date])
+  @@map("teacher_attendance")
+}
+
+// Payroll Records
+model PayrollRecord {
+  id               String   @id @default(uuid()) @db.Uuid
+  teacher_id       String   @db.Uuid
+  branch_id        String   @db.Uuid
+  month            Int
+  year             Int
+  base_salary      Decimal  @db.Decimal(10, 2)
+  allowances       Decimal  @db.Decimal(10, 2) @default(0)
+  gross_salary     Decimal  @db.Decimal(10, 2)
+  deductions       Decimal  @db.Decimal(10, 2) @default(0)
+  net_salary       Decimal  @db.Decimal(10, 2)
+  days_worked      Int?
+  days_absent      Int?
+  leave_days       Int?
+  status           String   @default("draft") // draft, approved, paid
+  paid_date        DateTime?
+  approved_by      String?  @db.Uuid
+  created_at       DateTime @default(now())
+
+  teacher Teacher @relation(fields: [teacher_id], references: [id])
+  branch  Branch  @relation(fields: [branch_id], references: [id])
+
+  @@unique([teacher_id, month, year])
+  @@map("payroll_records")
+}
+
+// Leave Requests
+model LeaveRequest {
+  id           String   @id @default(uuid()) @db.Uuid
+  teacher_id   String   @db.Uuid
+  leave_type   String   // annual, sick, casual
+  start_date   DateTime
+  end_date     DateTime
+  days_count   Int
+  reason       String
+  status       String   @default("pending") // pending, approved, rejected
+  approved_by  String?  @db.Uuid
+  approval_date DateTime?
+  created_at   DateTime @default(now())
+
+  teacher Teacher @relation(fields: [teacher_id], references: [id], onDelete: Cascade)
+
+  @@map("leave_requests")
+}
+
+// Admission Forms
+model AdmissionForm {
+  id                String                  @id @default(uuid()) @db.Uuid
+  branch_id         String                  @db.Uuid
+  form_name         String
+  form_template     Json // Dynamic form structure
+  is_active         Boolean                 @default(true)
+  created_at        DateTime                @default(now())
+  updated_at        DateTime                @updatedAt
+
+  @@map("admission_forms")
+}
+
+// Admission Applications
+model AdmissionApplication {
+  id              String   @id @default(uuid()) @db.Uuid
+  branch_id       String   @db.Uuid
+  application_number String @unique
+  applicant_data  Json
+  applicant_email String
+  applicant_phone String
+  status          String   @default("submitted") // submitted, approved, rejected
+  application_date DateTime
+  review_notes    String?
+  reviewed_by     String?  @db.Uuid
+  review_date     DateTime?
+  payment_status  String   @default("pending")
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  branch Branch @relation(fields: [branch_id], references: [id])
+
+  @@index([application_number])
+  @@map("admission_applications")
+}
+
+// Notifications
+model Notification {
+  id              String   @id @default(uuid()) @db.Uuid
+  user_id         String   @db.Uuid
+  notification_type String  // email, sms, in_app
+  subject         String
+  message         String
+  status          String   @default("pending")
+  sent_at         DateTime?
+  read_at         DateTime?
+  created_at      DateTime @default(now())
+
+  @@map("notifications")
+}
+
+// Communication Logs
+model CommunicationLog {
+  id                String   @id @default(uuid()) @db.Uuid
+  branch_id         String   @db.Uuid
+  student_id        String   @db.Uuid
+  parent_id         String?  @db.Uuid
+  created_by        String   @db.Uuid
+  communication_type String  // email, sms, phone, meeting
+  subject           String
+  message           String
+  status            String   @default("pending")
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  branch          Branch          @relation(fields: [branch_id], references: [id])
+  student         Student         @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  parent          ParentGuardian? @relation(fields: [parent_id], references: [id], onDelete: SetNull)
+  created_by_user User            @relation(fields: [created_by], references: [id])
+
+  @@index([student_id])
+  @@map("communication_logs")
+}
+
+// Fee Structure
+model Fee {
+  id                String   @id @default(uuid()) @db.Uuid
+  branch_id         String   @db.Uuid
+  fee_name          String
+  fee_type          String   // tuition, transport, activity, exam, hostel
+  grade_level_id    String?  @db.Uuid
+  amount            Decimal  @db.Decimal(10, 2)
+  due_date          DateTime
+  is_active         Boolean  @default(true)
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  @@unique([branch_id, fee_name, fee_type])
+  @@map("fees")
+}
+
+// Fee Payments
+model FeePayment {
+  id                String   @id @default(uuid()) @db.Uuid
+  student_id        String   @db.Uuid
+  fee_id            String   @db.Uuid
+  amount_paid       Decimal  @db.Decimal(10, 2)
+  payment_date      DateTime
+  payment_method    String   // cash, card, bank_transfer, online
+  transaction_id    String?
+  receipt_number    String?  @unique
+  remarks           String?
+  recorded_by       String   @db.Uuid
+  status            String   @default("completed") // pending, completed, failed
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  student Student @relation(fields: [student_id], references: [id], onDelete: Cascade)
+
+  @@index([student_id])
+  @@map("fee_payments")
+}
+
+// Scholarships
+model Scholarship {
+  id                String   @id @default(uuid()) @db.Uuid
+  branch_id         String   @db.Uuid
+  student_id        String   @db.Uuid
+  scholarship_name  String
+  scholarship_type  String   // merit, need_based, sports, other
+  amount            Decimal  @db.Decimal(10, 2)
+  percentage        Decimal? @db.Decimal(5, 2)
+  start_date        DateTime
+  end_date          DateTime?
+  status            String   @default("active") // active, inactive, expired
+  approved_by       String   @db.Uuid
+  approval_date     DateTime
+  remarks           String?
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  student Student @relation(fields: [student_id], references: [id], onDelete: Cascade)
+
+  @@index([student_id])
+  @@map("scholarships")
+}
+
+// Announcements
+model Announcement {
+  id                String   @id @default(uuid()) @db.Uuid
+  branch_id         String   @db.Uuid
+  title             String
+  description       String   @db.Text
+  announcement_type String   // general, academic, event, urgent
+  target_audience   String   // all, students, teachers, parents
+  created_by        String   @db.Uuid
+  start_date        DateTime
+  end_date          DateTime?
+  is_active         Boolean  @default(true)
+  priority          String   @default("normal") // low, normal, high, urgent
+  attachment_url    String?
+  views_count       Int      @default(0)
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  @@index([branch_id])
+  @@map("announcements")
+}
+
+// Messages
+model Message {
+  id                String   @id @default(uuid()) @db.Uuid
+  sender_id         String   @db.Uuid
+  recipient_id      String   @db.Uuid
+  subject           String?
+  message_body      String   @db.Text
+  message_type      String   @default("direct") // direct, broadcast, notification
+  read_at           DateTime?
+  attachment_url    String?
+  is_archived       Boolean  @default(false)
+  created_at        DateTime @default(now())
+
+  @@index([recipient_id])
+  @@index([sender_id])
+  @@map("messages")
+}
+
+// Audit Logs
+model AuditLog {
+  id            String   @id @default(uuid()) @db.Uuid
+  user_id       String?  @db.Uuid
+  branch_id     String   @db.Uuid
+  action        String   // create, read, update, delete
+  entity_type   String
+  entity_id     String?
+  entity_name   String?
+  changes       Json?
+  ip_address    String?
+  status        String   @default("success")
+  error_message String?
+  created_at    DateTime @default(now())
+
+  user   User?  @relation(fields: [user_id], references: [id])
+  branch Branch @relation(fields: [branch_id], references: [id])
+
+  @@index([user_id])
+  @@map("audit_logs")
+}
+
+// Phase 2: Report Generation
+model Report {
+  id                String   @id @default(uuid()) @db.Uuid
+  branch_id         String   @db.Uuid
+  report_type       String   // student_progress, teacher_performance, fee_collection, attendance_summary
+  title             String
+  description       String?
+  generated_by      String   @db.Uuid
+  generated_at      DateTime @default(now())
+  report_format     String   @default("pdf") // pdf, excel, csv
+  file_url          String?
+  file_size         Int?
+  filters           Json?
+  date_range_start  DateTime?
+  date_range_end    DateTime?
+  status            String   @default("completed") // pending, processing, completed, failed
+  error_message     String?
+  download_count    Int      @default(0)
+  last_downloaded   DateTime?
+  is_public         Boolean  @default(false)
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  branch Branch @relation(fields: [branch_id], references: [id])
+
+  @@index([branch_id])
+  @@index([report_type])
+  @@index([generated_at])
+  @@map("reports")
+}
+
+// Phase 2: Analytics Data
+model AnalyticsMetric {
+  id              String   @id @default(uuid()) @db.Uuid
+  branch_id       String   @db.Uuid
+  metric_type     String   // student_enrollment, attendance_rate, fee_collection, teacher_performance, dropout_risk
+  metric_name     String
+  metric_value    Float
+  comparison_value Float?
+  trend           String?   // up, down, stable
+  period_start    DateTime
+  period_end      DateTime
+  filters         Json?
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  branch Branch @relation(fields: [branch_id], references: [id])
+
+  @@index([branch_id])
+  @@index([metric_type])
+  @@index([period_start])
+  @@map("analytics_metrics")
+}
+
+// Phase 2: Course Content/Materials
+model CourseContent {
+  id                String   @id @default(uuid()) @db.Uuid
+  course_id         String   @db.Uuid
+  content_type      String   // lecture, assignment, quiz, resource, video
+  title             String
+  description       String?
+  content_url       String
+  file_name         String?
+  file_size         Int?
+  file_type         String?
+  duration          Int?
+  sequence_order    Int
+  uploaded_by       String   @db.Uuid
+  uploaded_at       DateTime @default(now())
+  view_count        Int      @default(0)
+  last_accessed     DateTime?
+  is_published      Boolean  @default(true)
+  is_pinned         Boolean  @default(false)
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  course Course @relation(fields: [course_id], references: [id])
+
+  @@index([course_id])
+  @@index([content_type])
+  @@index([uploaded_at])
+  @@map("course_contents")
+}
+
+// Phase 2: Direct Messaging
+model DirectMessage {
+  id              String   @id @default(uuid()) @db.Uuid
+  sender_id       String   @db.Uuid
+  recipient_id    String   @db.Uuid
+  subject         String?
+  message_body    String   @db.Text
+  attachment_url  String?
+  read_at         DateTime?
+  is_deleted      Boolean  @default(false)
+  deleted_at      DateTime?
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  sender    User @relation("sent_messages", fields: [sender_id], references: [id])
+  recipient User @relation("received_messages", fields: [recipient_id], references: [id])
+
+  @@index([sender_id])
+  @@index([recipient_id])
+  @@index([created_at])
+  @@map("direct_messages")
+}
+
+// Phase 2: Class Announcements
+model ClassAnnouncement {
+  id              String   @id @default(uuid()) @db.Uuid
+  course_id       String   @db.Uuid
+  created_by      String   @db.Uuid
+  title           String
+  content         String   @db.Text
+  priority        String   @default("normal") // low, normal, high, urgent
+  announcement_type String @default("general") // general, assignment, exam, holiday
+  attachment_url  String?
+  scheduled_for   DateTime?
+  expires_at      DateTime?
+  view_count      Int      @default(0)
+  is_pinned       Boolean  @default(false)
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  course Course @relation(fields: [course_id], references: [id])
+
+  @@index([course_id])
+  @@index([created_by])
+  @@index([created_at])
+  @@map("class_announcements")
+}
+
+// Phase 3: Advanced Role-Based Access Control
+model Permission {
+  id              String   @id @default(uuid()) @db.Uuid
+  permission_name String   @unique
+  description     String?
+  resource        String
+  action          String
+  created_at      DateTime @default(now())
+
+  rbac_roles      RBACRole[]
+
+  @@index([resource])
+  @@map("permissions")
+}
+
+model RBACRole {
+  id          String   @id @default(uuid()) @db.Uuid
+  branch_id   String   @db.Uuid
+  role_name   String
+  description String?
+  is_system   Boolean  @default(false)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  permissions Permission[]
+  user_roles  UserRole[]
+
+  @@unique([branch_id, role_name])
+  @@index([branch_id])
+  @@map("rbac_roles")
+}
+
+model UserRole {
+  id          String   @id @default(uuid()) @db.Uuid
+  user_id     String   @db.Uuid
+  rbac_role_id String  @db.Uuid
+  branch_id   String   @db.Uuid
+  assigned_by String   @db.Uuid
+  assigned_at DateTime @default(now())
+  expires_at  DateTime?
+
+  user      User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  rbac_role RBACRole  @relation(fields: [rbac_role_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, rbac_role_id, branch_id])
+  @@index([user_id])
+  @@index([branch_id])
+  @@map("user_roles")
+}
+
+// Phase 3: Enhanced Notifications
+model NotificationNew {
+  id                String   @id @default(uuid()) @db.Uuid
+  user_id           String   @db.Uuid
+  title             String
+  message           String   @db.Text
+  notification_type String
+  data              Json?
+  is_read           Boolean  @default(false)
+  read_at           DateTime?
+  created_at        DateTime @default(now())
+
+  @@index([user_id])
+  @@index([created_at])
+  @@map("notifications_new")
+}
+
+model NotificationPreference {
+  id                    String   @id @default(uuid()) @db.Uuid
+  user_id               String   @db.Uuid @unique
+  email_notifications   Boolean  @default(true)
+  push_notifications    Boolean  @default(true)
+  sms_notifications     Boolean  @default(false)
+  in_app_notifications  Boolean  @default(true)
+  muted_until           DateTime?
+  created_at            DateTime @default(now())
+  updated_at            DateTime @updatedAt
+
+  @@map("notification_preferences")
+}
+
+model DeviceToken {
+  id            String   @id @default(uuid()) @db.Uuid
+  user_id       String   @db.Uuid
+  device_token  String
+  device_type   String
+  device_name   String?
+  is_active     Boolean  @default(true)
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  @@unique([user_id, device_token])
+  @@index([user_id])
+  @@map("device_tokens")
+}
+
+// Phase 3: Logging & Monitoring
+model Log {
+  id        String   @id @default(uuid()) @db.Uuid
+  level     String
+  message   String   @db.Text
+  metadata  Json?
+  timestamp DateTime @default(now())
+
+  @@index([level])
+  @@index([timestamp])
+  @@map("logs")
+}
+
+model SystemHealthCheck {
+  id         String   @id @default(uuid()) @db.Uuid
+  check_type String
+  status     String
+  details    Json?
+  checked_at DateTime @default(now())
+
+  @@index([check_type])
+  @@index([checked_at])
+  @@map("system_health_checks")
+}
+
+// Phase 3: File Exports
+model FileExport {
+  id            String   @id @default(uuid()) @db.Uuid
+  user_id       String   @db.Uuid
+  export_type   String
+  format        String
+  filters       Json?
+  file_url      String?
+  file_size     Int?
+  status        String   @default("pending")
+  error_message String?
+  download_count Int     @default(0)
+  expires_at    DateTime
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  @@index([user_id])
+  @@index([created_at])
+  @@map("file_exports")
+}
+
+model ExportSchedule {
+  id             String   @id @default(uuid()) @db.Uuid
+  user_id        String   @db.Uuid
+  export_type    String
+  format         String
+  frequency      String
+  filters        Json?
+  recipients     String[]
+  next_run_at    DateTime
+  is_active      Boolean  @default(true)
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+
+  @@index([user_id])
+  @@index([next_run_at])
+  @@map("export_schedules")
+}
+
+// Phase 3: Backups
+model Backup {
+  id              String   @id @default(uuid()) @db.Uuid
+  backup_type     String
+  backup_size     Int
+  file_path       String?
+  cloud_url       String?
+  status          String   @default("completed")
+  error_message   String?
+  created_at      DateTime @default(now())
+  verified_at     DateTime?
+  retention_until DateTime
+
+  @@index([created_at])
+  @@index([backup_type])
+  @@map("backups")
+}
+
+model BackupSchedule {
+  id            String   @id @default(uuid()) @db.Uuid
+  backup_type   String
+  frequency     String
+  time_of_day   String
+  retention_days Int
+  is_active     Boolean  @default(true)
+  next_run_at   DateTime
+  last_run_at   DateTime?
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  @@index([next_run_at])
+  @@map("backup_schedules")
+}

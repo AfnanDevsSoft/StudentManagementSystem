@@ -1,0 +1,193 @@
+// Phase 3: Advanced Role-Based Access Control
+model Permission {
+  id              String   @id @default(uuid()) @db.Uuid
+  permission_name String   @unique
+  description     String?
+  resource        String
+  action          String   // create, read, update, delete
+  created_at      DateTime @default(now())
+
+  rbac_roles      RBACRole[]
+
+  @@index([resource])
+  @@map("permissions")
+}
+
+model RBACRole {
+  id          String   @id @default(uuid()) @db.Uuid
+  branch_id   String   @db.Uuid
+  role_name   String
+  description String?
+  is_system   Boolean  @default(false)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  permissions Permission[]
+  user_roles  UserRole[]
+
+  @@unique([branch_id, role_name])
+  @@index([branch_id])
+  @@map("rbac_roles")
+}
+
+model UserRole {
+  id          String   @id @default(uuid()) @db.Uuid
+  user_id     String   @db.Uuid
+  rbac_role_id String  @db.Uuid
+  branch_id   String   @db.Uuid
+  assigned_by String   @db.Uuid
+  assigned_at DateTime @default(now())
+  expires_at  DateTime?
+
+  user      User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  rbac_role RBACRole  @relation(fields: [rbac_role_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, rbac_role_id, branch_id])
+  @@index([user_id])
+  @@index([branch_id])
+  @@map("user_roles")
+}
+
+// Phase 3: Enhanced Notifications (replacing old one)
+model NotificationNew {
+  id                String   @id @default(uuid()) @db.Uuid
+  user_id           String   @db.Uuid
+  title             String
+  message           String   @db.Text
+  notification_type String   // email, sms, in_app, push
+  data              Json?
+  is_read           Boolean  @default(false)
+  read_at           DateTime?
+  created_at        DateTime @default(now())
+
+  @@index([user_id])
+  @@index([created_at])
+  @@map("notifications_new")
+}
+
+model NotificationPreference {
+  id                    String   @id @default(uuid()) @db.Uuid
+  user_id               String   @db.Uuid @unique
+  email_notifications   Boolean  @default(true)
+  push_notifications    Boolean  @default(true)
+  sms_notifications     Boolean  @default(false)
+  in_app_notifications  Boolean  @default(true)
+  muted_until           DateTime?
+  created_at            DateTime @default(now())
+  updated_at            DateTime @updatedAt
+
+  @@map("notification_preferences")
+}
+
+model DeviceToken {
+  id            String   @id @default(uuid()) @db.Uuid
+  user_id       String   @db.Uuid
+  device_token  String
+  device_type   String   // web, mobile, tablet
+  device_name   String?
+  is_active     Boolean  @default(true)
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  @@unique([user_id, device_token])
+  @@index([user_id])
+  @@map("device_tokens")
+}
+
+// Phase 3: Logging & Monitoring
+model Log {
+  id        String   @id @default(uuid()) @db.Uuid
+  level     String   // debug, info, warn, error
+  message   String   @db.Text
+  metadata  Json?
+  timestamp DateTime @default(now())
+
+  @@index([level])
+  @@index([timestamp])
+  @@map("logs")
+}
+
+model SystemHealthCheck {
+  id         String   @id @default(uuid()) @db.Uuid
+  check_type String   // database, memory, disk, api
+  status     String   // healthy, warning, critical
+  details    Json?
+  checked_at DateTime @default(now())
+
+  @@index([check_type])
+  @@index([checked_at])
+  @@map("system_health_checks")
+}
+
+// Phase 3: File Exports
+model FileExport {
+  id            String   @id @default(uuid()) @db.Uuid
+  user_id       String   @db.Uuid
+  export_type   String   // students, teachers, reports, attendance, fees
+  format        String   // pdf, excel, csv
+  filters       Json?
+  file_url      String?
+  file_size     Int?
+  status        String   @default("pending") // pending, processing, completed, failed
+  error_message String?
+  download_count Int     @default(0)
+  expires_at    DateTime
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  @@index([user_id])
+  @@index([created_at])
+  @@map("file_exports")
+}
+
+model ExportSchedule {
+  id             String   @id @default(uuid()) @db.Uuid
+  user_id        String   @db.Uuid
+  export_type    String
+  format         String
+  frequency      String   // once, daily, weekly, monthly
+  filters        Json?
+  recipients     String[] // email addresses
+  next_run_at    DateTime
+  is_active      Boolean  @default(true)
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+
+  @@index([user_id])
+  @@index([next_run_at])
+  @@map("export_schedules")
+}
+
+// Phase 3: Backups
+model Backup {
+  id              String   @id @default(uuid()) @db.Uuid
+  backup_type     String   // full, incremental
+  backup_size     Int
+  file_path       String?
+  cloud_url       String?
+  status          String   @default("completed") // pending, processing, completed, failed
+  error_message   String?
+  created_at      DateTime @default(now())
+  verified_at     DateTime?
+  retention_until DateTime
+
+  @@index([created_at])
+  @@index([backup_type])
+  @@map("backups")
+}
+
+model BackupSchedule {
+  id            String   @id @default(uuid()) @db.Uuid
+  backup_type   String   // full, incremental
+  frequency     String   // daily, weekly, monthly
+  time_of_day   String   // HH:MM format
+  retention_days Int
+  is_active     Boolean  @default(true)
+  next_run_at   DateTime
+  last_run_at   DateTime?
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  @@index([next_run_at])
+  @@map("backup_schedules")
+}

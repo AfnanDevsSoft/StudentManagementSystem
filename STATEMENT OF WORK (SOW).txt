@@ -1,0 +1,164 @@
+                                    STATEMENT OF WORK (SOW)
+
+Student Portal
+
+These features improve student experience, learning, and engagement.
+
+1.⁠⁠Dashboard
+​      •​    Personalized timetable
+​      •​    Upcoming assignments & deadlines
+​      •​    Attendance summary
+​      •​    Fee status & notifications
+​      •​    AI academic progress insights
+
+2.⁠⁠Classes & Learning Material
+​       •​    Access to class notes, books, and uploaded documents
+​       •​    Video lectures
+​       •​    Homework/assignments with submission option
+​       •​    Downloadable study materials
+
+3.⁠⁠Attendance & Performance
+​       •​    Daily/weekly/monthly attendance records
+​       •​    Attendance notifications
+​       •​    Result history
+​       •​    GPA calculators
+​       •​    AI alerts for performance decline
+
+4.⁠⁠Exams & Assessments
+​      •​    Exam schedule
+​      •​    Online quizzes/tests
+​      •​    Past papers
+​      •​    Marks & evaluation feedback
+
+5.⁠⁠Communication
+​      •​   Direct messaging with teachers (controlled)
+​      •​   Announcements
+​      •​   Parent notifications (if under 18)
+​      •​   Support ticket/helpdesk
+
+6.⁠⁠Fee & Finance
+​       •​    Fee invoices
+​       •​    Online payment link
+​       •​    Payment history
+​       •​    Due date reminders
+
+7.⁠⁠Other Powerful Features
+​     •​     Course registration
+​     •​     Event calendar
+​     •​     Certificates & transcripts download
+​     •​     Transport info (if school offers it)
+​     •​     Hostel info (if applicable)
+
+Teacher Portal
+
+This portal should make teaching easier and automate their responsibilities.
+
+1.⁠⁠Teacher Dashboard
+​       •​    Daily class schedule
+​       •​    Quick attendance marking
+​       •​    Pending assignments to check
+​       •​    AI class performance insights
+
+2.⁠⁠Student Management
+​       •​    View student profiles
+​       •​    Track student attendance & performance
+​       •​    Identify weak students via AI
+​       •​    Behaviour/discipline remarks
+
+3.⁠⁠Attendance System
+​       •​    Quick attendance (manual/QR/RFID)
+​       •​    Auto-sync with payroll
+
+4.⁠⁠Academic Content Management
+​      •​    Upload notes, assignments, study materials
+​      •​    Create quizzes/tests
+​      •​    Upload results and grading
+
+5.⁠⁠Communication
+​      •​   Send announcements to class
+​      •​   Message students/parents (with monitoring)
+​      •​   Contact administration
+
+6.⁠⁠Leave & HR Functions
+​      •​    Leave request submission
+​      •​    Leave history
+​      •​    Payroll linked salary details
+​      •​    Performance review log
+
+7.⁠⁠Admin Features for Teachers (Optional)
+​      •​    Class-wise report generation
+​      •​    Course planning & lesson plans
+​      •​    Seat plans for exams
+Admin Portal
+
+
+1.⁠⁠Super Admin Dashboard
+​      •​    Overall student strength
+​      •​    Admissions overview
+​      •​    Fee collection summary
+​      •​    AI predictive analytics (admissions, drop-outs, performance)
+​      •​    Branch-wise comparison (if multi-branch)
+
+2.⁠⁠User Management
+​      •​    Create/manage student accounts
+​      •​    Create/manage teacher accounts
+​      •​    Create/manage sub-admins
+​      •​    Role-based access control
+
+3.⁠⁠Academic Management
+​      •​    Class/section creation
+​      •​    Subject allocation
+​      •​    Exam schedules
+​      •​    Timetable generator
+​      •​    Promotions & graduations
+
+4.⁠⁠Finance & Accounting
+​       •​    Fee structure creation
+​       •​    Invoice generation
+​       •​    Online fee tracking
+​       •​    Scholarship & discount management
+​       •​    Expense tracking (optional)
+
+5.⁠⁠Admission Management
+​      •​     Online admission forms
+​      •​     Application review workflow
+​      •​     Student enrollment approval
+​      •​     ID generation
+
+6.⁠⁠Communication & Notifications
+​      •​   Send SMS/email/app notifications
+​      •​   Announcement board
+​      •​   Auto-notifications (fees due, attendance, results)
+
+7.⁠⁠Report Generation
+​      •​    Student reports
+​      •​    Teacher performance reports
+​      •​    Fee reports
+​      •​    Attendance reports
+​      •​   Customizable PDF/Excel exports
+
+8.⁠⁠Branch Management (if multi-location)
+​       •​   Add/edit branches
+​       •​   Branch admins
+​       •​   Consolidated analytics
+​       •​   Branch comparison dashboards
+
+9.⁠⁠System Settings
+​       •​   Logo, name, branding
+​       •​   Academic year settings
+​       •​   Database backups
+​       •​   Security controls
+
+
+AI Tools
+​      •​   Predict student dropout risk
+​      •​   Predict fee default
+​      •​   Suggest teacher training
+​      •​   Identify high-performing students
+​      •​   Automated timetable optimization
+
+Mobile App Integration
+​     •​     Student app
+​     •​     Teacher app
+​     •​     Parent app
+

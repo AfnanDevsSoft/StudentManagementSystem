@@ -1,0 +1,584 @@
+[0;34m════════════════════════════════════════════════[0m
+[0;34m   API ENDPOINT TESTING - Student Management[0m
+[0;34m════════════════════════════════════════════════[0m
+
+[1;33m1. HEALTH CHECK ENDPOINTS[0m
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mTest #1: Health Check[0m
+Method: GET | Endpoint: /health
+head: illegal line count -- -1
+Response Code: 000
+[0;31m✗ FAILED[0m
+Response: 
+
+
+[1;33m2. AUTH ENDPOINTS[0m
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mTest #2: Login[0m
+Method: POST | Endpoint: /auth/login
+head: illegal line count -- -1
+Response Code: 000
+[0;31m✗ FAILED[0m
+Response: 
+
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mTest #3: Register[0m
+Method: POST | Endpoint: /auth/register
+head: illegal line count -- -1
+Response Code: 000
+[0;31m✗ FAILED[0m
+Response: 
+
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mTest #4: Refresh Token[0m
+Method: POST | Endpoint: /auth/refresh
+head: illegal line count -- -1
+Response Code: 000
+[0;31m✗ FAILED[0m
+Response: 
+
+
+[1;33m3. BRANCHES ENDPOINTS[0m
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mTest #5: Get All Branches[0m
+Method: GET | Endpoint: /branches
+head: illegal line count -- -1
+Response Code: 000
+[0;31m✗ FAILED[0m
+Response: 
+
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mTest #6: Create Branch[0m
+Method: POST | Endpoint: /branches
+head: illegal line count -- -1
+Response Code: 000
+[0;31m✗ FAILED[0m
+Response: 
+
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mTest #7: Get Branch By ID[0m
+Method: GET | Endpoint: /branches/1
+head: illegal line count -- -1
+Response Code: 000
+[0;31m✗ FAILED[0m
+Response: 
+
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mTest #8: Update Branch[0m
+Method: PUT | Endpoint: /branches/1
+head: illegal line count -- -1
+Response Code: 000
+[0;31m✗ FAILED[0m
+Response: 
+
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mTest #9: Delete Branch[0m
+Method: DELETE | Endpoint: /branches/1
+head: illegal line count -- -1
+Response Code: 000
+[0;31m✗ FAILED[0m
+Response: 
+
+
+[1;33m4. USERS ENDPOINTS[0m
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mTest #10: Get All Users[0m
+Method: GET | Endpoint: /users
+head: illegal line count -- -1
+Response Code: 000
+[0;31m✗ FAILED[0m
+Response: 
+
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mTest #11: Create User[0m
+Method: POST | Endpoint: /users
+head: illegal line count -- -1
+Response Code: 000
+[0;31m✗ FAILED[0m
+Response: 
+
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mTest #12: Get User By ID[0m
+Method: GET | Endpoint: /users/1
+head: illegal line count -- -1
+Response Code: 000
+[0;31m✗ FAILED[0m
+Response: 
+
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mTest #13: Update User[0m
+Method: PUT | Endpoint: /users/1
+head: illegal line count -- -1
+Response Code: 000
+[0;31m✗ FAILED[0m
+Response: 
+
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mTest #14: Delete User[0m
+Method: DELETE | Endpoint: /users/1
+head: illegal line count -- -1
+Response Code: 000
+[0;31m✗ FAILED[0m
+Response: 
+
+
+[1;33m5. STUDENTS ENDPOINTS[0m
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mTest #15: Get All Students[0m
+Method: GET | Endpoint: /students
+head: illegal line count -- -1
+Response Code: 000
+[0;31m✗ FAILED[0m
+Response: 
+
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mTest #16: Create Student[0m
+Method: POST | Endpoint: /students
+head: illegal line count -- -1
+Response Code: 000
+[0;31m✗ FAILED[0m
+Response: 
+
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mTest #17: Get Student By ID[0m
+Method: GET | Endpoint: /students/1
+head: illegal line count -- -1
+Response Code: 000
+[0;31m✗ FAILED[0m
+Response: 
+
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mTest #18: Update Student[0m
+Method: PUT | Endpoint: /students/1
+head: illegal line count -- -1
+Response Code: 000
+[0;31m✗ FAILED[0m
+Response: 
+
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mTest #19: Delete Student[0m
+Method: DELETE | Endpoint: /students/1
+head: illegal line count -- -1
+Response Code: 000
+[0;31m✗ FAILED[0m
+Response: 
+
+
+[1;33m6. TEACHERS ENDPOINTS[0m
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mTest #20: Get All Teachers[0m
+Method: GET | Endpoint: /teachers
+head: illegal line count -- -1
+Response Code: 000
+[0;31m✗ FAILED[0m
+Response: 
+
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mTest #21: Create Teacher[0m
+Method: POST | Endpoint: /teachers
+head: illegal line count -- -1
+Response Code: 000
+[0;31m✗ FAILED[0m
+Response: 
+
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mTest #22: Get Teacher By ID[0m
+Method: GET | Endpoint: /teachers/1
+head: illegal line count -- -1
+Response Code: 000
+[0;31m✗ FAILED[0m
+Response: 
+
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mTest #23: Update Teacher[0m
+Method: PUT | Endpoint: /teachers/1
+head: illegal line count -- -1
+Response Code: 000
+[0;31m✗ FAILED[0m
+Response: 
+
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mTest #24: Delete Teacher[0m
+Method: DELETE | Endpoint: /teachers/1
+head: illegal line count -- -1
+Response Code: 000
+[0;31m✗ FAILED[0m
+Response: 
+
+
+[1;33m7. COURSES ENDPOINTS[0m
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mTest #25: Get All Courses[0m
+Method: GET | Endpoint: /courses
+head: illegal line count -- -1
+Response Code: 000
+[0;31m✗ FAILED[0m
+Response: 
+
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mTest #26: Create Course[0m
+Method: POST | Endpoint: /courses
+head: illegal line count -- -1
+Response Code: 000
+[0;31m✗ FAILED[0m
+Response: 
+
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mTest #27: Get Course By ID[0m
+Method: GET | Endpoint: /courses/1
+head: illegal line count -- -1
+Response Code: 000
+[0;31m✗ FAILED[0m
+Response: 
+
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mTest #28: Update Course[0m
+Method: PUT | Endpoint: /courses/1
+head: illegal line count -- -1
+Response Code: 000
+[0;31m✗ FAILED[0m
+Response: 
+
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mTest #29: Delete Course[0m
+Method: DELETE | Endpoint: /courses/1
+head: illegal line count -- -1
+Response Code: 000
+[0;31m✗ FAILED[0m
+Response: 
+
+
+[1;33m8. FEES ENDPOINTS[0m
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mTest #30: Get All Fees[0m
+Method: GET | Endpoint: /fees
+head: illegal line count -- -1
+Response Code: 000
+[0;31m✗ FAILED[0m
+Response: 
+
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mTest #31: Create Fee[0m
+Method: POST | Endpoint: /fees
+head: illegal line count -- -1
+Response Code: 000
+[0;31m✗ FAILED[0m
+Response: 
+
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mTest #32: Get Fee By ID[0m
+Method: GET | Endpoint: /fees/1
+head: illegal line count -- -1
+Response Code: 000
+[0;31m✗ FAILED[0m
+Response: 
+
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mTest #33: Update Fee[0m
+Method: PUT | Endpoint: /fees/1
+head: illegal line count -- -1
+Response Code: 000
+[0;31m✗ FAILED[0m
+Response: 
+
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mTest #34: Delete Fee[0m
+Method: DELETE | Endpoint: /fees/1
+head: illegal line count -- -1
+Response Code: 000
+[0;31m✗ FAILED[0m
+Response: 
+
+
+[1;33m9. LEAVE ENDPOINTS[0m
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mTest #35: Get All Leaves[0m
+Method: GET | Endpoint: /leaves
+head: illegal line count -- -1
+Response Code: 000
+[0;31m✗ FAILED[0m
+Response: 
+
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mTest #36: Create Leave[0m
+Method: POST | Endpoint: /leaves
+head: illegal line count -- -1
+Response Code: 000
+[0;31m✗ FAILED[0m
+Response: 
+
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mTest #37: Get Leave By ID[0m
+Method: GET | Endpoint: /leaves/1
+head: illegal line count -- -1
+Response Code: 000
+[0;31m✗ FAILED[0m
+Response: 
+
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mTest #38: Approve Leave[0m
+Method: PUT | Endpoint: /leaves/1
+head: illegal line count -- -1
+Response Code: 000
+[0;31m✗ FAILED[0m
+Response: 
+
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mTest #39: Delete Leave[0m
+Method: DELETE | Endpoint: /leaves/1
+head: illegal line count -- -1
+Response Code: 000
+[0;31m✗ FAILED[0m
+Response: 
+
+
+[1;33m10. NOTIFICATION ENDPOINTS[0m
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mTest #40: Get All Notifications[0m
+Method: GET | Endpoint: /notifications
+head: illegal line count -- -1
+Response Code: 000
+[0;31m✗ FAILED[0m
+Response: 
+
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mTest #41: Create Notification[0m
+Method: POST | Endpoint: /notifications
+head: illegal line count -- -1
+Response Code: 000
+[0;31m✗ FAILED[0m
+Response: 
+
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mTest #42: Get Notification By ID[0m
+Method: GET | Endpoint: /notifications/1
+head: illegal line count -- -1
+Response Code: 000
+[0;31m✗ FAILED[0m
+Response: 
+
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mTest #43: Mark as Read[0m
+Method: PUT | Endpoint: /notifications/1
+head: illegal line count -- -1
+Response Code: 000
+[0;31m✗ FAILED[0m
+Response: 
+
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mTest #44: Delete Notification[0m
+Method: DELETE | Endpoint: /notifications/1
+head: illegal line count -- -1
+Response Code: 000
+[0;31m✗ FAILED[0m
+Response: 
+
+
+[1;33m11. PAYROLL ENDPOINTS[0m
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mTest #45: Get All Payrolls[0m
+Method: GET | Endpoint: /payrolls
+head: illegal line count -- -1
+Response Code: 000
+[0;31m✗ FAILED[0m
+Response: 
+
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mTest #46: Create Payroll[0m
+Method: POST | Endpoint: /payrolls
+head: illegal line count -- -1
+Response Code: 000
+[0;31m✗ FAILED[0m
+Response: 
+
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mTest #47: Get Payroll By ID[0m
+Method: GET | Endpoint: /payrolls/1
+head: illegal line count -- -1
+Response Code: 000
+[0;31m✗ FAILED[0m
+Response: 
+
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mTest #48: Update Payroll[0m
+Method: PUT | Endpoint: /payrolls/1
+head: illegal line count -- -1
+Response Code: 000
+[0;31m✗ FAILED[0m
+Response: 
+
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mTest #49: Delete Payroll[0m
+Method: DELETE | Endpoint: /payrolls/1
+head: illegal line count -- -1
+Response Code: 000
+[0;31m✗ FAILED[0m
+Response: 
+
+
+[1;33m12. ANNOUNCEMENT ENDPOINTS[0m
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mTest #50: Get All Announcements[0m
+Method: GET | Endpoint: /announcements
+head: illegal line count -- -1
+Response Code: 000
+[0;31m✗ FAILED[0m
+Response: 
+
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mTest #51: Create Announcement[0m
+Method: POST | Endpoint: /announcements
+head: illegal line count -- -1
+Response Code: 000
+[0;31m✗ FAILED[0m
+Response: 
+
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mTest #52: Get Announcement By ID[0m
+Method: GET | Endpoint: /announcements/1
+head: illegal line count -- -1
+Response Code: 000
+[0;31m✗ FAILED[0m
+Response: 
+
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mTest #53: Update Announcement[0m
+Method: PUT | Endpoint: /announcements/1
+head: illegal line count -- -1
+Response Code: 000
+[0;31m✗ FAILED[0m
+Response: 
+
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mTest #54: Delete Announcement[0m
+Method: DELETE | Endpoint: /announcements/1
+head: illegal line count -- -1
+Response Code: 000
+[0;31m✗ FAILED[0m
+Response: 
+
+
+[1;33m13. ANALYTICS ENDPOINTS[0m
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mTest #55: Student Analytics Overview[0m
+Method: GET | Endpoint: /analytics/students/overview
+head: illegal line count -- -1
+Response Code: 000
+[0;31m✗ FAILED[0m
+Response: 
+
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mTest #56: Attendance Analytics[0m
+Method: GET | Endpoint: /analytics/attendance/summary
+head: illegal line count -- -1
+Response Code: 000
+[0;31m✗ FAILED[0m
+Response: 
+
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mTest #57: Fees Analytics[0m
+Method: GET | Endpoint: /analytics/fees/overview
+head: illegal line count -- -1
+Response Code: 000
+[0;31m✗ FAILED[0m
+Response: 
+
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mTest #58: Performance Analytics[0m
+Method: GET | Endpoint: /analytics/performance
+head: illegal line count -- -1
+Response Code: 000
+[0;31m✗ FAILED[0m
+Response: 
+
+
+[1;33m14. REPORTING ENDPOINTS[0m
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mTest #59: Student Report[0m
+Method: GET | Endpoint: /reports/students
+head: illegal line count -- -1
+Response Code: 000
+[0;31m✗ FAILED[0m
+Response: 
+
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mTest #60: Attendance Report[0m
+Method: GET | Endpoint: /reports/attendance
+head: illegal line count -- -1
+Response Code: 000
+[0;31m✗ FAILED[0m
+Response: 
+
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mTest #61: Fees Report[0m
+Method: GET | Endpoint: /reports/fees
+head: illegal line count -- -1
+Response Code: 000
+[0;31m✗ FAILED[0m
+Response: 
+
+
+[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[1;33mTest #62: Generate Report[0m
+Method: POST | Endpoint: /reports/generate
