@@ -153,7 +153,8 @@ const MessagingSystem = () => {
   }
 
   // Display messages
-  const displayMessages = searchResults && searchResults.length > 0 ? searchResults : (tabValue === 0 ? inbox : sent) || []
+  const displayMessages =
+    searchResults && searchResults.length > 0 ? searchResults : (tabValue === 0 ? inbox : sent) || []
 
   return (
     <Box sx={{ py: 3, px: 2 }}>
@@ -180,11 +181,7 @@ const MessagingSystem = () => {
             )}
           </Typography>
         </Box>
-        <Button
-          variant='contained'
-          startIcon={<Plus size={18} />}
-          onClick={() => setOpenCompose(true)}
-        >
+        <Button variant='contained' startIcon={<Plus size={18} />} onClick={() => setOpenCompose(true)}>
           New Message
         </Button>
       </Box>
@@ -226,11 +223,7 @@ const MessagingSystem = () => {
             </CardContent>
 
             {/* Tabs */}
-            <Tabs
-              value={tabValue}
-              onChange={handleTabChange}
-              sx={{ px: 2, borderBottom: 1, borderColor: 'divider' }}
-            >
+            <Tabs value={tabValue} onChange={handleTabChange} sx={{ px: 2, borderBottom: 1, borderColor: 'divider' }}>
               <Tab label={`Inbox (${unreadCount || 0})`} />
               <Tab label='Sent' />
             </Tabs>
@@ -262,10 +255,7 @@ const MessagingSystem = () => {
                         <ListItemText
                           primary={
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                              <Typography
-                                variant='body2'
-                                sx={{ fontWeight: message.isRead === false ? 700 : 500 }}
-                              >
+                              <Typography variant='body2' sx={{ fontWeight: message.isRead === false ? 700 : 500 }}>
                                 {message.subject || 'No Subject'}
                               </Typography>
                               {message.isRead === false && (
@@ -288,7 +278,9 @@ const MessagingSystem = () => {
                 <Box sx={{ p: 4, textAlign: 'center' }}>
                   <Mail size={40} style={{ opacity: 0.5, marginBottom: 16 }} />
                   <Typography variant='body2' color='textSecondary'>
-                    {searchResults && searchResults.length === 0 && searchTerm ? 'No messages found' : 'No messages yet'}
+                    {searchResults && searchResults.length === 0 && searchTerm
+                      ? 'No messages found'
+                      : 'No messages yet'}
                   </Typography>
                 </Box>
               )}
@@ -430,30 +422,18 @@ const MessagingSystem = () => {
                         helperText={errors.messageBody?.message}
                         disabled={isSubmitting}
                       />
-                      <FormHelperText>
-                        {getValues('messageBody').length}/5000 characters
-                      </FormHelperText>
+                      <FormHelperText>{getValues('messageBody').length}/5000 characters</FormHelperText>
                     </Box>
                   )}
                 />
 
                 {/* Action Buttons */}
                 <Box sx={{ display: 'flex', gap: 1 }}>
-                  <Button
-                    type='submit'
-                    variant='contained'
-                    fullWidth
-                    disabled={isSubmitting || loading}
-                  >
+                  <Button type='submit' variant='contained' fullWidth disabled={isSubmitting || loading}>
                     {isSubmitting || loading ? <CircularProgress size={20} sx={{ mr: 1 }} /> : null}
                     Send
                   </Button>
-                  <Button
-                    variant='outlined'
-                    fullWidth
-                    onClick={handleCloseCompose}
-                    disabled={isSubmitting || loading}
-                  >
+                  <Button variant='outlined' fullWidth onClick={handleCloseCompose} disabled={isSubmitting || loading}>
                     Cancel
                   </Button>
                 </Box>

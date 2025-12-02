@@ -138,9 +138,8 @@ const AnnouncementsBoardWithValidation = () => {
   }
 
   // Filter announcements
-  const filteredAnnouncements = announcements?.filter(
-    ann => filterPriority === 'all' || ann.priority === filterPriority
-  ) || []
+  const filteredAnnouncements =
+    announcements?.filter(ann => filterPriority === 'all' || ann.priority === filterPriority) || []
 
   // Sort announcements (pinned first)
   const sortedAnnouncements = [
@@ -163,10 +162,7 @@ const AnnouncementsBoardWithValidation = () => {
             {sortedAnnouncements.length} announcements
           </Typography>
         </Box>
-        <Button
-          variant='contained'
-          onClick={() => setOpenCreate(true)}
-        >
+        <Button variant='contained' onClick={() => setOpenCreate(true)}>
           New Announcement
         </Button>
       </Box>
@@ -182,11 +178,7 @@ const AnnouncementsBoardWithValidation = () => {
       <Box sx={{ mb: 3, display: 'flex', gap: 1 }}>
         <FormControl size='small' sx={{ minWidth: 150 }}>
           <InputLabel>Priority</InputLabel>
-          <Select
-            value={filterPriority}
-            onChange={e => setFilterPriority(e.target.value)}
-            label='Priority'
-          >
+          <Select value={filterPriority} onChange={e => setFilterPriority(e.target.value)} label='Priority'>
             <MenuItem value='all'>All Priorities</MenuItem>
             <MenuItem value='low'>Low</MenuItem>
             <MenuItem value='medium'>Medium</MenuItem>
@@ -274,11 +266,7 @@ const AnnouncementsBoardWithValidation = () => {
                       variant='outlined'
                     />
                     {announcement.courseId && (
-                      <Chip
-                        label={`Course: ${announcement.courseId}`}
-                        size='small'
-                        variant='outlined'
-                      />
+                      <Chip label={`Course: ${announcement.courseId}`} size='small' variant='outlined' />
                     )}
                     {announcement.expiryDate && (
                       <Typography variant='caption' color='textSecondary'>
@@ -323,12 +311,7 @@ const AnnouncementsBoardWithValidation = () => {
       </Grid>
 
       {/* Create Dialog */}
-      <Dialog
-        open={openCreate}
-        onClose={handleCloseCreate}
-        maxWidth='sm'
-        fullWidth
-      >
+      <Dialog open={openCreate} onClose={handleCloseCreate} maxWidth='sm' fullWidth>
         <DialogTitle>Create New Announcement</DialogTitle>
         <DialogContent>
           <Box sx={{ pt: 2 }}>
@@ -369,9 +352,7 @@ const AnnouncementsBoardWithValidation = () => {
                       helperText={errors.content?.message}
                       disabled={isSubmitting}
                     />
-                    <FormHelperText>
-                      {getValues('content').length}/3000 characters
-                    </FormHelperText>
+                    <FormHelperText>{getValues('content').length}/3000 characters</FormHelperText>
                   </Box>
                 )}
               />
@@ -384,18 +365,12 @@ const AnnouncementsBoardWithValidation = () => {
                 render={({ field }) => (
                   <FormControl fullWidth sx={{ mb: 2 }} error={!!errors.courseId}>
                     <InputLabel>Course</InputLabel>
-                    <Select
-                      {...field}
-                      label='Course'
-                      disabled={isSubmitting}
-                    >
+                    <Select {...field} label='Course' disabled={isSubmitting}>
                       <MenuItem value='course-001'>Course 001</MenuItem>
                       <MenuItem value='course-002'>Course 002</MenuItem>
                       <MenuItem value='course-003'>Course 003</MenuItem>
                     </Select>
-                    {errors.courseId && (
-                      <FormHelperText>{errors.courseId.message}</FormHelperText>
-                    )}
+                    {errors.courseId && <FormHelperText>{errors.courseId.message}</FormHelperText>}
                   </FormControl>
                 )}
               />
@@ -408,18 +383,12 @@ const AnnouncementsBoardWithValidation = () => {
                 render={({ field }) => (
                   <FormControl fullWidth sx={{ mb: 2 }} error={!!errors.priority}>
                     <InputLabel>Priority</InputLabel>
-                    <Select
-                      {...field}
-                      label='Priority'
-                      disabled={isSubmitting}
-                    >
+                    <Select {...field} label='Priority' disabled={isSubmitting}>
                       <MenuItem value='low'>Low</MenuItem>
                       <MenuItem value='medium'>Medium</MenuItem>
                       <MenuItem value='high'>High</MenuItem>
                     </Select>
-                    {errors.priority && (
-                      <FormHelperText>{errors.priority.message}</FormHelperText>
-                    )}
+                    {errors.priority && <FormHelperText>{errors.priority.message}</FormHelperText>}
                   </FormControl>
                 )}
               />
@@ -451,11 +420,7 @@ const AnnouncementsBoardWithValidation = () => {
           <Button onClick={handleCloseCreate} disabled={isSubmitting}>
             Cancel
           </Button>
-          <Button
-            onClick={handleSubmit(onCreateSubmit)}
-            variant='contained'
-            disabled={isSubmitting}
-          >
+          <Button onClick={handleSubmit(onCreateSubmit)} variant='contained' disabled={isSubmitting}>
             {isSubmitting ? <CircularProgress size={20} sx={{ mr: 1 }} /> : null}
             Create
           </Button>

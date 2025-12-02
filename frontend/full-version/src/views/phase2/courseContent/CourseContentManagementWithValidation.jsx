@@ -214,10 +214,7 @@ const CourseContentManagementWithValidation = () => {
             Upload and manage course materials
           </Typography>
         </Box>
-        <Button
-          variant='contained'
-          onClick={() => setOpenUpload(true)}
-        >
+        <Button variant='contained' onClick={() => setOpenUpload(true)}>
           Upload Content
         </Button>
       </Box>
@@ -280,11 +277,7 @@ const CourseContentManagementWithValidation = () => {
                       variant='outlined'
                       icon={getFileIcon(content.contentType)}
                     />
-                    <Chip
-                      label={`${Math.round(content.fileSize / 1024)}KB`}
-                      size='small'
-                      variant='outlined'
-                    />
+                    <Chip label={`${Math.round(content.fileSize / 1024)}KB`} size='small' variant='outlined' />
                   </Box>
 
                   {/* Meta Info */}
@@ -311,12 +304,7 @@ const CourseContentManagementWithValidation = () => {
       </Grid>
 
       {/* Upload Dialog */}
-      <Dialog
-        open={openUpload}
-        onClose={handleCloseUpload}
-        maxWidth='sm'
-        fullWidth
-      >
+      <Dialog open={openUpload} onClose={handleCloseUpload} maxWidth='sm' fullWidth>
         <DialogTitle>Upload Course Content</DialogTitle>
         <DialogContent>
           <Box sx={{ pt: 2 }}>
@@ -329,18 +317,12 @@ const CourseContentManagementWithValidation = () => {
                 render={({ field }) => (
                   <FormControl fullWidth sx={{ mb: 2 }} error={!!errors.courseId}>
                     <InputLabel>Course</InputLabel>
-                    <Select
-                      {...field}
-                      label='Course'
-                      disabled={isSubmitting}
-                    >
+                    <Select {...field} label='Course' disabled={isSubmitting}>
                       <MenuItem value='course-001'>Course 001</MenuItem>
                       <MenuItem value='course-002'>Course 002</MenuItem>
                       <MenuItem value='course-003'>Course 003</MenuItem>
                     </Select>
-                    {errors.courseId && (
-                      <FormHelperText>{errors.courseId.message}</FormHelperText>
-                    )}
+                    {errors.courseId && <FormHelperText>{errors.courseId.message}</FormHelperText>}
                   </FormControl>
                 )}
               />
@@ -353,18 +335,12 @@ const CourseContentManagementWithValidation = () => {
                 render={({ field }) => (
                   <FormControl fullWidth sx={{ mb: 2 }} error={!!errors.lessonId}>
                     <InputLabel>Lesson</InputLabel>
-                    <Select
-                      {...field}
-                      label='Lesson'
-                      disabled={isSubmitting}
-                    >
+                    <Select {...field} label='Lesson' disabled={isSubmitting}>
                       <MenuItem value='lesson-001'>Lesson 001</MenuItem>
                       <MenuItem value='lesson-002'>Lesson 002</MenuItem>
                       <MenuItem value='lesson-003'>Lesson 003</MenuItem>
                     </Select>
-                    {errors.lessonId && (
-                      <FormHelperText>{errors.lessonId.message}</FormHelperText>
-                    )}
+                    {errors.lessonId && <FormHelperText>{errors.lessonId.message}</FormHelperText>}
                   </FormControl>
                 )}
               />
@@ -417,20 +393,14 @@ const CourseContentManagementWithValidation = () => {
                 render={({ field }) => (
                   <FormControl fullWidth sx={{ mb: 2 }} error={!!errors.contentType}>
                     <InputLabel>Content Type</InputLabel>
-                    <Select
-                      {...field}
-                      label='Content Type'
-                      disabled={isSubmitting}
-                    >
+                    <Select {...field} label='Content Type' disabled={isSubmitting}>
                       <MenuItem value='video'>Video</MenuItem>
                       <MenuItem value='pdf'>PDF Document</MenuItem>
                       <MenuItem value='image'>Image</MenuItem>
                       <MenuItem value='document'>Document</MenuItem>
                       <MenuItem value='audio'>Audio</MenuItem>
                     </Select>
-                    {errors.contentType && (
-                      <FormHelperText>{errors.contentType.message}</FormHelperText>
-                    )}
+                    {errors.contentType && <FormHelperText>{errors.contentType.message}</FormHelperText>}
                   </FormControl>
                 )}
               />
@@ -457,9 +427,7 @@ const CourseContentManagementWithValidation = () => {
                   </Button>
                 </label>
                 {selectedFile && (
-                  <FormHelperText sx={{ mt: 1 }}>
-                    Size: {(selectedFile.size / 1024 / 1024).toFixed(2)}MB
-                  </FormHelperText>
+                  <FormHelperText sx={{ mt: 1 }}>Size: {(selectedFile.size / 1024 / 1024).toFixed(2)}MB</FormHelperText>
                 )}
               </Box>
 
@@ -476,11 +444,7 @@ const CourseContentManagementWithValidation = () => {
           <Button onClick={handleCloseUpload} disabled={isSubmitting}>
             Cancel
           </Button>
-          <Button
-            onClick={handleSubmit(onUploadSubmit)}
-            variant='contained'
-            disabled={isSubmitting || !selectedFile}
-          >
+          <Button onClick={handleSubmit(onUploadSubmit)} variant='contained' disabled={isSubmitting || !selectedFile}>
             {isSubmitting ? <CircularProgress size={20} sx={{ mr: 1 }} /> : null}
             Upload
           </Button>

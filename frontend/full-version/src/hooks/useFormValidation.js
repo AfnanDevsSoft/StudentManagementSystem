@@ -47,9 +47,7 @@ export const useFormValidation = () => {
   const validatePassword = useCallback(
     (password, fieldName = 'Password') => {
       if (!customValidators.isStrongPassword(password)) {
-        showError(
-          `${fieldName} must contain uppercase, lowercase, numbers, and special characters (min 8 characters)`
-        )
+        showError(`${fieldName} must contain uppercase, lowercase, numbers, and special characters (min 8 characters)`)
         return false
       }
       return true
