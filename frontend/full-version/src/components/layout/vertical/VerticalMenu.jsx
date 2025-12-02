@@ -221,6 +221,23 @@ const VerticalMenu = ({ dictionary, scrollMenu }) => {
             <MenuItem href={`/${locale}/charts/recharts`}>{dictionary['navigation'].recharts}</MenuItem>
           </SubMenu>
         </MenuSection>
+        <MenuSection label='Phase 2 Features'>
+          <SubMenu label='Analytics' icon={<i className='ri-bar-chart-line' />}>
+            <MenuItem href={`/${locale}/views/phase2/analytics`}>Dashboard</MenuItem>
+          </SubMenu>
+          <SubMenu label='Messaging' icon={<i className='ri-mail-line' />}>
+            <MenuItem href={`/${locale}/views/phase2/messaging`}>Inbox</MenuItem>
+          </SubMenu>
+          <SubMenu label='Announcements' icon={<i className='ri-notification-line' />}>
+            <MenuItem href={`/${locale}/views/phase2/announcements`}>Board</MenuItem>
+          </SubMenu>
+          <SubMenu label='Course Content' icon={<i className='ri-book-2-line' />}>
+            <MenuItem href={`/${locale}/views/phase2/courseContent`}>Management</MenuItem>
+          </SubMenu>
+          <SubMenu label='Reporting' icon={<i className='ri-file-text-line' />}>
+            <MenuItem href={`/${locale}/views/phase2/reporting`}>Interface</MenuItem>
+          </SubMenu>
+        </MenuSection>
       </Menu>
     </ScrollWrapper>
   )
