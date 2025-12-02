@@ -202,6 +202,310 @@ export const reportingValidation = {
 }
 
 /**
+ * ==================== PORTAL-SPECIFIC VALIDATIONS ====================
+ */
+
+/**
+ * Student Portal: Assignment Submission Validation
+ */
+export const assignmentSubmissionValidation = {
+  assignmentId: {
+    required: 'Assignment ID is required'
+  },
+  submissionText: {
+    minLength: {
+      value: 10,
+      message: 'Submission must be at least 10 characters'
+    },
+    maxLength: {
+      value: 5000,
+      message: 'Submission cannot exceed 5000 characters'
+    }
+  },
+  submissionFile: {
+    validate: {
+      fileSize: file => {
+        if (!file || !file[0]) return true
+        const maxSizeMB = 25
+        const fileSizeMB = file[0].size / 1024 / 1024
+        return fileSizeMB <= maxSizeMB || `File size must be less than ${maxSizeMB}MB`
+      },
+      fileType: file => {
+        if (!file || !file[0]) return true
+        const allowedTypes = [
+          'application/pdf',
+          'application/msword',
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          'application/vnd.ms-excel',
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          'text/plain'
+        ]
+        return allowedTypes.includes(file[0].type) || 'File type not allowed. Use PDF, DOC, DOCX, XLS, XLSX, or TXT'
+      }
+    }
+  },
+  comments: {
+    maxLength: {
+      value: 500,
+      message: 'Comments cannot exceed 500 characters'
+    }
+  }
+}
+
+/**
+ * Student Portal: Fee Payment Validation
+ */
+export const feePaymentValidation = {
+  amount: {
+    required: 'Amount is required',
+    validate: {
+      isPositive: value => {
+        return value > 0 || 'Amount must be greater than 0'
+      },
+      isValidNumber: value => {
+        return !isNaN(value) || 'Amount must be a valid number'
+      }
+    }
+  },
+  paymentMethod: {
+    required: 'Payment method is required'
+  },
+  referenceNumber: {
+    minLength: {
+      value: 5,
+      message: 'Reference number must be at least 5 characters'
+    },
+    maxLength: {
+      value: 50,
+      message: 'Reference number cannot exceed 50 characters'
+    }
+  },
+  transactionDate: {
+    required: 'Transaction date is required',
+    validate: {
+      isNotFuture: value => {
+        if (!value) return 'Date is required'
+        const selectedDate = new Date(value)
+        const now = new Date()
+        return selectedDate <= now || 'Transaction date cannot be in the future'
+      }
+    }
+  }
+}
+
+/**
+ * Student Portal: Leave Request Validation
+ */
+export const leaveRequestValidation = {
+  leaveType: {
+    required: 'Leave type is required'
+  },
+  startDate: {
+    required: 'Start date is required',
+    validate: {
+      isNotPast: value => {
+        if (!value) return 'Start date is required'
+        const selectedDate = new Date(value)
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+        return selectedDate >= today || 'Start date must be today or later'
+      }
+    }
+  },
+  endDate: {
+    required: 'End date is required',
+    validate: {
+      isAfterStart: (value, formValues) => {
+        if (!value || !formValues.startDate) return true
+        const startDate = new Date(formValues.startDate)
+        const endDate = new Date(value)
+        return endDate >= startDate || 'End date must be same as or after start date'
+      }
+    }
+  },
+  reason: {
+    required: 'Reason is required',
+    minLength: {
+      value: 10,
+      message: 'Reason must be at least 10 characters'
+    },
+    maxLength: {
+      value: 500,
+      message: 'Reason cannot exceed 500 characters'
+    }
+  },
+  documentFile: {
+    validate: {
+      fileType: file => {
+        if (!file || !file[0]) return true
+        const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png']
+        return allowedTypes.includes(file[0].type) || 'File type not allowed. Use PDF, JPG, or PNG'
+      }
+    }
+  }
+}
+
+/**
+ * Teacher Portal: Grade Entry Validation
+ */
+export const gradeEntryValidation = {
+  studentId: {
+    required: 'Student ID is required'
+  },
+  subjectId: {
+    required: 'Subject is required'
+  },
+  marks: {
+    required: 'Marks are required',
+    validate: {
+      isInRange: value => {
+        const numValue = parseFloat(value)
+        return (numValue >= 0 && numValue <= 100) || 'Marks must be between 0 and 100'
+      },
+      isValidNumber: value => {
+        return !isNaN(value) || 'Marks must be a valid number'
+      }
+    }
+  },
+  grade: {
+    maxLength: {
+      value: 2,
+      message: 'Grade must be maximum 2 characters'
+    }
+  },
+  remarks: {
+    maxLength: {
+      value: 500,
+      message: 'Remarks cannot exceed 500 characters'
+    }
+  }
+}
+
+/**
+ * Teacher Portal: Attendance Marking Validation
+ */
+export const attendanceMarkingValidation = {
+  classId: {
+    required: 'Class is required'
+  },
+  date: {
+    required: 'Date is required',
+    validate: {
+      isNotFuture: value => {
+        if (!value) return 'Date is required'
+        const selectedDate = new Date(value)
+        const now = new Date()
+        return selectedDate <= now || 'Attendance date cannot be in the future'
+      }
+    }
+  },
+  students: {
+    validate: {
+      hasAtLeastOne: students => {
+        return (students && students.length > 0) || 'Please select at least one student'
+      }
+    }
+  }
+}
+
+/**
+ * Admin Portal: User Creation Validation
+ */
+export const adminUserCreationValidation = {
+  firstName: {
+    required: 'First name is required',
+    minLength: {
+      value: 2,
+      message: 'First name must be at least 2 characters'
+    },
+    maxLength: {
+      value: 50,
+      message: 'First name cannot exceed 50 characters'
+    }
+  },
+  lastName: {
+    required: 'Last name is required',
+    minLength: {
+      value: 2,
+      message: 'Last name must be at least 2 characters'
+    },
+    maxLength: {
+      value: 50,
+      message: 'Last name cannot exceed 50 characters'
+    }
+  },
+  email: {
+    required: 'Email is required',
+    pattern: {
+      value: EMAIL_REGEX,
+      message: 'Please enter a valid email address'
+    }
+  },
+  phone: {
+    required: 'Phone number is required',
+    validate: {
+      isValid: phone => customValidators.isValidPhoneNumber(phone) || 'Please enter a valid phone number'
+    }
+  },
+  role: {
+    required: 'Role is required'
+  },
+  password: {
+    required: 'Password is required',
+    validate: {
+      isStrong: password =>
+        customValidators.isStrongPassword(password) ||
+        'Password must contain uppercase, lowercase, numbers, and special characters (minimum 8 characters)'
+    }
+  },
+  confirmPassword: {
+    required: 'Please confirm password',
+    validate: {
+      matches: (value, formValues) => {
+        return value === formValues.password || 'Passwords do not match'
+      }
+    }
+  }
+}
+
+/**
+ * Admin Portal: Fee Structure Validation
+ */
+export const feeStructureValidation = {
+  academicYear: {
+    required: 'Academic year is required'
+  },
+  class: {
+    required: 'Class is required'
+  },
+  feeType: {
+    required: 'Fee type is required'
+  },
+  amount: {
+    required: 'Amount is required',
+    validate: {
+      isPositive: value => {
+        return parseFloat(value) > 0 || 'Amount must be greater than 0'
+      },
+      isValidNumber: value => {
+        return !isNaN(value) || 'Amount must be a valid number'
+      }
+    }
+  },
+  dueDate: {
+    required: 'Due date is required',
+    validate: {
+      isFuture: value => {
+        if (!value) return 'Due date is required'
+        const selectedDate = new Date(value)
+        const now = new Date()
+        return selectedDate > now || 'Due date must be in the future'
+      }
+    }
+  }
+}
+
+/**
  * Validation error messages
  */
 export const validationMessages = {
@@ -341,6 +645,13 @@ export default {
   announcementsValidation,
   courseContentValidation,
   reportingValidation,
+  assignmentSubmissionValidation,
+  feePaymentValidation,
+  leaveRequestValidation,
+  gradeEntryValidation,
+  attendanceMarkingValidation,
+  adminUserCreationValidation,
+  feeStructureValidation,
   validationMessages,
   customValidators,
   getValidationErrorMessage,

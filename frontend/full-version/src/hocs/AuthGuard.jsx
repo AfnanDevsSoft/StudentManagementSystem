@@ -5,9 +5,6 @@ import { getServerSession } from 'next-auth'
 import AuthRedirect from '@/components/AuthRedirect'
 
 export default async function AuthGuard({ children, locale }) {
-  // Temporarily disabled authentication check to view dashboard
-  // const session = await getServerSession()
-  // return <>{session ? children : <AuthRedirect lang={locale} />}</>
-
-  return <>{children}</>
+  const session = await getServerSession()
+  return <>{session ? children : <AuthRedirect lang={locale} />}</>
 }

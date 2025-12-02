@@ -1,28 +1,14 @@
 // Phase 2 Course Content API Service
 // Handles course content upload, retrieval, updates, and management
 
-import axios from 'axios'
+import axiosClient from '@/libs/axiosClient'
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/v1'
 
 class CourseContentService {
   constructor() {
-    this.client = axios.create({
-      baseURL: `${API_BASE_URL}/course-content`,
-      timeout: 30000, // Longer timeout for file uploads
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    })
-
-    // Add auth interceptor
-    this.client.interceptors.request.use(config => {
-      const token = localStorage.getItem('authToken')
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`
-      }
-      return config
-    })
+    this.client = axiosClient
+    this.baseURL = `${API_BASE_URL}/course-content`
   }
 
   /**

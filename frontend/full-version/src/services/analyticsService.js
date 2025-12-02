@@ -1,28 +1,15 @@
 // Phase 2 Analytics API Service
 // Handles all analytics endpoints: enrollment, attendance, fees, teachers, dashboard, trends
 
-import axios from 'axios'
+import axiosClient from '@/libs/axiosClient'
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/v1'
 
 class AnalyticsService {
   constructor() {
-    this.client = axios.create({
-      baseURL: `${API_BASE_URL}/analytics`,
-      timeout: 10000,
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    })
-
-    // Add auth interceptor
-    this.client.interceptors.request.use(config => {
-      const token = localStorage.getItem('authToken')
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`
-      }
-      return config
-    })
+    // Use NextAuth-aware axios client with automatic token injection
+    this.client = axiosClient
+    this.baseURL = `${API_BASE_URL}/analytics`
   }
 
   /**

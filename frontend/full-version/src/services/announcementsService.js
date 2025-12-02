@@ -1,28 +1,15 @@
 // Phase 2 Announcements API Service
 // Handles announcements creation, retrieval, filtering, and management
 
-import axios from 'axios'
+import axiosClient from '@/libs/axiosClient'
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/v1'
 
 class AnnouncementsService {
   constructor() {
-    this.client = axios.create({
-      baseURL: `${API_BASE_URL}/announcements`,
-      timeout: 10000,
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    })
-
-    // Add auth interceptor
-    this.client.interceptors.request.use(config => {
-      const token = localStorage.getItem('authToken')
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`
-      }
-      return config
-    })
+    // Use NextAuth-aware axios client
+    this.client = axiosClient
+    this.baseURL = `${API_BASE_URL}/announcements`
   }
 
   /**

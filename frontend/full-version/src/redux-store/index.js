@@ -11,6 +11,7 @@ import messagingReducer from '@/redux-store/slices/messaging'
 import announcementsReducer from '@/redux-store/slices/announcements'
 import courseContentReducer from '@/redux-store/slices/courseContent'
 import reportingReducer from '@/redux-store/slices/reporting'
+import roleReducer from '@/redux-store/slices/role'
 
 export const store = configureStore({
   reducer: {
@@ -22,7 +23,8 @@ export const store = configureStore({
     messagingReducer,
     announcementsReducer,
     courseContentReducer,
-    reportingReducer
+    reportingReducer,
+    roleReducer
   },
   middleware: getDefaultMiddleware => getDefaultMiddleware({ serializableCheck: false })
 })

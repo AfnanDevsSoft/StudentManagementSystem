@@ -3,6 +3,7 @@ import { NextAuthProvider } from '@/contexts/nextAuthProvider'
 import { VerticalNavProvider } from '@menu/contexts/verticalNavContext'
 import { SettingsProvider } from '@core/contexts/settingsContext'
 import { AuthProvider } from '@/contexts/AuthContext'
+import { RoleMenuProvider } from '@/contexts/RoleMenuContext'
 import ThemeProvider from '@components/theme'
 import ReduxProvider from '@/redux-store/ReduxProvider'
 
@@ -27,7 +28,9 @@ const Providers = async props => {
         <SettingsProvider settingsCookie={settingsCookie} mode={mode}>
           <ThemeProvider direction={direction} systemMode={systemMode}>
             <ReduxProvider>
-              <AuthProvider>{children}</AuthProvider>
+              <AuthProvider>
+                <RoleMenuProvider>{children}</RoleMenuProvider>
+              </AuthProvider>
             </ReduxProvider>
             <AppReactToastify direction={direction} hideProgressBar />
           </ThemeProvider>

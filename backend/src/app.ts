@@ -20,6 +20,13 @@ import analyticsRoutes from "./routes/analytics.routes";
 import courseContentRoutes from "./routes/courseContent.routes";
 import messagingRoutes from "./routes/messaging.routes";
 import announcementRoutes from "./routes/announcements.routes";
+// Phase 3 Routes
+import rbacRoutes from "./routes/rbac.routes";
+import cacheRoutes from "./routes/cache.routes";
+import fileExportRoutes from "./routes/fileExport.routes";
+import backupRoutes from "./routes/backup.routes";
+import loggingRoutes from "./routes/logging.routes";
+import notificationsAdvancedRoutes from "./routes/notifications.routes";
 import { errorHandler } from "./middleware/error.middleware";
 
 const app: Express = express();
@@ -111,6 +118,14 @@ apiV1.use("/messages", messagingRoutes);
 
 // Phase 2 Routes - Course Announcements
 apiV1.use("/announcements", announcementRoutes);
+
+// Phase 3 Routes - Advanced Features
+apiV1.use("/rbac", rbacRoutes);
+apiV1.use("/cache", cacheRoutes);
+apiV1.use("/exports", fileExportRoutes);
+apiV1.use("/backups", backupRoutes);
+apiV1.use("/logs", loggingRoutes);
+apiV1.use("/notifications-advanced", notificationsAdvancedRoutes);
 
 // Mount v1 routes
 app.use("/api/v1", apiV1);

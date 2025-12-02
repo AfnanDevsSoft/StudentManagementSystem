@@ -1,4 +1,12 @@
 module.exports = {
+  parser: 'espree',
+  parserOptions: {
+    ecmaVersion: 'latest',
+    sourceType: 'module',
+    ecmaFeatures: {
+      jsx: true
+    }
+  },
   extends: ['next/core-web-vitals', 'plugin:import/recommended', 'prettier'],
   rules: {
     'jsx-a11y/alt-text': 'off',

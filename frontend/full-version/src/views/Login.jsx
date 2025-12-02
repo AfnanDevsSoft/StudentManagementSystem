@@ -22,7 +22,7 @@ import Alert from '@mui/material/Alert'
 import { signIn } from 'next-auth/react'
 import { Controller, useForm } from 'react-hook-form'
 import { valibotResolver } from '@hookform/resolvers/valibot'
-import { object, minLength, string, email, pipe, nonEmpty } from 'valibot'
+import { object, minLength, string, pipe, nonEmpty } from 'valibot'
 import classnames from 'classnames'
 
 // Component Imports
@@ -39,7 +39,7 @@ import { useSettings } from '@core/hooks/useSettings'
 import { getLocalizedUrl } from '@/utils/i18n'
 
 const schema = object({
-  email: pipe(string(), minLength(1, 'This field is required'), email('Please enter a valid email address')),
+  username: pipe(string(), minLength(1, 'Username is required'), minLength(3, 'Username must be at least 3 characters')),
   password: pipe(
     string(),
     nonEmpty('This field is required'),
@@ -73,8 +73,8 @@ const Login = ({ mode }) => {
   } = useForm({
     resolver: valibotResolver(schema),
     defaultValues: {
-      email: 'admin@materialize.com',
-      password: 'admin'
+      username: 'admin1',
+      password: 'password123'
     }
   })
 
@@ -90,18 +90,33 @@ const Login = ({ mode }) => {
 
   const handleClickShowPassword = () => setIsPasswordShown(show => !show)
 
+  /**
+   * Get dashboard URL based on user role
+   */
+  const getDashboardUrl = role => {
+    const roleStr = (role || 'admin').toLowerCase()
+
+    if (roleStr.includes('student')) return 'dashboards/student'
+    if (roleStr.includes('teacher')) return 'dashboards/teacher'
+    if (roleStr.includes('admin') || roleStr.includes('superadmin')) return 'dashboards/admin'
+
+    return 'dashboards/admin' // Default to admin
+  }
+
   const onSubmit = async data => {
     const res = await signIn('credentials', {
-      email: data.email,
+      email: data.username,
       password: data.password,
       redirect: false
     })
 
     if (res && res.ok && res.error === null) {
-      // Vars
-      const redirectURL = searchParams.get('redirectTo') ?? '/'
+      // Get user session to determine role
+      // For now, use a simple approach - let the middleware handle the redirect
+      // OR we can fetch the session and redirect appropriately
+      const defaultURL = '/dashboards/admin' // Default fallback
 
-      router.replace(getLocalizedUrl(redirectURL, locale))
+      router.replace(getLocalizedUrl(defaultURL, locale))
     } else {
       if (res?.error) {
         const error = JSON.parse(res.error)
@@ -141,8 +156,13 @@ const Login = ({ mode }) => {
           </div>
           <Alert icon={false} className='bg-[var(--mui-palette-primary-lightOpacity)]'>
             <Typography variant='body2' color='primary.main'>
-              Email: <span className='font-medium'>admin@materialize.com</span> / Pass:{' '}
-              <span className='font-medium'>admin</span>
+              Test Credentials:
+              <br />
+              Admin: <span className='font-medium'>admin1</span> / <span className='font-medium'>password123</span>
+              <br />
+              Teacher: <span className='font-medium'>teacher1</span> / <span className='font-medium'>password123</span>
+              <br />
+              Student: <span className='font-medium'>student1</span> / <span className='font-medium'>password123</span>
             </Typography>
           </Alert>
 
@@ -154,7 +174,7 @@ const Login = ({ mode }) => {
             className='flex flex-col gap-5'
           >
             <Controller
-              name='email'
+              name='username'
               control={control}
               rules={{ required: true }}
               render={({ field }) => (
@@ -162,15 +182,15 @@ const Login = ({ mode }) => {
                   {...field}
                   fullWidth
                   autoFocus
-                  type='email'
-                  label='Email'
+                  type='text'
+                  label='Username'
                   onChange={e => {
                     field.onChange(e.target.value)
                     errorState !== null && setErrorState(null)
                   }}
-                  {...((errors.email || errorState !== null) && {
+                  {...((errors.username || errorState !== null) && {
                     error: true,
-                    helperText: errors?.email?.message || errorState?.message[0]
+                    helperText: errors?.username?.message || errorState?.message[0]
                   })}
                 />
               )}

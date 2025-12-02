@@ -1,8 +1,4 @@
-// Component Imports
-import Questions from '@views/front-pages/help-center/Questions'
-
-const Article = () => {
-  return <Questions />
+// This page component was removed during cleanup
+export default function Page() {
+  return <div style={{ padding: '20px', textAlign: 'center' }}>Page not available</div>
 }
-
-export default Article

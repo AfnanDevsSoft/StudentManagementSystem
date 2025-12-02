@@ -10,105 +10,38 @@ import { getLocalizedUrl } from '@/utils/i18n'
 
 const defaultSuggestions = [
   {
-    sectionLabel: 'Popular Searches',
+    sectionLabel: 'Active Dashboards',
     items: [
       {
-        label: 'Analytics',
-        href: '/dashboards/analytics',
-        icon: 'ri-bar-chart-line'
+        label: 'Student Dashboard',
+        href: '/dashboards/student',
+        icon: 'ri-graduation-cap-line'
       },
       {
-        label: 'CRM',
-        href: '/dashboards/crm',
-        icon: 'ri-pie-chart-2-line'
+        label: 'Teacher Dashboard',
+        href: '/dashboards/teacher',
+        icon: 'ri-user-teacher-line'
       },
       {
-        label: 'eCommerce',
-        href: '/dashboards/ecommerce',
-        icon: 'ri-shopping-bag-3-line'
-      },
-      {
-        label: 'User List',
-        href: '/apps/user/list',
-        icon: 'ri-file-user-line'
-      }
-    ]
-  },
-  {
-    sectionLabel: 'Apps',
-    items: [
-      {
-        label: 'Calendar',
-        href: '/apps/calendar',
-        icon: 'ri-calendar-line'
-      },
-      {
-        label: 'Invoice List',
-        href: '/apps/invoice/list',
-        icon: 'ri-file-list-3-line'
-      },
-      {
-        label: 'User List',
-        href: '/apps/user/list',
-        icon: 'ri-file-user-line'
-      },
-      {
-        label: 'Roles & Permissions',
-        href: '/apps/roles',
-        icon: 'ri-lock-unlock-line'
-      }
-    ]
-  },
-  {
-    sectionLabel: 'Pages',
-    items: [
-      {
-        label: 'User Profile',
-        href: '/pages/user-profile',
-        icon: 'ri-user-3-line'
-      },
-      {
-        label: 'Account Settings',
-        href: '/pages/account-settings',
-        icon: 'ri-settings-4-line'
-      },
-      {
-        label: 'Pricing',
-        href: '/pages/pricing',
-        icon: 'ri-money-dollar-circle-line'
-      },
-      {
-        label: 'FAQ',
-        href: '/pages/faq',
-        icon: 'ri-question-line'
-      }
-    ]
-  },
-  {
-    sectionLabel: 'Forms & Charts',
-    items: [
-      {
-        label: 'Form Layouts',
-        href: '/forms/form-layouts',
-        icon: 'ri-file-text-line'
-      },
-      {
-        label: 'Form Validation',
-        href: '/forms/form-validation',
-        icon: 'ri-checkbox-multiple-line'
-      },
-      {
-        label: 'Form Wizard',
-        href: '/forms/form-wizard',
-        icon: 'ri-equalizer-line'
-      },
-      {
-        label: 'Apex Charts',
-        href: '/charts/apex-charts',
-        icon: 'ri-line-chart-line'
+        label: 'Admin Dashboard',
+        href: '/dashboards/admin',
+        icon: 'ri-admin-line'
       }
     ]
   }
+
+  // TODO: Uncomment other suggestions when features are added
+  // {
+  //   sectionLabel: 'Apps',
+  //   items: [
+  //     {
+  //       label: 'Calendar',
+  //       href: '/apps/calendar',
+  //       icon: 'ri-calendar-line'
+  //     },
+  //     // ... other apps
+  //   ]
+  // }
 ]
 
 const DefaultSuggestions = ({ setOpen }) => {

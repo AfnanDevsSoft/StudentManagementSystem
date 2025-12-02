@@ -25,40 +25,22 @@ import { getLocalizedUrl } from '@/utils/i18n'
 // Vars
 const shortcuts = [
   {
-    url: '/apps/calendar',
-    icon: 'ri-calendar-line',
-    title: 'Calendar',
-    subtitle: 'Appointments'
+    url: '/dashboards/student',
+    icon: 'ri-graduation-cap-line',
+    title: 'Student Dashboard',
+    subtitle: 'My Learning'
   },
   {
-    url: '/apps/invoice/list',
-    icon: 'ri-file-list-3-line',
-    title: 'Invoice App',
-    subtitle: 'Manage Accounts'
+    url: '/dashboards/teacher',
+    icon: 'ri-user-teacher-line',
+    title: 'Teacher Dashboard',
+    subtitle: 'My Classes'
   },
   {
-    url: '/apps/user/list',
-    icon: 'ri-user-3-line',
-    title: 'Users',
-    subtitle: 'Manage Users'
-  },
-  {
-    url: '/apps/roles',
-    icon: 'ri-computer-line',
-    title: 'Role Management',
-    subtitle: 'Permissions'
-  },
-  {
-    url: '/dashboards/crm',
-    icon: 'ri-pie-chart-2-line',
-    title: 'Dashboard',
-    subtitle: 'User Dashboard'
-  },
-  {
-    url: '/pages/account-settings',
-    icon: 'ri-settings-4-line',
-    title: 'Settings',
-    subtitle: 'Account Settings'
+    url: '/dashboards/admin',
+    icon: 'ri-admin-line',
+    title: 'Admin Dashboard',
+    subtitle: 'System Management'
   }
 ]
 

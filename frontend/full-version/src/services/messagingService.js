@@ -1,28 +1,15 @@
 // Phase 2 Messaging API Service
 // Handles all messaging endpoints: send, inbox, sent, conversation, search, mark read
 
-import axios from 'axios'
+import axiosClient from '@/libs/axiosClient'
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/v1'
 
 class MessagingService {
   constructor() {
-    this.client = axios.create({
-      baseURL: `${API_BASE_URL}/messages`,
-      timeout: 10000,
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    })
-
-    // Add auth interceptor
-    this.client.interceptors.request.use(config => {
-      const token = localStorage.getItem('authToken')
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`
-      }
-      return config
-    })
+    // Use NextAuth-aware axios client
+    this.client = axiosClient
+    this.baseURL = `${API_BASE_URL}/messages`
   }
 
   /**
