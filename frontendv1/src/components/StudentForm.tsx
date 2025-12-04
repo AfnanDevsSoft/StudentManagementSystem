@@ -49,7 +49,9 @@ export default function StudentForm({
     }
   );
 
-  const [errors, setErrors] = useState<Partial<Record<keyof StudentFormData, string>>>({});
+  const [errors, setErrors] = useState<
+    Partial<Record<keyof StudentFormData, string>>
+  >({});
 
   useEffect(() => {
     if (initialData) {
@@ -60,8 +62,10 @@ export default function StudentForm({
   const validateForm = (): boolean => {
     const newErrors: Partial<Record<keyof StudentFormData, string>> = {};
 
-    if (!formData.rollNumber.trim()) newErrors.rollNumber = "Roll number is required";
-    if (!formData.firstName.trim()) newErrors.firstName = "First name is required";
+    if (!formData.rollNumber.trim())
+      newErrors.rollNumber = "Roll number is required";
+    if (!formData.firstName.trim())
+      newErrors.firstName = "First name is required";
     if (!formData.lastName.trim()) newErrors.lastName = "Last name is required";
     if (!formData.email.trim()) {
       newErrors.email = "Email is required";
@@ -69,12 +73,15 @@ export default function StudentForm({
       newErrors.email = "Invalid email format";
     }
     if (!formData.phone.trim()) newErrors.phone = "Phone number is required";
-    if (!formData.dateOfBirth) newErrors.dateOfBirth = "Date of birth is required";
+    if (!formData.dateOfBirth)
+      newErrors.dateOfBirth = "Date of birth is required";
     if (!formData.class.trim()) newErrors.class = "Class is required";
     if (!formData.section.trim()) newErrors.section = "Section is required";
-    if (!formData.fatherName.trim()) newErrors.fatherName = "Father's name is required";
+    if (!formData.fatherName.trim())
+      newErrors.fatherName = "Father's name is required";
     if (!formData.address.trim()) newErrors.address = "Address is required";
-    if (!formData.enrollmentDate) newErrors.enrollmentDate = "Enrollment date is required";
+    if (!formData.enrollmentDate)
+      newErrors.enrollmentDate = "Enrollment date is required";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -88,7 +95,9 @@ export default function StudentForm({
   };
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -362,7 +371,9 @@ export default function StudentForm({
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
         >
           <Save size={18} />
-          <span>{isLoading ? "Saving..." : initialData ? "Update" : "Add"} Student</span>
+          <span>
+            {isLoading ? "Saving..." : initialData ? "Update" : "Add"} Student
+          </span>
         </button>
       </div>
     </form>

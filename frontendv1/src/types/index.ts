@@ -7,7 +7,9 @@ export type UserRole =
   | "Parent";
 
 // Helper function to extract role name
-export const getRoleName = (role: UserRole | { id: string; name: string } | string): string => {
+export const getRoleName = (
+  role: UserRole | { id: string; name: string } | string
+): string => {
   if (typeof role === "string") return role;
   if (role && typeof role === "object" && "name" in role) return role.name;
   return "Unknown";

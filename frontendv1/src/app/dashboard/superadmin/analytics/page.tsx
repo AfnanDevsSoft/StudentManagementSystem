@@ -17,7 +17,9 @@ interface ChartDataPoint {
 }
 
 export default function AnalyticsPage() {
-  const [timeRange, setTimeRange] = useState<"week" | "month" | "year">("month");
+  const [timeRange, setTimeRange] = useState<"week" | "month" | "year">(
+    "month"
+  );
 
   const sidebarItems = [
     {
@@ -105,8 +107,12 @@ export default function AnalyticsPage() {
             {stats.map((stat) => (
               <div key={stat.label} className="bg-white rounded-lg shadow p-6">
                 <p className="text-gray-600 text-sm">{stat.label}</p>
-                <p className={`text-3xl font-bold mt-2 ${stat.color}`}>{stat.value}</p>
-                <p className="text-green-600 text-xs mt-2">{stat.change} from last month</p>
+                <p className={`text-3xl font-bold mt-2 ${stat.color}`}>
+                  {stat.value}
+                </p>
+                <p className="text-green-600 text-xs mt-2">
+                  {stat.change} from last month
+                </p>
               </div>
             ))}
           </div>

@@ -192,9 +192,7 @@ export default function SettingsPage() {
                   <input
                     type="checkbox"
                     checked={notifications.attendanceAlert}
-                    onChange={() =>
-                      handleNotificationChange("attendanceAlert")
-                    }
+                    onChange={() => handleNotificationChange("attendanceAlert")}
                     className="w-5 h-5 text-blue-600 rounded cursor-pointer"
                   />
                 </div>

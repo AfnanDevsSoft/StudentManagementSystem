@@ -43,7 +43,9 @@ export default function Navbar() {
                     <p className="text-sm font-semibold">
                       {user.first_name} {user.last_name}
                     </p>
-                    <p className="text-xs text-gray-600">{getRoleName(user.role)}</p>
+                    <p className="text-xs text-gray-600">
+                      {getRoleName(user.role)}
+                    </p>
                   </div>
                 </div>
                 <button
@@ -75,7 +77,9 @@ export default function Navbar() {
                   <p className="text-sm font-semibold">
                     {user.first_name} {user.last_name}
                   </p>
-                  <p className="text-xs text-gray-600">{getRoleName(user.role)}</p>
+                  <p className="text-xs text-gray-600">
+                    {getRoleName(user.role)}
+                  </p>
                 </div>
                 <button
                   onClick={handleLogout}

@@ -3,7 +3,14 @@
 import React, { useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { LayoutDashboard, BookOpen, Search, Plus, Edit2, Trash2 } from "lucide-react";
+import {
+  LayoutDashboard,
+  BookOpen,
+  Search,
+  Plus,
+  Edit2,
+  Trash2,
+} from "lucide-react";
 
 interface CourseData {
   id: string;
@@ -70,7 +77,8 @@ export default function CoursesPage() {
       course.teacher.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesGrade = filterGrade === "all" || course.grade === filterGrade;
-    const matchesStatus = filterStatus === "all" || course.status === filterStatus;
+    const matchesStatus =
+      filterStatus === "all" || course.status === filterStatus;
 
     return matchesSearch && matchesGrade && matchesStatus;
   });
@@ -131,7 +139,9 @@ export default function CoursesPage() {
             {stats.map((stat) => (
               <div key={stat.label} className="bg-white rounded-lg shadow p-6">
                 <p className="text-gray-600 text-sm">{stat.label}</p>
-                <p className={`text-3xl font-bold mt-2 ${stat.color}`}>{stat.value}</p>
+                <p className={`text-3xl font-bold mt-2 ${stat.color}`}>
+                  {stat.value}
+                </p>
               </div>
             ))}
           </div>
@@ -141,7 +151,10 @@ export default function CoursesPage() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="md:col-span-2">
                 <div className="relative">
-                  <Search className="absolute left-3 top-3 text-gray-400" size={20} />
+                  <Search
+                    className="absolute left-3 top-3 text-gray-400"
+                    size={20}
+                  />
                   <input
                     type="text"
                     placeholder="Search courses..."
@@ -193,7 +206,9 @@ export default function CoursesPage() {
                 <div className="p-6">
                   <div className="flex justify-between items-start mb-3">
                     <div>
-                      <p className="text-xs font-mono text-gray-500">{course.courseCode}</p>
+                      <p className="text-xs font-mono text-gray-500">
+                        {course.courseCode}
+                      </p>
                       <h3 className="text-lg font-semibold text-gray-900">
                         {course.courseName}
                       </h3>
@@ -207,24 +222,34 @@ export default function CoursesPage() {
                     </span>
                   </div>
 
-                  <p className="text-sm text-gray-600 mb-4">{course.description}</p>
+                  <p className="text-sm text-gray-600 mb-4">
+                    {course.description}
+                  </p>
 
                   <div className="grid grid-cols-2 gap-3 mb-4 text-sm">
                     <div>
                       <p className="text-gray-500">Grade</p>
-                      <p className="font-semibold text-gray-900">{course.grade}</p>
+                      <p className="font-semibold text-gray-900">
+                        {course.grade}
+                      </p>
                     </div>
                     <div>
                       <p className="text-gray-500">Credits</p>
-                      <p className="font-semibold text-gray-900">{course.credits}</p>
+                      <p className="font-semibold text-gray-900">
+                        {course.credits}
+                      </p>
                     </div>
                     <div>
                       <p className="text-gray-500">Teacher</p>
-                      <p className="font-semibold text-gray-900">{course.teacher}</p>
+                      <p className="font-semibold text-gray-900">
+                        {course.teacher}
+                      </p>
                     </div>
                     <div>
                       <p className="text-gray-500">Students</p>
-                      <p className="font-semibold text-gray-900">{course.students}</p>
+                      <p className="font-semibold text-gray-900">
+                        {course.students}
+                      </p>
                     </div>
                   </div>
 

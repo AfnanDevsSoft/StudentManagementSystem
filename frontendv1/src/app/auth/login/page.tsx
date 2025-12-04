@@ -27,7 +27,10 @@ export default function LoginPage() {
       if (response.success) {
         // Backend returns response.data.user structure
         const backendUser = response.data?.user || response.data;
-        const token = response.data?.access_token || response.access_token || response.token;
+        const token =
+          response.data?.access_token ||
+          response.access_token ||
+          response.token;
 
         if (!token) {
           setError("No token received from server");
@@ -42,9 +45,10 @@ export default function LoginPage() {
           email: backendUser.email,
           first_name: backendUser.firstName || backendUser.first_name || "",
           last_name: backendUser.lastName || backendUser.last_name || "",
-          role: typeof backendUser.role === "string" 
-            ? (backendUser.role as UserRole)
-            : (backendUser.role?.name as UserRole) || "SuperAdmin",
+          role:
+            typeof backendUser.role === "string"
+              ? (backendUser.role as UserRole)
+              : (backendUser.role?.name as UserRole) || "SuperAdmin",
           branch_id: backendUser.branch_id || "",
           branch_name: backendUser.branch_name || "",
           permissions: backendUser.permissions || [],
@@ -61,9 +65,10 @@ export default function LoginPage() {
         setUser(userData);
 
         // Get role name as string
-        const roleName = typeof userData.role === "string" 
-          ? userData.role 
-          : (userData.role as any)?.name || "superadmin";
+        const roleName =
+          typeof userData.role === "string"
+            ? userData.role
+            : (userData.role as any)?.name || "superadmin";
 
         // Redirect to appropriate dashboard
         router.push(`/dashboard/${roleName.toLowerCase()}`);
@@ -72,7 +77,11 @@ export default function LoginPage() {
       }
     } catch (err: any) {
       console.error("Login error:", err);
-      setError(err.response?.data?.message || err.message || "An error occurred during login");
+      setError(
+        err.response?.data?.message ||
+          err.message ||
+          "An error occurred during login"
+      );
     } finally {
       setIsLoading(false);
     }

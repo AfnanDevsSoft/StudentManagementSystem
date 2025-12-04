@@ -3,7 +3,15 @@
 import React, { useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { LayoutDashboard, GraduationCap, Search, Plus, Edit2, Trash2, FileText } from "lucide-react";
+import {
+  LayoutDashboard,
+  GraduationCap,
+  Search,
+  Plus,
+  Edit2,
+  Trash2,
+  FileText,
+} from "lucide-react";
 import toast from "react-hot-toast";
 import Modal from "@/components/Modal";
 import StudentForm, { StudentFormData } from "@/components/StudentForm";
@@ -69,7 +77,9 @@ export default function StudentsSuperAdminPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [selectedStudent, setSelectedStudent] = useState<StudentData | null>(null);
+  const [selectedStudent, setSelectedStudent] = useState<StudentData | null>(
+    null
+  );
   const [isLoading, setIsLoading] = useState(false);
 
   // Convert StudentData to StudentFormData
@@ -92,7 +102,10 @@ export default function StudentsSuperAdminPage() {
   };
 
   // Convert StudentFormData to StudentData
-  const convertFromFormData = (formData: StudentFormData, id?: string): StudentData => {
+  const convertFromFormData = (
+    formData: StudentFormData,
+    id?: string
+  ): StudentData => {
     return {
       id: id || Date.now().toString(),
       studentCode: formData.rollNumber,
@@ -125,7 +138,9 @@ export default function StudentsSuperAdminPage() {
     // Simulate API call
     setTimeout(() => {
       const updatedStudent = convertFromFormData(formData, selectedStudent.id);
-      setStudents(students.map((s) => (s.id === selectedStudent.id ? updatedStudent : s)));
+      setStudents(
+        students.map((s) => (s.id === selectedStudent.id ? updatedStudent : s))
+      );
       setShowEditModal(false);
       setSelectedStudent(null);
       setIsLoading(false);
@@ -163,8 +178,10 @@ export default function StudentsSuperAdminPage() {
       student.studentCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
       student.email.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesGrade = filterGrade === "all" || student.gradeLevel === filterGrade;
-    const matchesStatus = filterStatus === "all" || student.status === filterStatus;
+    const matchesGrade =
+      filterGrade === "all" || student.gradeLevel === filterGrade;
+    const matchesStatus =
+      filterStatus === "all" || student.status === filterStatus;
 
     return matchesSearch && matchesGrade && matchesStatus;
   });
@@ -203,10 +220,26 @@ export default function StudentsSuperAdminPage() {
   ];
 
   const stats = [
-    { label: "Total Students", value: students.length, color: "bg-blue-100 text-blue-600" },
-    { label: "Active", value: students.filter((s) => s.status === "active").length, color: "bg-green-100 text-green-600" },
-    { label: "Graduated", value: students.filter((s) => s.status === "graduated").length, color: "bg-purple-100 text-purple-600" },
-    { label: "Inactive", value: students.filter((s) => s.status === "inactive").length, color: "bg-yellow-100 text-yellow-600" },
+    {
+      label: "Total Students",
+      value: students.length,
+      color: "bg-blue-100 text-blue-600",
+    },
+    {
+      label: "Active",
+      value: students.filter((s) => s.status === "active").length,
+      color: "bg-green-100 text-green-600",
+    },
+    {
+      label: "Graduated",
+      value: students.filter((s) => s.status === "graduated").length,
+      color: "bg-purple-100 text-purple-600",
+    },
+    {
+      label: "Inactive",
+      value: students.filter((s) => s.status === "inactive").length,
+      color: "bg-yellow-100 text-yellow-600",
+    },
   ];
 
   return (
@@ -218,7 +251,9 @@ export default function StudentsSuperAdminPage() {
             {stats.map((stat) => (
               <div key={stat.label} className="bg-white rounded-lg shadow p-6">
                 <p className="text-gray-600 text-sm">{stat.label}</p>
-                <p className={`text-3xl font-bold mt-2 ${stat.color}`}>{stat.value}</p>
+                <p className={`text-3xl font-bold mt-2 ${stat.color}`}>
+                  {stat.value}
+                </p>
               </div>
             ))}
           </div>
@@ -228,7 +263,10 @@ export default function StudentsSuperAdminPage() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="md:col-span-2">
                 <div className="relative">
-                  <Search className="absolute left-3 top-3 text-gray-400" size={20} />
+                  <Search
+                    className="absolute left-3 top-3 text-gray-400"
+                    size={20}
+                  />
                   <input
                     type="text"
                     placeholder="Search by name, code, or email..."
@@ -284,30 +322,68 @@ export default function StudentsSuperAdminPage() {
               <table className="w-full">
                 <thead className="bg-gray-50 border-b">
                   <tr>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Code</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Name</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Email</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Phone</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Grade</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Avg Grade</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Status</th>
-                    <th className="px-6 py-3 text-right text-sm font-semibold text-gray-700">Actions</th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
+                      Code
+                    </th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
+                      Name
+                    </th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
+                      Email
+                    </th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
+                      Phone
+                    </th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
+                      Grade
+                    </th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
+                      Avg Grade
+                    </th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
+                      Status
+                    </th>
+                    <th className="px-6 py-3 text-right text-sm font-semibold text-gray-700">
+                      Actions
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
                   {filteredStudents.map((student) => (
-                    <tr key={student.id} className="hover:bg-gray-50 transition">
-                      <td className="px-6 py-4 text-sm font-mono text-gray-900">{student.studentCode}</td>
-                      <td className="px-6 py-4 text-sm text-gray-900">{student.firstName} {student.lastName}</td>
-                      <td className="px-6 py-4 text-sm text-gray-600">{student.email}</td>
-                      <td className="px-6 py-4 text-sm text-gray-600">{student.phone}</td>
-                      <td className="px-6 py-4 text-sm text-gray-900">Grade {student.gradeLevel}</td>
-                      <td className={`px-6 py-4 text-sm font-semibold ${getGradeColor(student.averageGrade)}`}>
+                    <tr
+                      key={student.id}
+                      className="hover:bg-gray-50 transition"
+                    >
+                      <td className="px-6 py-4 text-sm font-mono text-gray-900">
+                        {student.studentCode}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-900">
+                        {student.firstName} {student.lastName}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-600">
+                        {student.email}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-600">
+                        {student.phone}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-900">
+                        Grade {student.gradeLevel}
+                      </td>
+                      <td
+                        className={`px-6 py-4 text-sm font-semibold ${getGradeColor(
+                          student.averageGrade
+                        )}`}
+                      >
                         {student.averageGrade.toFixed(1)}%
                       </td>
                       <td className="px-6 py-4 text-sm">
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(student.status)}`}>
-                          {student.status.charAt(0).toUpperCase() + student.status.slice(1)}
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(
+                            student.status
+                          )}`}
+                        >
+                          {student.status.charAt(0).toUpperCase() +
+                            student.status.slice(1)}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-sm text-right space-x-2 flex justify-end">
@@ -385,7 +461,11 @@ export default function StudentsSuperAdminPage() {
           onConfirm={handleDeleteStudent}
           title="Delete Student"
           message="Are you sure you want to delete this student? This will remove all associated records including grades and attendance."
-          itemName={selectedStudent ? `${selectedStudent.firstName} ${selectedStudent.lastName}` : ""}
+          itemName={
+            selectedStudent
+              ? `${selectedStudent.firstName} ${selectedStudent.lastName}`
+              : ""
+          }
           isLoading={isLoading}
         />
       </DashboardLayout>

@@ -3,7 +3,14 @@
 import React, { useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { LayoutDashboard, Users, Search, Plus, Edit2, Trash2 } from "lucide-react";
+import {
+  LayoutDashboard,
+  Users,
+  Search,
+  Plus,
+  Edit2,
+  Trash2,
+} from "lucide-react";
 
 interface TeacherData {
   id: string;
@@ -62,7 +69,8 @@ export default function TeachersPage() {
       teacher.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       teacher.employeeCode.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesDept = filterDept === "all" || teacher.department === filterDept;
+    const matchesDept =
+      filterDept === "all" || teacher.department === filterDept;
 
     return matchesSearch && matchesDept;
   });
@@ -89,10 +97,30 @@ export default function TeachersPage() {
   ];
 
   const stats = [
-    { label: "Total Teachers", value: teachers.length, color: "bg-blue-100 text-blue-600" },
-    { label: "Active", value: teachers.filter((t) => t.status === "active").length, color: "bg-green-100 text-green-600" },
-    { label: "Departments", value: departments.length, color: "bg-purple-100 text-purple-600" },
-    { label: "Avg Experience", value: (teachers.reduce((sum, t) => sum + t.yearsOfExperience, 0) / teachers.length).toFixed(1) + " yrs", color: "bg-orange-100 text-orange-600" },
+    {
+      label: "Total Teachers",
+      value: teachers.length,
+      color: "bg-blue-100 text-blue-600",
+    },
+    {
+      label: "Active",
+      value: teachers.filter((t) => t.status === "active").length,
+      color: "bg-green-100 text-green-600",
+    },
+    {
+      label: "Departments",
+      value: departments.length,
+      color: "bg-purple-100 text-purple-600",
+    },
+    {
+      label: "Avg Experience",
+      value:
+        (
+          teachers.reduce((sum, t) => sum + t.yearsOfExperience, 0) /
+          teachers.length
+        ).toFixed(1) + " yrs",
+      color: "bg-orange-100 text-orange-600",
+    },
   ];
 
   return (
@@ -104,7 +132,9 @@ export default function TeachersPage() {
             {stats.map((stat) => (
               <div key={stat.label} className="bg-white rounded-lg shadow p-6">
                 <p className="text-gray-600 text-sm">{stat.label}</p>
-                <p className={`text-3xl font-bold mt-2 ${stat.color}`}>{stat.value}</p>
+                <p className={`text-3xl font-bold mt-2 ${stat.color}`}>
+                  {stat.value}
+                </p>
               </div>
             ))}
           </div>
@@ -114,7 +144,10 @@ export default function TeachersPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="md:col-span-2">
                 <div className="relative">
-                  <Search className="absolute left-3 top-3 text-gray-400" size={20} />
+                  <Search
+                    className="absolute left-3 top-3 text-gray-400"
+                    size={20}
+                  />
                   <input
                     type="text"
                     placeholder="Search teachers..."
@@ -152,34 +185,72 @@ export default function TeachersPage() {
               <table className="w-full">
                 <thead className="bg-gray-50 border-b">
                   <tr>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Code</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Name</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Department</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Designation</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Experience</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Qualifications</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Courses</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Status</th>
-                    <th className="px-6 py-3 text-right text-sm font-semibold text-gray-700">Actions</th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
+                      Code
+                    </th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
+                      Name
+                    </th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
+                      Department
+                    </th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
+                      Designation
+                    </th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
+                      Experience
+                    </th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
+                      Qualifications
+                    </th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
+                      Courses
+                    </th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
+                      Status
+                    </th>
+                    <th className="px-6 py-3 text-right text-sm font-semibold text-gray-700">
+                      Actions
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
                   {filteredTeachers.map((teacher) => (
-                    <tr key={teacher.id} className="hover:bg-gray-50 transition">
-                      <td className="px-6 py-4 text-sm font-mono text-gray-900">{teacher.employeeCode}</td>
-                      <td className="px-6 py-4 text-sm text-gray-900">{teacher.firstName} {teacher.lastName}</td>
-                      <td className="px-6 py-4 text-sm text-gray-600">{teacher.department}</td>
-                      <td className="px-6 py-4 text-sm text-gray-600">{teacher.designation}</td>
-                      <td className="px-6 py-4 text-sm text-gray-900">{teacher.yearsOfExperience} years</td>
-                      <td className="px-6 py-4 text-sm text-gray-600">{teacher.qualifications}</td>
+                    <tr
+                      key={teacher.id}
+                      className="hover:bg-gray-50 transition"
+                    >
+                      <td className="px-6 py-4 text-sm font-mono text-gray-900">
+                        {teacher.employeeCode}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-900">
+                        {teacher.firstName} {teacher.lastName}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-600">
+                        {teacher.department}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-600">
+                        {teacher.designation}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-900">
+                        {teacher.yearsOfExperience} years
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-600">
+                        {teacher.qualifications}
+                      </td>
                       <td className="px-6 py-4 text-sm">
                         <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-semibold">
                           {teacher.coursesAssigned}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-sm">
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(teacher.status)}`}>
-                          {teacher.status.charAt(0).toUpperCase() + teacher.status.slice(1)}
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(
+                            teacher.status
+                          )}`}
+                        >
+                          {teacher.status.charAt(0).toUpperCase() +
+                            teacher.status.slice(1)}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-sm text-right space-x-2 flex justify-end">

@@ -3,7 +3,14 @@
 import React, { useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { LayoutDashboard, UserCog, Plus, Edit2, Trash2, Save } from "lucide-react";
+import {
+  LayoutDashboard,
+  UserCog,
+  Plus,
+  Edit2,
+  Trash2,
+  Save,
+} from "lucide-react";
 import toast from "react-hot-toast";
 
 interface Role {
@@ -191,10 +198,7 @@ export default function RolesPage() {
 
   return (
     <ProtectedRoute>
-      <DashboardLayout
-        title="Roles & Permissions"
-        sidebarItems={sidebarItems}
-      >
+      <DashboardLayout title="Roles & Permissions" sidebarItems={sidebarItems}>
         <div className="space-y-6">
           {/* Header */}
           <div className="flex justify-between items-center">
@@ -308,7 +312,9 @@ export default function RolesPage() {
                         >
                           {role.permissions.includes(permission) ? (
                             <div className="inline-flex items-center justify-center w-6 h-6 bg-green-100 rounded-full">
-                              <span className="text-green-600 font-bold">✓</span>
+                              <span className="text-green-600 font-bold">
+                                ✓
+                              </span>
                             </div>
                           ) : (
                             <div className="inline-flex items-center justify-center w-6 h-6 bg-red-100 rounded-full">
@@ -381,9 +387,7 @@ export default function RolesPage() {
                         <input
                           type="checkbox"
                           checked={formData.permissions.includes(permission)}
-                          onChange={() =>
-                            handlePermissionToggle(permission)
-                          }
+                          onChange={() => handlePermissionToggle(permission)}
                           className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
                         />
                         <span className="text-sm text-gray-700">
