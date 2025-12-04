@@ -65,6 +65,18 @@ router.put(
   }
 );
 
+// PATCH update branch (same functionality as PUT)
+router.patch(
+  "/:id",
+  authMiddleware,
+  async (req: Request, res: Response): Promise<void> => {
+    const { id } = req.params;
+    const result = await BranchService.updateBranch(id, req.body);
+    const statusCode = result.success ? 200 : 400;
+    sendResponse(res, statusCode, result.success, result.message, result.data);
+  }
+);
+
 // DELETE branch
 router.delete(
   "/:id",

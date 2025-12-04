@@ -52,7 +52,7 @@ export interface Branch {
   code: string;
   address: string;
   city: string;
-  state_province: string;
+  state: string;
   country: string;
   postal_code: string;
   phone: string;
@@ -209,6 +209,7 @@ export interface ApiResponse<T> {
   success: boolean;
   data: T;
   message: string;
+  pagination?: PaginationMeta;
 }
 
 // Filter/Search Types

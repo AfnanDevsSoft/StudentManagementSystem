@@ -82,12 +82,24 @@ class ApiClient {
   }
 
   // Branches
-  async getBranches() {
-    return this.get("/branches");
+  async getBranches(page = 1, limit = 10, search = "") {
+    return this.get("/branches", { page, limit, search });
   }
 
   async getBranchById(id: string) {
     return this.get(`/branches/${id}`);
+  }
+
+  async createBranch(data: any) {
+    return this.post("/branches", data);
+  }
+
+  async updateBranch(id: string, data: any) {
+    return this.patch(`/branches/${id}`, data);
+  }
+
+  async deleteBranch(id: string) {
+    return this.delete(`/branches/${id}`);
   }
 
   // Users
