@@ -451,6 +451,130 @@ class ApiClient {
   async updateNotificationPreferences(data: any) {
     return this.patch("/notification-preferences", data);
   }
+  // ==================== TIMETABLE ====================
+  async getTimeSlots(branchId: string) {
+    return this.get(`/timetable/time-slots?branch_id=${branchId}`);
+  }
+  async createTimeSlot(data: any) {
+    return this.post("/timetable/time-slots", data);
+  }
+  async updateTimeSlot(id: string, data: any) {
+    return this.patch(`/timetable/time-slots/${id}`, data);
+  }
+  async deleteTimeSlot(id: string) {
+    return this.delete(`/timetable/time-slots/${id}`);
+  }
+  async getRooms(branchId: string) {
+    return this.get(`/timetable/rooms?branch_id=${branchId}`);
+  }
+  async createRoom(data: any) {
+    return this.post("/timetable/rooms", data);
+  }
+  async updateRoom(id: string, data: any) {
+    return this.patch(`/timetable/rooms/${id}`, data);
+  }
+  async deleteRoom(id: string) {
+    return this.delete(`/timetable/rooms/${id}`);
+  }
+  async getCourseTimetable(courseId: string) {
+    return this.get(`/timetable/course/${courseId}`);
+  }
+  async getTeacherTimetable(teacherId: string) {
+    return this.get(`/timetable/teacher/${teacherId}`);
+  }
+  async getStudentTimetable(studentId: string) {
+    return this.get(`/timetable/student/${studentId}`);
+  }
+  async createTimetableEntry(data: any) {
+    return this.post("/timetable/entries", data);
+  }
+  async deleteTimetableEntry(id: string) {
+    return this.delete(`/timetable/entries/${id}`);
+  }
+
+  // ==================== HEALTH/MEDICAL ====================
+  async getHealthRecord(studentId: string) {
+    return this.get(`/medical/student/${studentId}`);
+  }
+  async upsertHealthRecord(studentId: string, data: any) {
+    return this.post(`/medical/student/${studentId}`, data);
+  }
+  async getMedicalCheckups(studentId: string) {
+    return this.get(`/medical/checkups/${studentId}`);
+  }
+  async addMedicalCheckup(studentId: string, data: any) {
+    return this.post(`/medical/checkups/${studentId}`, data);
+  }
+  async getVaccinations(studentId: string) {
+    return this.get(`/medical/vaccinations/${studentId}`);
+  }
+  async addVaccination(studentId: string, data: any) {
+    return this.post(`/medical/vaccinations/${studentId}`, data);
+  }
+  async getMedicalIncidents(studentId: string) {
+    return this.get(`/medical/incidents/${studentId}`);
+  }
+  async reportMedicalIncident(data: any) {
+    return this.post("/medical/incidents", data);
+  }
+  async getHealthSummary(studentId: string) {
+    return this.get(`/medical/summary/${studentId}`);
+  }
+
+  // ==================== LIBRARY ====================
+  async getBooks(branchId: string, filters?: any) {
+    const params = new URLSearchParams({ branch_id: branchId, ...filters });
+    return this.get(`/library/books?${params}`);
+  }
+  async createBook(data: any) {
+    return this.post("/library/books", data);
+  }
+  async updateBook(id: string, data: any) {
+    return this.patch(`/library/books/${id}`, data);
+  }
+  async deleteBook(id: string) {
+    return this.delete(`/library/books/${id}`);
+  }
+  async issueBook(data: any) {
+    return this.post("/library/loans/issue", data);
+  }
+  async returnBook(id: string, returnedTo: string) {
+    return this.post(`/library/loans/${id}/return`, { returned_to: returnedTo });
+  }
+  async renewBook(id: string) {
+    return this.post(`/library/loans/${id}/renew`, {});
+  }
+  async getBorrowerLoans(borrowerId: string, borrowerType: string) {
+    return this.get(`/library/loans/borrower/${borrowerId}?borrower_type=${borrowerType}`);
+  }
+  async getBorrowerFines(borrowerId: string, borrowerType: string) {
+    return this.get(`/library/fines/borrower/${borrowerId}?borrower_type=${borrowerType}`);
+  }
+  async payFine(id: string, amount: number, method: string) {
+    return this.post(`/library/fines/${id}/pay`, { amount, method });
+  }
+
+  // ==================== EVENTS ====================
+  async getEvents(branchId: string, filters?: any) {
+    const params = new URLSearchParams({ branch_id: branchId, ...filters });
+    return this.get(`/events?${params}`);
+  }
+  async getUpcomingEvents(branchId: string) {
+    return this.get(`/events/upcoming?branch_id=${branchId}`);
+  }
+  async getMonthlyCalendar(branchId: string, year: number, month: number) {
+    return this.get(`/events/calendar/${year}/${month}?branch_id=${branchId}`);
+  }
+  async createEvent(data: any) {
+    return this.post("/events", data);
+  }
+  async updateEvent(id: string, data: any) {
+    return this.patch(`/events/${id}`, data);
+  }
+  async deleteEvent(id: string) {
+    return this.delete(`/events/${id}`);
+  }
 }
 
 export const apiClient = new ApiClient();
+export default apiClient;

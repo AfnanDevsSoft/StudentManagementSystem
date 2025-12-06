@@ -12,6 +12,10 @@ import {
     Wallet,
     Mail,
     BarChart3,
+    Clock,
+    Heart,
+    Library,
+    CalendarDays,
 } from "lucide-react";
 
 export const adminSidebarItems = [
@@ -59,6 +63,26 @@ export const adminSidebarItems = [
         label: "Messages",
         href: "/dashboard/messaging/inbox",
         icon: <Mail size={20} />,
+    },
+    {
+        label: "Timetable",
+        href: "/dashboard/admin/timetable",
+        icon: <Clock size={20} />,
+    },
+    {
+        label: "Health Records",
+        href: "/dashboard/admin/health",
+        icon: <Heart size={20} />,
+    },
+    {
+        label: "Library",
+        href: "/dashboard/admin/library",
+        icon: <Library size={20} />,
+    },
+    {
+        label: "Events",
+        href: "/dashboard/admin/events",
+        icon: <CalendarDays size={20} />,
     },
     {
         label: "Reports",
