@@ -75,22 +75,38 @@ export default function GradesPage() {
     }
 
     try {
-      // TODO: Implement grade submission API call
-      toast.success("Grade saved successfully");
-      setShowModal(false);
-      setFormData({
-        student_id: "",
-        assessment_type: "exam",
-        assessment_name: "",
-        score: "",
-        max_score: "100",
-        weight: "1",
-        remarks: "",
+      const response = await apiClient.createGrade({
+        student_id: formData.student_id,
+        course_id: selectedCourse,
+        assessment_type: formData.assessment_type,
+        assessment_name: formData.assessment_name,
+        score: parseFloat(formData.score),
+        max_score: parseFloat(formData.max_score),
+        weight: parseFloat(formData.weight),
+        remarks: formData.remarks,
+        grade_date: new Date().toISOString(),
       });
-      // Refresh grades
-      // await fetchGrades();
-    } catch (error) {
-      toast.error("Failed to save grade");
+
+      if (response.success) {
+        toast.success("Grade saved successfully");
+        setShowModal(false);
+        setFormData({
+          student_id: "",
+          assessment_type: "exam",
+          assessment_name: "",
+          score: "",
+          max_score: "100",
+          weight: "1",
+          remarks: "",
+        });
+        // Optionally refresh grades list if you have a fetchGrades function
+        // await fetchGrades();
+      } else {
+        toast.error(response.message || "Failed to save grade");
+      }
+    } catch (error: any) {
+      console.error("Error saving grade:", error);
+      toast.error(error.response?.data?.message || "Failed to save grade");
     }
   };
 

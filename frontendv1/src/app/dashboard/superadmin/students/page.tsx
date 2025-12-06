@@ -1,10 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { useAuthStore } from "@/stores/authStore";
+import { apiClient } from "@/lib/apiClient";
+import { superadminSidebarItems } from "@/config/sidebarConfig";
 import {
-  LayoutDashboard,
   GraduationCap,
   Search,
   Plus,
@@ -16,88 +18,54 @@ import toast from "react-hot-toast";
 import Modal from "@/components/Modal";
 import StudentForm, { StudentFormData } from "@/components/StudentForm";
 import DeleteConfirmation from "@/components/DeleteConfirmation";
-
-interface StudentData {
-  id: string;
-  studentCode: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  gradeLevel: string;
-  status: "active" | "inactive" | "graduated";
-  enrollmentDate: string;
-  averageGrade: number;
-}
-
-const SAMPLE_STUDENTS: StudentData[] = [
-  {
-    id: "1",
-    studentCode: "STU001",
-    firstName: "Ali",
-    lastName: "Ahmed",
-    email: "ali.ahmed@school.edu",
-    phone: "+92-300-1234567",
-    gradeLevel: "10",
-    status: "active",
-    enrollmentDate: "2023-08-15",
-    averageGrade: 85.5,
-  },
-  {
-    id: "2",
-    studentCode: "STU002",
-    firstName: "Fatima",
-    lastName: "Khan",
-    email: "fatima.khan@school.edu",
-    phone: "+92-300-2345678",
-    gradeLevel: "9",
-    status: "active",
-    enrollmentDate: "2023-09-10",
-    averageGrade: 92.0,
-  },
-  {
-    id: "3",
-    studentCode: "STU003",
-    firstName: "Hassan",
-    lastName: "Hassan",
-    email: "hassan.hassan@school.edu",
-    phone: "+92-300-3456789",
-    gradeLevel: "11",
-    status: "graduated",
-    enrollmentDate: "2022-08-20",
-    averageGrade: 88.5,
-  },
-];
+import { Student } from "@/types";
 
 export default function StudentsSuperAdminPage() {
-  const [students, setStudents] = useState<StudentData[]>(SAMPLE_STUDENTS);
+  const { user } = useAuthStore();
+  const [students, setStudents] = useState<Student[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterGrade, setFilterGrade] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [selectedStudent, setSelectedStudent] = useState<StudentData | null>(
-    null
-  );
+  const [selectedStudent, setSelectedStudent] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  useEffect(() => {
+    fetchStudents();
+  }, [user]);
+
+  const fetchStudents = async () => {
+    try {
+      setLoading(true);
+      const response = await apiClient.getStudents();
+      setStudents(Array.isArray(response.data) ? response.data : []);
+    } catch (error) {
+      console.error("Error fetching students:", error);
+      toast.error("Failed to load students");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Convert StudentData to StudentFormData
-  const convertToFormData = (student: StudentData): StudentFormData => {
+  const convertToFormData = (student: any): StudentFormData => {
     return {
       id: student.id,
-      rollNumber: student.studentCode,
-      firstName: student.firstName,
-      lastName: student.lastName,
+      rollNumber: student.roll_number || student.student_code,
+      firstName: student.first_name,
+      lastName: student.last_name,
       email: student.email,
       phone: student.phone,
-      dateOfBirth: "2008-01-01", // Placeholder - would come from DB
-      class: student.gradeLevel,
-      section: "A", // Placeholder - would come from DB
-      status: student.status,
-      fatherName: "N/A", // Placeholder - would come from DB
-      address: "N/A", // Placeholder - would come from DB
-      enrollmentDate: student.enrollmentDate,
+      dateOfBirth: student.date_of_birth || "2008-01-01",
+      class: student.grade,
+      section: student.section || "A",
+      status: student.status || "active",
+      fatherName: student.father_name || "N/A",
+      address: student.address || "N/A",
+      enrollmentDate: student.enrollment_date || new Date().toISOString().split('T')[0],
     };
   };
 
@@ -105,81 +73,90 @@ export default function StudentsSuperAdminPage() {
   const convertFromFormData = (
     formData: StudentFormData,
     id?: string
-  ): StudentData => {
+  ): any => {
     return {
       id: id || Date.now().toString(),
-      studentCode: formData.rollNumber,
-      firstName: formData.firstName,
-      lastName: formData.lastName,
+      student_code: formData.rollNumber,
+      first_name: formData.firstName,
+      last_name: formData.lastName,
       email: formData.email,
       phone: formData.phone,
-      gradeLevel: formData.class,
+      grade: formData.class,
       status: formData.status,
-      enrollmentDate: formData.enrollmentDate,
-      averageGrade: 85.0, // Default value - would come from grade calculations
+      enrollment_date: formData.enrollmentDate,
     };
   };
 
-  const handleAddStudent = (formData: StudentFormData) => {
+  const handleAddStudent = async (formData: StudentFormData) => {
     setIsLoading(true);
-    // Simulate API call
-    setTimeout(() => {
+    try {
       const newStudent = convertFromFormData(formData);
-      setStudents([...students, newStudent]);
+      await apiClient.createStudent(newStudent);
+      toast.success("Student added successfully");
       setShowAddModal(false);
+      fetchStudents();
+    } catch (error) {
+      console.error("Error adding student:", error);
+      toast.error("Failed to add student");
+    } finally {
       setIsLoading(false);
-      toast.success("Student added successfully!");
-    }, 500);
+    }
   };
 
-  const handleEditStudent = (formData: StudentFormData) => {
+  const handleEditStudent = async (formData: StudentFormData) => {
     if (!selectedStudent) return;
     setIsLoading(true);
-    // Simulate API call
-    setTimeout(() => {
+    try {
       const updatedStudent = convertFromFormData(formData, selectedStudent.id);
-      setStudents(
-        students.map((s) => (s.id === selectedStudent.id ? updatedStudent : s))
-      );
+      await apiClient.updateStudent(selectedStudent.id, updatedStudent);
+      toast.success("Student updated successfully");
       setShowEditModal(false);
       setSelectedStudent(null);
+      fetchStudents();
+    } catch (error) {
+      console.error("Error updating student:", error);
+      toast.error("Failed to update student");
+    } finally {
       setIsLoading(false);
-      toast.success("Student updated successfully!");
-    }, 500);
+    }
   };
 
-  const handleDeleteStudent = () => {
+  const handleDeleteStudent = async () => {
     if (!selectedStudent) return;
     setIsLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setStudents(students.filter((s) => s.id !== selectedStudent.id));
+    try {
+      await apiClient.deleteStudent(selectedStudent.id);
+      toast.success("Student deleted successfully");
       setShowDeleteModal(false);
       setSelectedStudent(null);
+      fetchStudents();
+    } catch (error) {
+      console.error("Error deleting student:", error);
+      toast.error("Failed to delete student");
+    } finally {
       setIsLoading(false);
-      toast.success("Student deleted successfully!");
-    }, 500);
+    }
   };
 
-  const openEditModal = (student: StudentData) => {
+  const openEditModal = (student: any) => {
     setSelectedStudent(student);
     setShowEditModal(true);
   };
 
-  const openDeleteModal = (student: StudentData) => {
+  const openDeleteModal = (student: any) => {
     setSelectedStudent(student);
     setShowDeleteModal(true);
   };
 
-  const filteredStudents = students.filter((student) => {
+  const filteredStudents = students.filter((student: any) => {
     const matchesSearch =
-      student.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      student.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      student.studentCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      student.email.toLowerCase().includes(searchTerm.toLowerCase());
+      (student.first_name?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
+      (student.last_name?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
+      (student.student_code?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
+      (student.email?.toLowerCase() || "").includes(searchTerm.toLowerCase());
 
     const matchesGrade =
-      filterGrade === "all" || student.gradeLevel === filterGrade;
+      filterGrade === "all" || student.grade === filterGrade;
     const matchesStatus =
       filterStatus === "all" || student.status === filterStatus;
 
@@ -206,18 +183,6 @@ export default function StudentsSuperAdminPage() {
     return "text-red-600";
   };
 
-  const sidebarItems = [
-    {
-      label: "Dashboard",
-      href: "/dashboard/superadmin",
-      icon: <LayoutDashboard size={20} />,
-    },
-    {
-      label: "Students",
-      href: "/dashboard/superadmin/students",
-      icon: <GraduationCap size={20} />,
-    },
-  ];
 
   const stats = [
     {
@@ -227,24 +192,24 @@ export default function StudentsSuperAdminPage() {
     },
     {
       label: "Active",
-      value: students.filter((s) => s.status === "active").length,
+      value: students.filter((s: any) => s.is_active === true).length,
       color: "bg-green-100 text-green-600",
     },
     {
-      label: "Graduated",
-      value: students.filter((s) => s.status === "graduated").length,
+      label: "Enrolled",
+      value: students.filter((s: any) => s.admission_status === "enrolled").length,
       color: "bg-purple-100 text-purple-600",
     },
     {
       label: "Inactive",
-      value: students.filter((s) => s.status === "inactive").length,
+      value: students.filter((s: any) => s.is_active === false).length,
       color: "bg-yellow-100 text-yellow-600",
     },
   ];
 
   return (
     <ProtectedRoute>
-      <DashboardLayout title="Students Management" sidebarItems={sidebarItems}>
+      <DashboardLayout title="Students Management" sidebarItems={superadminSidebarItems}>
         <div className="space-y-6">
           {/* Stats */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -335,10 +300,7 @@ export default function StudentsSuperAdminPage() {
                       Phone
                     </th>
                     <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
-                      Grade
-                    </th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
-                      Avg Grade
+                      Admission Status
                     </th>
                     <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
                       Status
@@ -349,41 +311,39 @@ export default function StudentsSuperAdminPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y">
-                  {filteredStudents.map((student) => (
+                  {filteredStudents.map((student: any) => (
                     <tr
                       key={student.id}
                       className="hover:bg-gray-50 transition"
                     >
                       <td className="px-6 py-4 text-sm font-mono text-gray-900">
-                        {student.studentCode}
+                        {student.student_code || 'N/A'}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-900">
-                        {student.firstName} {student.lastName}
+                        {student.first_name} {student.last_name}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-600">
-                        {student.email}
+                        {student.personal_email || student.user?.email || 'N/A'}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-600">
-                        {student.phone}
+                        {student.personal_phone || student.user?.phone || 'N/A'}
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-900">
-                        Grade {student.gradeLevel}
-                      </td>
-                      <td
-                        className={`px-6 py-4 text-sm font-semibold ${getGradeColor(
-                          student.averageGrade
-                        )}`}
-                      >
-                        {student.averageGrade.toFixed(1)}%
+                      <td className="px-6 py-4 text-sm">
+                        <span className={`px-2 py-1 rounded text-xs font-medium ${student.admission_status === 'enrolled' ? 'bg-blue-100 text-blue-800' :
+                          student.admission_status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                            student.admission_status === 'approved' ? 'bg-green-100 text-green-800' :
+                              'bg-gray-100 text-gray-800'
+                          }`}>
+                          {student.admission_status ? student.admission_status.charAt(0).toUpperCase() + student.admission_status.slice(1) : 'N/A'}
+                        </span>
                       </td>
                       <td className="px-6 py-4 text-sm">
                         <span
                           className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(
-                            student.status
+                            student.is_active ? 'active' : 'inactive'
                           )}`}
                         >
-                          {student.status.charAt(0).toUpperCase() +
-                            student.status.slice(1)}
+                          {student.is_active ? 'Active' : 'Inactive'}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-sm text-right space-x-2 flex justify-end">
@@ -463,7 +423,7 @@ export default function StudentsSuperAdminPage() {
           message="Are you sure you want to delete this student? This will remove all associated records including grades and attendance."
           itemName={
             selectedStudent
-              ? `${selectedStudent.firstName} ${selectedStudent.lastName}`
+              ? `${selectedStudent.first_name} ${selectedStudent.last_name}`
               : ""
           }
           isLoading={isLoading}

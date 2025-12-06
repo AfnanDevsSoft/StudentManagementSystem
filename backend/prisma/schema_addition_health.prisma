@@ -1,0 +1,110 @@
+// ============================================
+// HEALTH RECORDS SYSTEM MODELS
+// ============================================
+// Add this to the end of schema.prisma
+
+// Student Health Records - Medical history and allergies
+model HealthRecord {
+  id                String   @id @default(uuid()) @db.Uuid
+  student_id        String   @db.Uuid @unique
+  blood_group       String?  // A+, B+, O-, etc.
+  height            Decimal? @db.Decimal(5, 2) // in cm
+  weight            Decimal? @db.Decimal(5, 2) // in kg
+  allergies         String?  @db.Text // Comma-separated or JSON
+  chronic_conditions String? @db.Text
+  medications       String?  @db.Text
+  emergency_contact String?
+  emergency_phone   String?
+  doctor_name       String?
+  doctor_phone      String?
+  insurance_provider String?
+  insurance_number  String?
+  notes             String?  @db.Text
+  last_updated      DateTime @default(now()) @updatedAt
+  created_at        DateTime @default(now())
+
+  student           Student            @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  medical_checkups  MedicalCheckup[]
+  vaccinations      Vaccination[]
+
+  @@map("health_records")
+}
+
+// Medical Checkups - Regular health examinations
+model MedicalCheckup {
+  id                String   @id @default(uuid()) @db.Uuid
+  health_record_id  String   @db.Uuid
+  checkup_date      DateTime
+  height            Decimal? @db.Decimal(5, 2) // in cm
+  weight            Decimal? @db.Decimal(5, 2) // in kg
+  blood_pressure    String?  // e.g., "120/80"
+  temperature       Decimal? @db.Decimal(4, 2) // in Celsius
+  pulse_rate        Int?     // beats per minute
+  vision_left       String?  // e.g., "20/20"
+  vision_right      String?  // e.g., "20/20"
+  dental_checkup    Boolean  @default(false)
+  doctor_name       String?
+  findings          String?  @db.Text
+  recommendations   String?  @db.Text
+  next_checkup_date DateTime?
+  created_at        DateTime @default(now())
+
+  health_record HealthRecord @relation(fields: [health_record_id], references: [id], onDelete: Cascade)
+
+  @@index([health_record_id])
+  @@index([checkup_date])
+  @@map("medical_checkups")
+}
+
+// Vaccinations - Immunization records
+model Vaccination {
+  id                String   @id @default(uuid()) @db.Uuid
+  health_record_id  String   @db.Uuid
+  vaccine_name      String   // e.g., "COVID-19", "MMR", "Hepatitis B"
+  vaccine_type      String?  // e.g., "Booster", "Primary dose 1"
+  dose_number       Int?     @default(1)
+  administered_date DateTime
+  administered_by   String?  // Doctor/clinic name
+  batch_number      String?
+  manufacturer      String?
+  next_dose_date    DateTime?
+  side_effects      String?  @db.Text
+  certificate_url   String?  // Link to vaccination certificate
+  created_at        DateTime @default(now())
+
+  health_record HealthRecord @relation(fields: [health_record_id], references: [id], onDelete: Cascade)
+
+  @@index([health_record_id])
+  @@index([administered_date])
+  @@map("vaccinations")
+}
+
+// Medical Incidents - Accidents, injuries, sick bay visits
+model MedicalIncident {
+  id              String   @id @default(uuid()) @db.Uuid
+  student_id      String   @db.Uuid
+  incident_date   DateTime @default(now())
+  incident_type   String   // injury, illness, emergency, other
+  severity        String   // minor, moderate, severe, critical
+  description     String   @db.Text
+  treatment_given String?  @db.Text
+  attended_by     String?  // Staff member name
+  parent_notified Boolean  @default(false)
+  hospital_visit  Boolean  @default(false)
+  hospital_name   String?
+  follow_up_required Boolean @default(false)
+  follow_up_notes String?  @db.Text
+  resolved_at     DateTime?
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  student Student @relation(fields: [student_id], references: [id], onDelete: Cascade)
+
+  @@index([student_id])
+  @@index([incident_date])
+  @@map("medical_incidents")
+}
+
+// Also need to add these relations to the existing Student model:
+// health_record      HealthRecord?
+// medical_incidents  MedicalIncident[]

@@ -1,0 +1,124 @@
+// ============================================
+// EVENT CALENDAR & LIBRARY SYSTEM MODELS
+// ============================================
+// Add this to the end of schema.prisma
+
+// Events - School calendar (holidays, meetings, events)
+model Event {
+  id              String   @id @default(uuid()) @db.Uuid
+  branch_id       String   @db.Uuid
+  title           String
+  description     String?  @db.Text
+  event_type      String   // holiday, meeting, exam, sports, cultural, other
+  target_audience String   @default("all") // all, students, teachers, parents, specific_grade
+  grade_level_id  String?  @db.Uuid
+  start_date      DateTime
+  end_date        DateTime
+  start_time      String?  // "09:00"
+  end_time        String?  // "17:00"
+  location        String?
+  organizer       String?
+  is_holiday      Boolean  @default(false)
+  is_recurring    Boolean  @default(false)
+  recurrence_rule String?  // RRULE format for recurring events
+  attachments     Json?    // Array of file URLs
+  created_by      String   @db.Uuid
+  is_active       Boolean  @default(true)
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  @@index([branch_id])
+  @@index([start_date])
+  @@index([event_type])
+  @@map("events")
+}
+
+// ============================================
+// LIBRARY MANAGEMENT SYSTEM MODELS
+// ============================================
+
+// Books - Library catalog
+model Book {
+  id              String   @id @default(uuid()) @db.Uuid
+  branch_id       String   @db.Uuid
+  isbn            String?  @unique
+  title           String
+  author          String
+  publisher       String?
+  publication_year Int?
+  category        String?  // fiction, non-fiction, reference, textbook
+  language        String   @default("English")
+  total_copies    Int      @default(1)
+  available_copies Int     @default(1)
+  shelf_location  String?
+  description     String?  @db.Text
+  cover_image_url String?
+  price           Decimal? @db.Decimal(10, 2)
+  is_active       Boolean  @default(true)
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  loans BookLoan[]
+
+  @@index([branch_id])
+  @@index([isbn])
+  @@index([title])
+  @@map("books")
+}
+
+// Book Loans - Borrowing records
+model BookLoan {
+  id             String    @id @default(uuid()) @db.Uuid
+  book_id        String    @db.Uuid
+  student_id     String?   @db.Uuid
+  teacher_id     String?   @db.Uuid
+  borrower_type  String    // student, teacher, staff
+  issue_date     DateTime  @default(now())
+  due_date       DateTime
+  return_date    DateTime?
+  status         String    @default("active") // active, returned, overdue
+  renewed_count  Int       @default(0)
+  issued_by      String    @db.Uuid
+  returned_to    String?   @db.Uuid
+  notes          String?   @db.Text
+  created_at     DateTime  @default(now())
+  updated_at     DateTime  @updatedAt
+
+  book    Book      @relation(fields: [book_id], references: [id])
+  student Student?  @relation(fields: [student_id], references: [id])
+  teacher Teacher?  @relation(fields: [teacher_id], references: [id])
+  fines   BookFine[]
+
+  @@index([book_id])
+  @@index([student_id])
+  @@index([teacher_id])
+  @@index([status])
+  @@map("book_loans")
+}
+
+// Book Fines - Overdue penalties
+model BookFine {
+  id             String    @id @default(uuid()) @db.Uuid
+  loan_id        String    @db.Uuid
+  fine_amount    Decimal   @db.Decimal(10, 2)
+  days_overdue   Int
+  paid_amount    Decimal   @default(0) @db.Decimal(10, 2)
+  payment_status String    @default("unpaid") // unpaid, partially_paid, paid
+  payment_date   DateTime?
+  payment_method String?
+  waived         Boolean   @default(false)
+  waived_by      String?   @db.Uuid
+  waived_reason  String?   @db.Text
+  created_at     DateTime  @default(now())
+  updated_at     DateTime  @updatedAt
+
+  loan BookLoan @relation(fields: [loan_id], references: [id])
+
+  @@index([loan_id])
+  @@index([payment_status])
+  @@map("book_fines")
+}
+
+// Also need to add these relations to existing models:
+// Student model: book_loans BookLoan[]
+// Teacher model: book_loans BookLoan[]

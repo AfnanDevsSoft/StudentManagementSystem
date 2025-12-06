@@ -56,22 +56,16 @@ export default function LoginPage() {
           created_at: backendUser.created_at,
         };
 
-        // Store in localStorage
-        localStorage.setItem("auth_token", token);
-        localStorage.setItem("auth_user", JSON.stringify(userData));
+        // Store with consistent key names that apiClient expects
+        localStorage.setItem("access_token", token);
+        localStorage.setItem("user", JSON.stringify(userData));
 
-        // Store in zustand
-        setToken(token);
+        // Update Zustand store
         setUser(userData);
+        setToken(token);
 
-        // Get role name as string
-        const roleName =
-          typeof userData.role === "string"
-            ? userData.role
-            : (userData.role as any)?.name || "superadmin";
-
-        // Redirect to appropriate dashboard
-        router.push(`/dashboard/${roleName.toLowerCase()}`);
+        // Redirect to unified dashboard (role-based content is handled there)
+        router.push("/dashboard");
       } else {
         setError(response.message || "Login failed");
       }
@@ -79,8 +73,8 @@ export default function LoginPage() {
       console.error("Login error:", err);
       setError(
         err.response?.data?.message ||
-          err.message ||
-          "An error occurred during login"
+        err.message ||
+        "An error occurred during login"
       );
     } finally {
       setIsLoading(false);

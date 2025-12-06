@@ -1,81 +1,58 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { useAuthStore } from "@/stores/authStore";
+import { apiClient } from "@/lib/apiClient";
+import { superadminSidebarItems } from "@/config/sidebarConfig";
 import {
-  LayoutDashboard,
   Users,
   Search,
   Plus,
   Edit2,
   Trash2,
 } from "lucide-react";
-
-interface TeacherData {
-  id: string;
-  employeeCode: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  department: string;
-  designation: string;
-  qualifications: string;
-  yearsOfExperience: number;
-  status: "active" | "inactive";
-  coursesAssigned: number;
-}
-
-const SAMPLE_TEACHERS: TeacherData[] = [
-  {
-    id: "1",
-    employeeCode: "TEA001",
-    firstName: "Muhammad",
-    lastName: "Ali",
-    email: "m.ali@school.edu",
-    phone: "+92-300-1111111",
-    department: "Mathematics",
-    designation: "Senior Teacher",
-    qualifications: "M.Sc Mathematics",
-    yearsOfExperience: 8,
-    status: "active",
-    coursesAssigned: 4,
-  },
-  {
-    id: "2",
-    employeeCode: "TEA002",
-    firstName: "Ayesha",
-    lastName: "Khan",
-    email: "ayesha.khan@school.edu",
-    phone: "+92-300-2222222",
-    department: "English",
-    designation: "Teacher",
-    qualifications: "M.A English",
-    yearsOfExperience: 5,
-    status: "active",
-    coursesAssigned: 3,
-  },
-];
+import toast from "react-hot-toast";
+import { Teacher } from "@/types";
 
 export default function TeachersPage() {
-  const [teachers, setTeachers] = useState<TeacherData[]>(SAMPLE_TEACHERS);
+  const { user } = useAuthStore();
+  const [teachers, setTeachers] = useState<Teacher[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterDept, setFilterDept] = useState("all");
 
-  const filteredTeachers = teachers.filter((teacher) => {
+  useEffect(() => {
+    fetchTeachers();
+  }, [user]);
+
+  const fetchTeachers = async () => {
+    try {
+      setLoading(true);
+      const response = await apiClient.getTeachers();
+      setTeachers(Array.isArray(response.data) ? response.data : []);
+    } catch (error) {
+      console.error("Error fetching teachers:", error);
+      toast.error("Failed to load teachers");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredTeachers = teachers.filter((teacher: any) => {
     const matchesSearch =
-      teacher.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      teacher.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      teacher.employeeCode.toLowerCase().includes(searchTerm.toLowerCase());
+      (teacher.first_name?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
+      (teacher.last_name?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
+      (teacher.email?.toLowerCase() || "").includes(searchTerm.toLowerCase());
 
     const matchesDept =
-      filterDept === "all" || teacher.department === filterDept;
+      filterDept === "all" || (teacher.specialization === filterDept);
 
     return matchesSearch && matchesDept;
   });
 
-  const departments = [...new Set(teachers.map((t) => t.department))];
+  const departments = [...new Set(teachers.map((t: any) => t.specialization).filter(Boolean))];
 
   const getStatusColor = (status: string) => {
     return status === "active"
@@ -83,18 +60,6 @@ export default function TeachersPage() {
       : "bg-red-100 text-red-800";
   };
 
-  const sidebarItems = [
-    {
-      label: "Dashboard",
-      href: "/dashboard/superadmin",
-      icon: <LayoutDashboard size={20} />,
-    },
-    {
-      label: "Teachers",
-      href: "/dashboard/superadmin/teachers",
-      icon: <Users size={20} />,
-    },
-  ];
 
   const stats = [
     {
@@ -125,7 +90,7 @@ export default function TeachersPage() {
 
   return (
     <ProtectedRoute>
-      <DashboardLayout title="Teachers Management" sidebarItems={sidebarItems}>
+      <DashboardLayout title="Teachers Management" sidebarItems={superadminSidebarItems}>
         <div className="space-y-6">
           {/* Stats */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -215,42 +180,41 @@ export default function TeachersPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y">
-                  {filteredTeachers.map((teacher) => (
+                  {filteredTeachers.map((teacher: any) => (
                     <tr
                       key={teacher.id}
                       className="hover:bg-gray-50 transition"
                     >
                       <td className="px-6 py-4 text-sm font-mono text-gray-900">
-                        {teacher.employeeCode}
+                        {teacher.employee_code || "N/A"}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-900">
-                        {teacher.firstName} {teacher.lastName}
+                        {teacher.first_name} {teacher.last_name}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-600">
-                        {teacher.department}
+                        {teacher.specialization || "N/A"}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-600">
-                        {teacher.designation}
+                        {teacher.designation || "N/A"}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-900">
-                        {teacher.yearsOfExperience} years
+                        {teacher.years_of_experience || 0} years
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-600">
-                        {teacher.qualifications}
+                        {teacher.qualifications || "N/A"}
                       </td>
                       <td className="px-6 py-4 text-sm">
                         <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-semibold">
-                          {teacher.coursesAssigned}
+                          0
                         </span>
                       </td>
                       <td className="px-6 py-4 text-sm">
                         <span
                           className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(
-                            teacher.status
+                            "active"
                           )}`}
                         >
-                          {teacher.status.charAt(0).toUpperCase() +
-                            teacher.status.slice(1)}
+                          Active
                         </span>
                       </td>
                       <td className="px-6 py-4 text-sm text-right space-x-2 flex justify-end">

@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useAuthStore } from "@/stores/authStore";
+import { apiClient } from "@/lib/apiClient";
 import DashboardLayout from "@/components/DashboardLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { useAuthStore } from "@/stores/authStore";
 import {
   LayoutDashboard,
   Users,
@@ -11,15 +12,44 @@ import {
   MessageCircle,
   FileText,
 } from "lucide-react";
+import toast from "react-hot-toast";
 
 export default function ParentDashboard() {
   const { user } = useAuthStore();
+  const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     children: 0,
     avgGpa: 0,
     avgAttendance: 0,
     messages: 0,
   });
+
+  useEffect(() => {
+    fetchStats();
+  }, [user]);
+
+  const fetchStats = async () => {
+    try {
+      setLoading(true);
+      // For parent, fetch their children (students)
+      const studentsRes = await apiClient.getStudents();
+      const childrenCount = Array.isArray(studentsRes.data)
+        ? studentsRes.data.length
+        : 0;
+
+      setStats({
+        children: childrenCount,
+        avgGpa: 0,
+        avgAttendance: 0,
+        messages: 0,
+      });
+    } catch (error) {
+      console.error("Error fetching stats:", error);
+      toast.error("Failed to load dashboard data");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const sidebarItems = [
     {

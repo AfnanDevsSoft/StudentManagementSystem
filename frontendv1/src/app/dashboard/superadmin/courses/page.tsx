@@ -1,111 +1,59 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { useAuthStore } from "@/stores/authStore";
+import { apiClient } from "@/lib/apiClient";
+import { superadminSidebarItems } from "@/config/sidebarConfig";
 import {
-  LayoutDashboard,
   BookOpen,
   Search,
   Plus,
   Edit2,
   Trash2,
 } from "lucide-react";
-
-interface CourseData {
-  id: string;
-  courseCode: string;
-  courseName: string;
-  grade: string;
-  teacher: string;
-  credits: number;
-  duration: string;
-  students: number;
-  status: "active" | "inactive" | "archived";
-  description: string;
-}
-
-const SAMPLE_COURSES: CourseData[] = [
-  {
-    id: "1",
-    courseCode: "MATH101",
-    courseName: "Algebra Fundamentals",
-    grade: "9",
-    teacher: "Muhammad Ali",
-    credits: 3,
-    duration: "45 hours",
-    students: 32,
-    status: "active",
-    description: "Basic algebra concepts and equations",
-  },
-  {
-    id: "2",
-    courseCode: "ENG101",
-    courseName: "English Literature",
-    grade: "9",
-    teacher: "Ayesha Khan",
-    credits: 3,
-    duration: "40 hours",
-    students: 28,
-    status: "active",
-    description: "Classic and modern literature analysis",
-  },
-  {
-    id: "3",
-    courseCode: "SCI101",
-    courseName: "General Science",
-    grade: "9",
-    teacher: "Dr. Hassan",
-    credits: 4,
-    duration: "50 hours",
-    students: 35,
-    status: "active",
-    description: "Physics, Chemistry, and Biology basics",
-  },
-];
+import toast from "react-hot-toast";
+import { Course } from "@/types";
 
 export default function CoursesPage() {
-  const [courses, setCourses] = useState<CourseData[]>(SAMPLE_COURSES);
+  const { user } = useAuthStore();
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterGrade, setFilterGrade] = useState("all");
-  const [filterStatus, setFilterStatus] = useState("all");
+
+  useEffect(() => {
+    fetchCourses();
+  }, [user]);
+
+  const fetchCourses = async () => {
+    try {
+      setLoading(true);
+      const response = await apiClient.getCourses();
+      setCourses(Array.isArray(response.data) ? response.data : []);
+    } catch (error) {
+      console.error("Error fetching courses:", error);
+      toast.error("Failed to load courses");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredCourses = courses.filter((course) => {
     const matchesSearch =
-      course.courseCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      course.courseName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      course.teacher.toLowerCase().includes(searchTerm.toLowerCase());
+      course.course_code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      course.course_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      course.teacher_name.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesGrade = filterGrade === "all" || course.grade === filterGrade;
-    const matchesStatus =
-      filterStatus === "all" || course.status === filterStatus;
+    const matchesGrade =
+      filterGrade === "all" || course.grade_level === filterGrade;
 
-    return matchesSearch && matchesGrade && matchesStatus;
+    return matchesSearch && matchesGrade;
   });
 
-  const grades = [...new Set(courses.map((c) => c.grade))].sort();
+  const grades = [...new Set(courses.map((c) => c.grade_level))].sort();
 
-  const getStatusColor = (status: string) => {
-    const colors: Record<string, string> = {
-      active: "bg-green-100 text-green-800",
-      inactive: "bg-yellow-100 text-yellow-800",
-      archived: "bg-gray-100 text-gray-800",
-    };
-    return colors[status] || "bg-gray-100 text-gray-800";
-  };
-
-  const sidebarItems = [
-    {
-      label: "Dashboard",
-      href: "/dashboard/superadmin",
-      icon: <LayoutDashboard size={20} />,
-    },
-    {
-      label: "Courses",
-      href: "/dashboard/superadmin/courses",
-      icon: <BookOpen size={20} />,
-    },
-  ];
 
   const stats = [
     {
@@ -114,13 +62,19 @@ export default function CoursesPage() {
       color: "bg-blue-100 text-blue-600",
     },
     {
-      label: "Active",
-      value: courses.filter((c) => c.status === "active").length,
+      label: "Total Students",
+      value: courses.reduce((sum, c) => sum + c.enrolled_students, 0),
       color: "bg-green-100 text-green-600",
     },
     {
-      label: "Total Students",
-      value: courses.reduce((sum, c) => sum + c.students, 0),
+      label: "Avg Class Size",
+      value:
+        courses.length > 0
+          ? Math.round(
+            courses.reduce((sum, c) => sum + c.enrolled_students, 0) /
+            courses.length
+          )
+          : 0,
       color: "bg-purple-100 text-purple-600",
     },
     {
@@ -132,14 +86,14 @@ export default function CoursesPage() {
 
   return (
     <ProtectedRoute>
-      <DashboardLayout title="Courses Management" sidebarItems={sidebarItems}>
+      <DashboardLayout title="Courses Management" sidebarItems={superadminSidebarItems}>
         <div className="space-y-6">
           {/* Stats */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {stats.map((stat) => (
               <div key={stat.label} className="bg-white rounded-lg shadow p-6">
                 <p className="text-gray-600 text-sm">{stat.label}</p>
-                <p className={`text-3xl font-bold mt-2 ${stat.color}`}>
+                <p className={`text - 3xl font - bold mt - 2 ${stat.color} `}>
                   {stat.value}
                 </p>
               </div>
@@ -176,16 +130,7 @@ export default function CoursesPage() {
                   </option>
                 ))}
               </select>
-              <select
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="all">All Status</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-                <option value="archived">Archived</option>
-              </select>
+              <div></div>
             </div>
 
             <div className="mt-4 flex justify-end">
@@ -207,18 +152,14 @@ export default function CoursesPage() {
                   <div className="flex justify-between items-start mb-3">
                     <div>
                       <p className="text-xs font-mono text-gray-500">
-                        {course.courseCode}
+                        {course.course_code}
                       </p>
                       <h3 className="text-lg font-semibold text-gray-900">
-                        {course.courseName}
+                        {course.course_name}
                       </h3>
                     </div>
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(
-                        course.status
-                      )}`}
-                    >
-                      {course.status}
+                    <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+                      Active
                     </span>
                   </div>
 
@@ -230,25 +171,25 @@ export default function CoursesPage() {
                     <div>
                       <p className="text-gray-500">Grade</p>
                       <p className="font-semibold text-gray-900">
-                        {course.grade}
+                        {course.grade_level}
                       </p>
                     </div>
                     <div>
-                      <p className="text-gray-500">Credits</p>
+                      <p className="text-gray-500">Enrolled</p>
                       <p className="font-semibold text-gray-900">
-                        {course.credits}
+                        {course.enrolled_students}/{course.max_students}
                       </p>
                     </div>
                     <div>
                       <p className="text-gray-500">Teacher</p>
                       <p className="font-semibold text-gray-900">
-                        {course.teacher}
+                        {course.teacher_name}
                       </p>
                     </div>
                     <div>
-                      <p className="text-gray-500">Students</p>
+                      <p className="text-gray-500">Room</p>
                       <p className="font-semibold text-gray-900">
-                        {course.students}
+                        {course.room_number || "TBA"}
                       </p>
                     </div>
                   </div>

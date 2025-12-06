@@ -5,14 +5,13 @@ import DashboardLayout from "@/components/DashboardLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuthStore } from "@/stores/authStore";
 import { apiClient } from "@/lib/apiClient";
+import { superadminSidebarItems } from "@/config/sidebarConfig";
 import {
   LayoutDashboard,
   Users,
   BookOpen,
   BarChart3,
-  Settings,
   GraduationCap,
-  UserCog,
 } from "lucide-react";
 import { Branch, User, Student, Teacher, Course } from "@/types";
 
@@ -33,7 +32,7 @@ export default function SuperAdminDashboard() {
 
         const [branchRes, usersRes] = await Promise.all([
           apiClient.getBranches(),
-          apiClient.getUsers(user.branch_id),
+          apiClient.getUsers(1, 100, "", user.branch_id),
         ]);
 
         setStats({
@@ -50,68 +49,6 @@ export default function SuperAdminDashboard() {
 
     fetchStats();
   }, [user]);
-
-  const sidebarItems = [
-    {
-      label: "Dashboard",
-      href: "/dashboard/superadmin",
-      icon: <LayoutDashboard size={20} />,
-    },
-    {
-      label: "Management",
-      href: "#",
-      icon: <UserCog size={20} />,
-      children: [
-        {
-          label: "Branches",
-          href: "/dashboard/superadmin/branches",
-          icon: <LayoutDashboard size={18} />,
-        },
-        {
-          label: "Users",
-          href: "/dashboard/superadmin/users",
-          icon: <Users size={18} />,
-        },
-        {
-          label: "Roles & Permissions",
-          href: "/dashboard/superadmin/roles",
-          icon: <UserCog size={18} />,
-        },
-      ],
-    },
-    {
-      label: "Academic",
-      href: "#",
-      icon: <GraduationCap size={20} />,
-      children: [
-        {
-          label: "Students",
-          href: "/dashboard/superadmin/students",
-          icon: <GraduationCap size={18} />,
-        },
-        {
-          label: "Teachers",
-          href: "/dashboard/superadmin/teachers",
-          icon: <Users size={18} />,
-        },
-        {
-          label: "Courses",
-          href: "/dashboard/superadmin/courses",
-          icon: <BookOpen size={18} />,
-        },
-      ],
-    },
-    {
-      label: "Analytics",
-      href: "/dashboard/superadmin/analytics",
-      icon: <BarChart3 size={20} />,
-    },
-    {
-      label: "Settings",
-      href: "/dashboard/superadmin/settings",
-      icon: <Settings size={20} />,
-    },
-  ];
 
   const StatCard = ({
     title,
@@ -135,7 +72,7 @@ export default function SuperAdminDashboard() {
 
   return (
     <ProtectedRoute>
-      <DashboardLayout title="SuperAdmin Dashboard" sidebarItems={sidebarItems}>
+      <DashboardLayout title="SuperAdmin Dashboard" sidebarItems={superadminSidebarItems}>
         <div className="space-y-6">
           {/* Stats Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">

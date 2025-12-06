@@ -1,0 +1,67 @@
+// ============================================
+// TIMETABLE SYSTEM MODELS
+// ============================================
+// Add this to the end of schema.prisma (after line 970)
+
+// Time Slots - Define periods in a day (e.g., Period 1: 8:00-9:00)
+model TimeSlot {
+  id         String   @id @default(uuid()) @db.Uuid
+  branch_id  String   @db.Uuid
+  slot_name  String   // "Period 1", "Period 2", etc.
+  start_time String   // "08:00"
+  end_time   String   // "09:00"
+  slot_type  String   @default("class") // class, break, lunch
+  sort_order Int
+  is_active  Boolean  @default(true)
+  created_at DateTime @default(now())
+
+  timetable_entries TimetableEntry[]
+
+  @@unique([branch_id, slot_name])
+  @@map("time_slots")
+}
+
+// Rooms/Classrooms
+model Room {
+  id            String   @id @default(uuid()) @db.Uuid
+  branch_id     String   @db.Uuid
+  room_number   String
+  room_name     String?
+  building      String?
+  floor         String?
+  capacity      Int      @default(40)
+  room_type     String   @default("classroom") // classroom, lab, auditorium, library
+  facilities    Json?    // {projector: true, ac: true, whiteboard: true}
+  is_active     Boolean  @default(true)
+  created_at    DateTime @default(now())
+
+  timetable_entries TimetableEntry[]
+
+  @@unique([branch_id, room_number])
+  @@map("rooms")
+}
+
+// Timetable Entries - Links courses to time slots, rooms, and days
+model TimetableEntry {
+  id               String   @id @default(uuid()) @db.Uuid
+  academic_year_id String   @db.Uuid
+  course_id        String   @db.Uuid
+  time_slot_id     String   @db.Uuid
+  room_id          String?  @db.Uuid
+  day_of_week      Int      // 1=Monday, 2=Tuesday, ..., 7=Sunday
+  is_active        Boolean  @default(true)
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+
+  course    Course    @relation(fields: [course_id], references: [id], onDelete: Cascade)
+  time_slot TimeSlot  @relation(fields: [time_slot_id], references: [id])
+  room      Room?     @relation(fields: [room_id], references: [id])
+
+  @@unique([course_id, time_slot_id, day_of_week])
+  @@index([course_id])
+  @@index([day_of_week])
+  @@map("timetable_entries")
+}
+
+// Also need to add this relation to the existing Course model:
+// timetable_entries TimetableEntry[]

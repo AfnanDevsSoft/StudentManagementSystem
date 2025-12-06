@@ -27,6 +27,10 @@ import fileExportRoutes from "./routes/fileExport.routes";
 import backupRoutes from "./routes/backup.routes";
 import loggingRoutes from "./routes/logging.routes";
 import notificationsAdvancedRoutes from "./routes/notifications.routes";
+import timetableRoutes from "./routes/timetable.routes";
+import medicalRoutes from "./routes/medical.routes";
+import eventsRoutes from "./routes/events.routes";
+import libraryRoutes from "./routes/library.routes";
 import { errorHandler } from "./middleware/error.middleware";
 
 const app: Express = express();
@@ -126,6 +130,18 @@ apiV1.use("/exports", fileExportRoutes);
 apiV1.use("/backups", backupRoutes);
 apiV1.use("/logs", loggingRoutes);
 apiV1.use("/notifications-advanced", notificationsAdvancedRoutes);
+
+// Phase 4 Routes - Timetable System
+apiV1.use("/timetable", timetableRoutes);
+
+// Phase 4 Routes - Medical/Health Records
+apiV1.use("/medical", medicalRoutes);
+
+// Phase 4 Routes - Events Calendar
+apiV1.use("/events", eventsRoutes);
+
+// Phase 4 Routes - Library Management
+apiV1.use("/library", libraryRoutes);
 
 // Mount v1 routes
 app.use("/api/v1", apiV1);

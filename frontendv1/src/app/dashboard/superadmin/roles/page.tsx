@@ -1,10 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useAuthStore } from "@/stores/authStore";
+import { apiClient } from "@/lib/apiClient";
 import DashboardLayout from "@/components/DashboardLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { superadminSidebarItems } from "@/config/sidebarConfig";
 import {
-  LayoutDashboard,
   UserCog,
   Plus,
   Edit2,
@@ -103,7 +105,9 @@ const DEFAULT_ROLES: Role[] = [
 ];
 
 export default function RolesPage() {
-  const [roles, setRoles] = useState<Role[]>(DEFAULT_ROLES);
+  const { user } = useAuthStore();
+  const [roles, setRoles] = useState<Role[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingRole, setEditingRole] = useState<Role | null>(null);
   const [formData, setFormData] = useState({
@@ -111,6 +115,23 @@ export default function RolesPage() {
     description: "",
     permissions: [] as string[],
   });
+
+  useEffect(() => {
+    fetchRoles();
+  }, [user]);
+
+  const fetchRoles = async () => {
+    try {
+      setLoading(true);
+      const response = await apiClient.getRoles();
+      setRoles(Array.isArray(response.data) ? response.data : []);
+    } catch (error) {
+      console.error("Error fetching roles:", error);
+      toast.error("Failed to load roles");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleAddRole = () => {
     setEditingRole(null);
@@ -137,7 +158,7 @@ export default function RolesPage() {
     }));
   };
 
-  const handleSaveRole = () => {
+  const handleSaveRole = async () => {
     if (!formData.name.trim()) {
       toast.error("Role name is required");
       return;
@@ -148,57 +169,46 @@ export default function RolesPage() {
       return;
     }
 
-    if (editingRole) {
-      setRoles(
-        roles.map((role) =>
-          role.id === editingRole.id
-            ? {
-                ...role,
-                name: formData.name,
-                description: formData.description,
-                permissions: formData.permissions,
-              }
-            : role
-        )
-      );
-      toast.success("Role updated successfully");
-    } else {
-      const newRole: Role = {
-        id: String(roles.length + 1),
-        name: formData.name,
-        description: formData.description,
-        permissions: formData.permissions,
-        userCount: 0,
-      };
-      setRoles([...roles, newRole]);
-      toast.success("Role created successfully");
+    try {
+      if (editingRole) {
+        await apiClient.updateRole(editingRole.id, {
+          name: formData.name,
+          description: formData.description,
+          permissions: formData.permissions,
+        });
+        toast.success("Role updated successfully");
+      } else {
+        await apiClient.createRole({
+          name: formData.name,
+          description: formData.description,
+          permissions: formData.permissions,
+        });
+        toast.success("Role created successfully");
+      }
+      setShowModal(false);
+      fetchRoles();
+    } catch (error) {
+      console.error("Error saving role:", error);
+      toast.error("Failed to save role");
     }
-    setShowModal(false);
   };
 
-  const handleDeleteRole = (roleId: string) => {
+  const handleDeleteRole = async (roleId: string) => {
     if (window.confirm("Are you sure you want to delete this role?")) {
-      setRoles(roles.filter((role) => role.id !== roleId));
-      toast.success("Role deleted successfully");
+      try {
+        await apiClient.deleteRole(roleId);
+        toast.success("Role deleted successfully");
+        fetchRoles();
+      } catch (error) {
+        console.error("Error deleting role:", error);
+        toast.error("Failed to delete role");
+      }
     }
   };
-
-  const sidebarItems = [
-    {
-      label: "Dashboard",
-      href: "/dashboard/superadmin",
-      icon: <LayoutDashboard size={20} />,
-    },
-    {
-      label: "Roles & Permissions",
-      href: "/dashboard/superadmin/roles",
-      icon: <UserCog size={20} />,
-    },
-  ];
 
   return (
     <ProtectedRoute>
-      <DashboardLayout title="Roles & Permissions" sidebarItems={sidebarItems}>
+      <DashboardLayout title="Roles & Permissions" sidebarItems={superadminSidebarItems}>
         <div className="space-y-6">
           {/* Header */}
           <div className="flex justify-between items-center">

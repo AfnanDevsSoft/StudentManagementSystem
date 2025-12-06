@@ -75,6 +75,7 @@ export class TeacherService {
       const teacher = await prisma.teacher.create({
         data: {
           branch_id: teacherData.branch_id,
+          user_id: teacherData.user_id || null, // Link to user account for login
           employee_code: teacherData.employee_code,
           first_name: teacherData.first_name,
           last_name: teacherData.last_name,
@@ -82,14 +83,18 @@ export class TeacherService {
           phone: teacherData.phone,
           date_of_birth: teacherData.date_of_birth,
           gender: teacherData.gender,
+          nationality: teacherData.nationality,
           hire_date: teacherData.hire_date || new Date(),
           employment_type: teacherData.employment_type || "full_time",
           designation: teacherData.designation,
-          qualification: teacherData.qualification,
-          years_experience: teacherData.years_experience,
+          qualification: teacherData.qualification || teacherData.qualification_level,
+          years_experience: teacherData.years_experience || teacherData.years_of_experience,
           department: teacherData.department,
         },
-        include: { branch: true },
+        include: {
+          branch: true,
+          user: true, // Include user in response
+        },
       });
 
       return {

@@ -163,6 +163,20 @@ router.put(
 );
 
 /**
+ * PATCH endpoint for user updates (same as PUT)
+ */
+router.patch(
+  "/:id",
+  authMiddleware,
+  async (req: Request, res: Response): Promise<void> => {
+    const { id } = req.params;
+    const result = await UserService.updateUser(id, req.body);
+    const statusCode = result.success ? 200 : 400;
+    sendResponse(res, statusCode, result.success, result.message, result.data);
+  }
+);
+
+/**
  * @swagger
  * /users/{id}:
  *   delete:

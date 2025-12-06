@@ -120,12 +120,16 @@ export interface Course {
   course_name: string;
   description: string;
   grade_level: string;
+  grade_level_id?: string;
+  academic_year_id?: string;
   teacher_id: string;
   teacher_name: string;
   max_students: number;
   enrolled_students: number;
   room_number?: string;
   building?: string;
+  schedule?: string;
+  credits?: number;
   created_at: string;
 }
 

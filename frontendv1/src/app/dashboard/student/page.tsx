@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useAuthStore } from "@/stores/authStore";
+import { apiClient } from "@/lib/apiClient";
 import DashboardLayout from "@/components/DashboardLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { useAuthStore } from "@/stores/authStore";
 import {
   LayoutDashboard,
   BookOpen,
@@ -12,15 +13,55 @@ import {
   Calendar,
   FileText,
 } from "lucide-react";
+import toast from "react-hot-toast";
 
 export default function StudentDashboard() {
   const { user } = useAuthStore();
+  const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     courses: 0,
     gpa: 0,
     attendance: 0,
     messages: 0,
   });
+
+  useEffect(() => {
+    fetchStats();
+  }, [user]);
+
+  const fetchStats = async () => {
+    try {
+      setLoading(true);
+      // Fetch courses count
+      const coursesRes = await apiClient.getCourses();
+      const coursesCount = Array.isArray(coursesRes.data)
+        ? coursesRes.data.length
+        : 0;
+
+      // Fetch GPA if available
+      let gpa = 0;
+      if (user?.id) {
+        try {
+          const gradesRes = await apiClient.getStudentGrades(user.id);
+          gpa = (gradesRes.data as { gpa?: number })?.gpa || 0;
+        } catch (e) {
+          console.error("Error fetching grades:", e);
+        }
+      }
+
+      setStats({
+        courses: coursesCount,
+        gpa: gpa,
+        attendance: 0,
+        messages: 0,
+      });
+    } catch (error) {
+      console.error("Error fetching stats:", error);
+      toast.error("Failed to load dashboard data");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const sidebarItems = [
     {

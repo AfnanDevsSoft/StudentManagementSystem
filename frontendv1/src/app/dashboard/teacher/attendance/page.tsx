@@ -18,17 +18,53 @@ export default function AttendancePage() {
     new Date().toISOString().split("T")[0]
   );
   const [courseId, setCourseId] = useState("");
-  const [students, setStudents] = useState<any[]>([
-    { id: "1", name: "Ahmed Hassan", status: "present" },
-    { id: "2", name: "Fatima Ali", status: "present" },
-    { id: "3", name: "Mohammad Khan", status: "present" },
-    { id: "4", name: "Aisha Malik", status: "absent" },
-    { id: "5", name: "Hassan Ibrahim", status: "late" },
-  ]);
+  const [courses, setCourses] = useState<any[]>([]);
+  const [students, setStudents] = useState<any[]>([]);
 
   useEffect(() => {
-    setLoading(false);
+    fetchCourses();
   }, [user]);
+
+  useEffect(() => {
+    if (courseId) {
+      fetchCourseStudents(courseId);
+    }
+  }, [courseId]);
+
+  const fetchCourses = async () => {
+    try {
+      setLoading(true);
+      const response = await apiClient.getCourses();
+      setCourses(Array.isArray(response.data) ? response.data : []);
+    } catch (error) {
+      console.error("Error fetching courses:", error);
+      toast.error("Failed to load courses");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchCourseStudents = async (cId: string) => {
+    try {
+      // Fetch enrolled students for this course
+      const response = await apiClient.getStudents(undefined, {
+        courseId: cId,
+      });
+      const courseStudents = Array.isArray(response.data)
+        ? response.data.map((student: any) => ({
+          id: student.id,
+          name:
+            `${student.first_name} ${student.last_name}` ||
+            "Unknown Student",
+          status: "present",
+        }))
+        : [];
+      setStudents(courseStudents);
+    } catch (error) {
+      console.error("Error fetching course students:", error);
+      toast.error("Failed to load course students");
+    }
+  };
 
   const sidebarItems = [
     {
@@ -65,12 +101,39 @@ export default function AttendancePage() {
       return;
     }
 
+    if (students.length === 0) {
+      toast.error("No students to mark attendance for");
+      return;
+    }
+
     try {
-      // TODO: Implement attendance submission API call
-      toast.success("Attendance marked successfully");
-      setShowModal(false);
-    } catch (error) {
-      toast.error("Failed to mark attendance");
+      // Format attendance data for API
+      const attendanceData = students.map((student) => ({
+        student_id: student.id,
+        course_id: courseId,
+        attendance_date: selectedDate,
+        status: student.status,
+        remarks: "",
+      }));
+
+      const response = await apiClient.markAttendance({
+        course_id: courseId,
+        attendance_date: selectedDate,
+        attendance_records: attendanceData,
+      });
+
+      if (response.success) {
+        toast.success("Attendance marked successfully");
+        // Reset students to default "present" status after successful submission
+        setStudents(
+          students.map((student) => ({ ...student, status: "present" }))
+        );
+      } else {
+        toast.error(response.message || "Failed to mark attendance");
+      }
+    } catch (error: any) {
+      console.error("Error marking attendance:", error);
+      toast.error(error.response?.data?.message || "Failed to mark attendance");
     }
   };
 
@@ -83,18 +146,61 @@ export default function AttendancePage() {
     <ProtectedRoute>
       <DashboardLayout title="Mark Attendance" sidebarItems={sidebarItems}>
         <div className="space-y-6">
+          {/* Course Selection */}
+          <div className="bg-white rounded-lg shadow p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              Select Course
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Course
+                </label>
+                <select
+                  value={courseId}
+                  onChange={(e) => setCourseId(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="">Select a course...</option>
+                  {courses.map((course) => (
+                    <option key={course.id} value={course.id}>
+                      {course.course_name} ({course.course_code})
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Date
+                </label>
+                <input
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              <div className="flex items-end">
+                <button
+                  onClick={() => setShowModal(true)}
+                  className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                >
+                  <Plus size={20} />
+                  <span>Quick Mark</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
           {/* Header */}
           <div className="flex justify-between items-center">
             <div>
-              <p className="text-gray-600">Mark attendance for your classes</p>
+              <p className="text-gray-600">
+                {courseId
+                  ? `Showing ${students.length} students in selected course`
+                  : "Select a course to mark attendance"}
+              </p>
             </div>
-            <button
-              onClick={() => setShowModal(true)}
-              className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-            >
-              <Plus size={20} />
-              <span>Quick Mark</span>
-            </button>
           </div>
 
           {/* Statistics */}
@@ -189,15 +295,14 @@ export default function AttendancePage() {
                         </td>
                         <td className="px-6 py-4 text-sm">
                           <span
-                            className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                              student.status === "present"
+                            className={`px-3 py-1 rounded-full text-xs font-semibold ${student.status === "present"
                                 ? "bg-green-100 text-green-800"
                                 : student.status === "absent"
-                                ? "bg-red-100 text-red-800"
-                                : student.status === "late"
-                                ? "bg-yellow-100 text-yellow-800"
-                                : "bg-orange-100 text-orange-800"
-                            }`}
+                                  ? "bg-red-100 text-red-800"
+                                  : student.status === "late"
+                                    ? "bg-yellow-100 text-yellow-800"
+                                    : "bg-orange-100 text-orange-800"
+                              }`}
                           >
                             {student.status.charAt(0).toUpperCase() +
                               student.status.slice(1)}
@@ -208,11 +313,10 @@ export default function AttendancePage() {
                             onClick={() =>
                               handleStatusChange(student.id, "present")
                             }
-                            className={`px-3 py-1 rounded text-xs font-medium transition ${
-                              student.status === "present"
+                            className={`px-3 py-1 rounded text-xs font-medium transition ${student.status === "present"
                                 ? "bg-green-600 text-white"
                                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                            }`}
+                              }`}
                           >
                             Present
                           </button>
@@ -220,11 +324,10 @@ export default function AttendancePage() {
                             onClick={() =>
                               handleStatusChange(student.id, "absent")
                             }
-                            className={`px-3 py-1 rounded text-xs font-medium transition ${
-                              student.status === "absent"
+                            className={`px-3 py-1 rounded text-xs font-medium transition ${student.status === "absent"
                                 ? "bg-red-600 text-white"
                                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                            }`}
+                              }`}
                           >
                             Absent
                           </button>
@@ -232,11 +335,10 @@ export default function AttendancePage() {
                             onClick={() =>
                               handleStatusChange(student.id, "late")
                             }
-                            className={`px-3 py-1 rounded text-xs font-medium transition ${
-                              student.status === "late"
+                            className={`px-3 py-1 rounded text-xs font-medium transition ${student.status === "late"
                                 ? "bg-yellow-600 text-white"
                                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                            }`}
+                              }`}
                           >
                             Late
                           </button>
@@ -244,11 +346,10 @@ export default function AttendancePage() {
                             onClick={() =>
                               handleStatusChange(student.id, "half-day")
                             }
-                            className={`px-3 py-1 rounded text-xs font-medium transition ${
-                              student.status === "half-day"
+                            className={`px-3 py-1 rounded text-xs font-medium transition ${student.status === "half-day"
                                 ? "bg-orange-600 text-white"
                                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                            }`}
+                              }`}
                           >
                             Half-day
                           </button>

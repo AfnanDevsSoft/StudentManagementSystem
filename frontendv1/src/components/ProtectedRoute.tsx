@@ -16,8 +16,8 @@ export default function ProtectedRoute({
 
   useEffect(() => {
     // Check if token exists in localStorage
-    const storedToken = localStorage.getItem("auth_token");
-    const storedUser = localStorage.getItem("auth_user");
+    const storedToken = localStorage.getItem("access_token");
+    const storedUser = localStorage.getItem("user");
 
     if (!storedToken || !storedUser) {
       router.push("/auth/login");

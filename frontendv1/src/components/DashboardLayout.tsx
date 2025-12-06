@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuthStore } from "@/stores/authStore";
 import { getRoleName } from "@/types";
+import NotificationCenter from "@/components/NotificationCenter";
 import {
   Menu,
   X,
@@ -42,6 +43,29 @@ export default function DashboardLayout({
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>(
     {}
   );
+
+  // Auto-expand parent menu items when current path matches a child
+  useEffect(() => {
+    const newExpandedItems: Record<string, boolean> = {};
+
+    sidebarItems.forEach((item) => {
+      if (item.children && item.children.length > 0) {
+        // Check if any child path matches current pathname
+        const hasActiveChild = item.children.some((child) =>
+          pathname === child.href || pathname.startsWith(child.href + '/')
+        );
+        if (hasActiveChild) {
+          newExpandedItems[item.label] = true;
+        }
+      }
+    });
+
+    // Only update if there are changes
+    if (Object.keys(newExpandedItems).length > 0) {
+      setExpandedItems((prev) => ({ ...prev, ...newExpandedItems }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
 
   const handleLogout = () => {
     logout();
@@ -83,9 +107,8 @@ export default function DashboardLayout({
               </span>
             </div>
             <span
-              className={`transform transition ${
-                isExpanded ? "rotate-180" : ""
-              }`}
+              className={`transform transition ${isExpanded ? "rotate-180" : ""
+                }`}
             >
               ▼
             </span>
@@ -93,11 +116,10 @@ export default function DashboardLayout({
         ) : (
           <Link href={item.href} className="block">
             <div
-              className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition ${
-                isActive(item.href)
-                  ? "bg-blue-100 text-blue-700 font-semibold"
-                  : "text-gray-700 hover:bg-gray-100"
-              }`}
+              className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition ${isActive(item.href)
+                ? "bg-blue-100 text-blue-700 font-semibold"
+                : "text-gray-700 hover:bg-gray-100"
+                }`}
             >
               {item.icon}
               <span className={level > 0 ? "text-sm" : "font-medium"}>
@@ -125,16 +147,14 @@ export default function DashboardLayout({
     <div className="flex h-screen bg-gray-100">
       {/* Sidebar */}
       <div
-        className={`${
-          sidebarOpen ? "w-64" : "w-20"
-        } bg-white shadow-lg transition-all duration-300 flex flex-col`}
+        className={`${sidebarOpen ? "w-64" : "w-20"
+          } bg-white shadow-lg transition-all duration-300 flex flex-col`}
       >
         {/* Logo */}
         <div className="p-4 border-b flex items-center justify-between">
           <div
-            className={`flex items-center space-x-3 ${
-              !sidebarOpen && "justify-center w-full"
-            }`}
+            className={`flex items-center space-x-3 ${!sidebarOpen && "justify-center w-full"
+              }`}
           >
             <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
               <span className="text-white font-bold">SM</span>
@@ -167,9 +187,8 @@ export default function DashboardLayout({
           )}
           <button
             onClick={handleLogout}
-            className={`w-full flex items-center space-x-3 px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition ${
-              !sidebarOpen && "justify-center"
-            }`}
+            className={`w-full flex items-center space-x-3 px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition ${!sidebarOpen && "justify-center"
+              }`}
           >
             <LogOut size={20} />
             {sidebarOpen && <span>Logout</span>}
@@ -189,10 +208,15 @@ export default function DashboardLayout({
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
         <div className="bg-white shadow-sm p-6 border-b">
-          <h1 className="text-3xl font-bold text-gray-800">{title}</h1>
-          <p className="text-gray-600 text-sm mt-1">
-            Welcome back, {user?.first_name}!
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-800">{title}</h1>
+              <p className="text-gray-600 text-sm mt-1">
+                Welcome back, {user?.first_name}!
+              </p>
+            </div>
+            <NotificationCenter />
+          </div>
         </div>
 
         {/* Content */}

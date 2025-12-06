@@ -6,10 +6,9 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import Modal from "@/components/Modal";
 import BranchForm, { BranchFormData } from "@/components/BranchForm";
 import DeleteConfirmation from "@/components/DeleteConfirmation";
-import { useAuthStore } from "@/stores/authStore";
 import { apiClient } from "@/lib/apiClient";
+import { superadminSidebarItems } from "@/config/sidebarConfig";
 import {
-  LayoutDashboard,
   Plus,
   Edit2,
   Trash2,
@@ -20,7 +19,6 @@ import { Branch } from "@/types";
 import toast from "react-hot-toast";
 
 export default function BranchesList() {
-  const { user } = useAuthStore();
   const [branches, setBranches] = useState<Branch[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -35,10 +33,7 @@ export default function BranchesList() {
     total: 0,
   });
 
-  useEffect(() => {
-    fetchBranches();
-  }, [pagination.page]);
-
+  // Define fetchBranches first so it can be used in useEffect
   const fetchBranches = async () => {
     try {
       setLoading(true);
@@ -58,13 +53,19 @@ export default function BranchesList() {
       } else {
         toast.error(response.message || "Failed to load branches");
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error fetching branches:", error);
       toast.error("Failed to load branches");
     } finally {
       setLoading(false);
     }
   };
+
+  // Fetch branches when page or search changes
+  useEffect(() => {
+    fetchBranches();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pagination.page, searchTerm]);
 
   const convertToBranchFormData = (branch: Branch): BranchFormData => {
     return {
@@ -98,10 +99,11 @@ export default function BranchesList() {
       } else {
         toast.error(response.message || "Failed to create branch");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } };
       console.error("Error creating branch:", error);
       const errorMessage =
-        error.response?.data?.message || "Failed to create branch";
+        err.response?.data?.message || "Failed to create branch";
       // Extract more user-friendly error messages
       let displayMessage = errorMessage;
       if (
@@ -133,10 +135,11 @@ export default function BranchesList() {
       } else {
         toast.error(response.message || "Failed to update branch");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } };
       console.error("Error updating branch:", error);
       const errorMessage =
-        error.response?.data?.message || "Failed to update branch";
+        err.response?.data?.message || "Failed to update branch";
       // Extract more user-friendly error messages
       let displayMessage = errorMessage;
       if (
@@ -165,9 +168,10 @@ export default function BranchesList() {
       } else {
         toast.error(response.message || "Failed to delete branch");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } };
       console.error("Error deleting branch:", error);
-      toast.error(error.response?.data?.message || "Failed to delete branch");
+      toast.error(err.response?.data?.message || "Failed to delete branch");
     } finally {
       setIsLoading(false);
     }
@@ -185,34 +189,15 @@ export default function BranchesList() {
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
-    setPagination((prev) => ({ ...prev, page: 1 }));
+    setPagination((prev) => ({ ...prev, page: 1 })); // Reset to page 1 on search
   };
 
-  const sidebarItems = [
-    {
-      label: "Dashboard",
-      href: "/dashboard/superadmin",
-      icon: <LayoutDashboard size={20} />,
-    },
-    {
-      label: "Branches",
-      href: "/dashboard/superadmin/branches",
-      icon: <Building size={20} />,
-    },
-  ];
-
-  const filteredBranches = branches.filter(
-    (branch) =>
-      branch.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      branch.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      branch.city.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   const totalPages = Math.ceil(pagination.total / pagination.limit);
 
   return (
     <ProtectedRoute>
-      <DashboardLayout title="Branches Management" sidebarItems={sidebarItems}>
+      <DashboardLayout title="Branches Management" sidebarItems={superadminSidebarItems}>
         <div className="space-y-6">
           {/* Header with Statistics */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -276,14 +261,14 @@ export default function BranchesList() {
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
               <p className="text-gray-500 mt-2">Loading branches...</p>
             </div>
-          ) : filteredBranches.length === 0 ? (
+          ) : branches.length === 0 ? (
             <div className="p-8 text-center bg-white rounded-lg shadow">
               <Building className="w-12 h-12 text-gray-300 mx-auto mb-2" />
               <p className="text-gray-500">No branches found</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {filteredBranches.map((branch) => (
+              {branches.map((branch: Branch) => (
                 <div
                   key={branch.id}
                   className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition"
@@ -296,11 +281,10 @@ export default function BranchesList() {
                       <p className="text-sm text-gray-500">{branch.code}</p>
                     </div>
                     <span
-                      className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                        branch.is_active
+                      className={`px-3 py-1 rounded-full text-xs font-semibold ${branch.is_active
                           ? "bg-green-100 text-green-800"
                           : "bg-red-100 text-red-800"
-                      }`}
+                        }`}
                     >
                       {branch.is_active ? "Active" : "Inactive"}
                     </span>
@@ -366,11 +350,10 @@ export default function BranchesList() {
                   <button
                     key={page}
                     onClick={() => setPagination((prev) => ({ ...prev, page }))}
-                    className={`px-4 py-2 rounded-lg ${
-                      pagination.page === page
+                    className={`px-4 py-2 rounded-lg ${pagination.page === page
                         ? "bg-blue-600 text-white"
                         : "border border-gray-300 hover:bg-gray-50"
-                    }`}
+                      }`}
                   >
                     {page}
                   </button>

@@ -160,6 +160,9 @@ model Student {
   communication_logs  CommunicationLog[]
   fee_payments        FeePayment[]
   scholarships        Scholarship[]
+  health_record       HealthRecord?
+  medical_incidents   MedicalIncident[]
+  book_loans          BookLoan[]
 
   @@unique([branch_id, student_code])
   @@index([student_code])
@@ -225,6 +228,7 @@ model Teacher {
   payroll_records      PayrollRecord[]
   leave_requests       LeaveRequest[]
   grades_created       Grade[]
+  book_loans           BookLoan[]
 
   @@unique([branch_id, employee_code])
   @@index([employee_code])
@@ -311,6 +315,7 @@ model Course {
   grades              Grade[]
   course_contents     CourseContent[]
   announcements       ClassAnnouncement[]
+  timetable_entries   TimetableEntry[]
 
   @@index([course_code])
   @@map("courses")
@@ -967,3 +972,304 @@ model BackupSchedule {
   @@index([next_run_at])
   @@map("backup_schedules")
 }
+// ============================================
+// TIMETABLE SYSTEM MODELS
+// ============================================
+// Add this to the end of schema.prisma (after line 970)
+
+// Time Slots - Define periods in a day (e.g., Period 1: 8:00-9:00)
+model TimeSlot {
+  id         String   @id @default(uuid()) @db.Uuid
+  branch_id  String   @db.Uuid
+  slot_name  String   // "Period 1", "Period 2", etc.
+  start_time String   // "08:00"
+  end_time   String   // "09:00"
+  slot_type  String   @default("class") // class, break, lunch
+  sort_order Int
+  is_active  Boolean  @default(true)
+  created_at DateTime @default(now())
+
+  timetable_entries TimetableEntry[]
+
+  @@unique([branch_id, slot_name])
+  @@map("time_slots")
+}
+
+// Rooms/Classrooms
+model Room {
+  id            String   @id @default(uuid()) @db.Uuid
+  branch_id     String   @db.Uuid
+  room_number   String
+  room_name     String?
+  building      String?
+  floor         String?
+  capacity      Int      @default(40)
+  room_type     String   @default("classroom") // classroom, lab, auditorium, library
+  facilities    Json?    // {projector: true, ac: true, whiteboard: true}
+  is_active     Boolean  @default(true)
+  created_at    DateTime @default(now())
+
+  timetable_entries TimetableEntry[]
+
+  @@unique([branch_id, room_number])
+  @@map("rooms")
+}
+
+// Timetable Entries - Links courses to time slots, rooms, and days
+model TimetableEntry {
+  id               String   @id @default(uuid()) @db.Uuid
+  academic_year_id String   @db.Uuid
+  course_id        String   @db.Uuid
+  time_slot_id     String   @db.Uuid
+  room_id          String?  @db.Uuid
+  day_of_week      Int      // 1=Monday, 2=Tuesday, ..., 7=Sunday
+  is_active        Boolean  @default(true)
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+
+  course    Course    @relation(fields: [course_id], references: [id], onDelete: Cascade)
+  time_slot TimeSlot  @relation(fields: [time_slot_id], references: [id])
+  room      Room?     @relation(fields: [room_id], references: [id])
+
+  @@unique([course_id, time_slot_id, day_of_week])
+  @@index([course_id])
+  @@index([day_of_week])
+  @@map("timetable_entries")
+}
+
+// Also need to add this relation to the existing Course model:
+// timetable_entries TimetableEntry[]
+// ============================================
+// HEALTH RECORDS SYSTEM MODELS
+// ============================================
+// Add this to the end of schema.prisma
+
+// Student Health Records - Medical history and allergies
+model HealthRecord {
+  id                String   @id @default(uuid()) @db.Uuid
+  student_id        String   @db.Uuid @unique
+  blood_group       String?  // A+, B+, O-, etc.
+  height            Decimal? @db.Decimal(5, 2) // in cm
+  weight            Decimal? @db.Decimal(5, 2) // in kg
+  allergies         String?  @db.Text // Comma-separated or JSON
+  chronic_conditions String? @db.Text
+  medications       String?  @db.Text
+  emergency_contact String?
+  emergency_phone   String?
+  doctor_name       String?
+  doctor_phone      String?
+  insurance_provider String?
+  insurance_number  String?
+  notes             String?  @db.Text
+  last_updated      DateTime @default(now()) @updatedAt
+  created_at        DateTime @default(now())
+
+  student           Student            @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  medical_checkups  MedicalCheckup[]
+  vaccinations      Vaccination[]
+
+  @@map("health_records")
+}
+
+// Medical Checkups - Regular health examinations
+model MedicalCheckup {
+  id                String   @id @default(uuid()) @db.Uuid
+  health_record_id  String   @db.Uuid
+  checkup_date      DateTime
+  height            Decimal? @db.Decimal(5, 2) // in cm
+  weight            Decimal? @db.Decimal(5, 2) // in kg
+  blood_pressure    String?  // e.g., "120/80"
+  temperature       Decimal? @db.Decimal(4, 2) // in Celsius
+  pulse_rate        Int?     // beats per minute
+  vision_left       String?  // e.g., "20/20"
+  vision_right      String?  // e.g., "20/20"
+  dental_checkup    Boolean  @default(false)
+  doctor_name       String?
+  findings          String?  @db.Text
+  recommendations   String?  @db.Text
+  next_checkup_date DateTime?
+  created_at        DateTime @default(now())
+
+  health_record HealthRecord @relation(fields: [health_record_id], references: [id], onDelete: Cascade)
+
+  @@index([health_record_id])
+  @@index([checkup_date])
+  @@map("medical_checkups")
+}
+
+// Vaccinations - Immunization records
+model Vaccination {
+  id                String   @id @default(uuid()) @db.Uuid
+  health_record_id  String   @db.Uuid
+  vaccine_name      String   // e.g., "COVID-19", "MMR", "Hepatitis B"
+  vaccine_type      String?  // e.g., "Booster", "Primary dose 1"
+  dose_number       Int?     @default(1)
+  administered_date DateTime
+  administered_by   String?  // Doctor/clinic name
+  batch_number      String?
+  manufacturer      String?
+  next_dose_date    DateTime?
+  side_effects      String?  @db.Text
+  certificate_url   String?  // Link to vaccination certificate
+  created_at        DateTime @default(now())
+
+  health_record HealthRecord @relation(fields: [health_record_id], references: [id], onDelete: Cascade)
+
+  @@index([health_record_id])
+  @@index([administered_date])
+  @@map("vaccinations")
+}
+
+// Medical Incidents - Accidents, injuries, sick bay visits
+model MedicalIncident {
+  id              String   @id @default(uuid()) @db.Uuid
+  student_id      String   @db.Uuid
+  incident_date   DateTime @default(now())
+  incident_type   String   // injury, illness, emergency, other
+  severity        String   // minor, moderate, severe, critical
+  description     String   @db.Text
+  treatment_given String?  @db.Text
+  attended_by     String?  // Staff member name
+  parent_notified Boolean  @default(false)
+  hospital_visit  Boolean  @default(false)
+  hospital_name   String?
+  follow_up_required Boolean @default(false)
+  follow_up_notes String?  @db.Text
+  resolved_at     DateTime?
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  student Student @relation(fields: [student_id], references: [id], onDelete: Cascade)
+
+  @@index([student_id])
+  @@index([incident_date])
+  @@map("medical_incidents")
+}
+
+// Also need to add these relations to the existing Student model:
+// health_record      HealthRecord?
+// medical_incidents  MedicalIncident[]
+// ============================================
+// EVENT CALENDAR & LIBRARY SYSTEM MODELS
+// ============================================
+// Add this to the end of schema.prisma
+
+// Events - School calendar (holidays, meetings, events)
+model Event {
+  id              String   @id @default(uuid()) @db.Uuid
+  branch_id       String   @db.Uuid
+  title           String
+  description     String?  @db.Text
+  event_type      String   // holiday, meeting, exam, sports, cultural, other
+  target_audience String   @default("all") // all, students, teachers, parents, specific_grade
+  grade_level_id  String?  @db.Uuid
+  start_date      DateTime
+  end_date        DateTime
+  start_time      String?  // "09:00"
+  end_time        String?  // "17:00"
+  location        String?
+  organizer       String?
+  is_holiday      Boolean  @default(false)
+  is_recurring    Boolean  @default(false)
+  recurrence_rule String?  // RRULE format for recurring events
+  attachments     Json?    // Array of file URLs
+  created_by      String   @db.Uuid
+  is_active       Boolean  @default(true)
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  @@index([branch_id])
+  @@index([start_date])
+  @@index([event_type])
+  @@map("events")
+}
+
+// ============================================
+// LIBRARY MANAGEMENT SYSTEM MODELS
+// ============================================
+
+// Books - Library catalog
+model Book {
+  id              String   @id @default(uuid()) @db.Uuid
+  branch_id       String   @db.Uuid
+  isbn            String?  @unique
+  title           String
+  author          String
+  publisher       String?
+  publication_year Int?
+  category        String?  // fiction, non-fiction, reference, textbook
+  language        String   @default("English")
+  total_copies    Int      @default(1)
+  available_copies Int     @default(1)
+  shelf_location  String?
+  description     String?  @db.Text
+  cover_image_url String?
+  price           Decimal? @db.Decimal(10, 2)
+  is_active       Boolean  @default(true)
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  loans BookLoan[]
+
+  @@index([branch_id])
+  @@index([isbn])
+  @@index([title])
+  @@map("books")
+}
+
+// Book Loans - Borrowing records
+model BookLoan {
+  id             String    @id @default(uuid()) @db.Uuid
+  book_id        String    @db.Uuid
+  student_id     String?   @db.Uuid
+  teacher_id     String?   @db.Uuid
+  borrower_type  String    // student, teacher, staff
+  issue_date     DateTime  @default(now())
+  due_date       DateTime
+  return_date    DateTime?
+  status         String    @default("active") // active, returned, overdue
+  renewed_count  Int       @default(0)
+  issued_by      String    @db.Uuid
+  returned_to    String?   @db.Uuid
+  notes          String?   @db.Text
+  created_at     DateTime  @default(now())
+  updated_at     DateTime  @updatedAt
+
+  book    Book      @relation(fields: [book_id], references: [id])
+  student Student?  @relation(fields: [student_id], references: [id])
+  teacher Teacher?  @relation(fields: [teacher_id], references: [id])
+  fines   BookFine[]
+
+  @@index([book_id])
+  @@index([student_id])
+  @@index([teacher_id])
+  @@index([status])
+  @@map("book_loans")
+}
+
+// Book Fines - Overdue penalties
+model BookFine {
+  id             String    @id @default(uuid()) @db.Uuid
+  loan_id        String    @db.Uuid
+  fine_amount    Decimal   @db.Decimal(10, 2)
+  days_overdue   Int
+  paid_amount    Decimal   @default(0) @db.Decimal(10, 2)
+  payment_status String    @default("unpaid") // unpaid, partially_paid, paid
+  payment_date   DateTime?
+  payment_method String?
+  waived         Boolean   @default(false)
+  waived_by      String?   @db.Uuid
+  waived_reason  String?   @db.Text
+  created_at     DateTime  @default(now())
+  updated_at     DateTime  @updatedAt
+
+  loan BookLoan @relation(fields: [loan_id], references: [id])
+
+  @@index([loan_id])
+  @@index([payment_status])
+  @@map("book_fines")
+}
+
+// Also need to add these relations to existing models:
+// Student model: book_loans BookLoan[]
+// Teacher model: book_loans BookLoan[]

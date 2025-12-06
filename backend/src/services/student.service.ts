@@ -211,6 +211,8 @@ class StudentService {
         personal_email,
         admission_date,
         admission_status,
+        user_id, // Link to user account for login credentials
+        current_grade_level_id,
       } = data;
 
       // Validation
@@ -240,6 +242,8 @@ class StudentService {
           last_name,
           student_code,
           branch_id,
+          user_id: user_id || null, // Link to user account
+          current_grade_level_id: current_grade_level_id || null,
           date_of_birth: new Date(date_of_birth),
           admission_date: new Date(admission_date),
           gender: gender || null,
@@ -257,6 +261,7 @@ class StudentService {
         },
         include: {
           branch: true,
+          user: true, // Include user in response
         },
       });
 

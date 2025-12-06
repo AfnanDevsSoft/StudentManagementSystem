@@ -14,16 +14,23 @@ export class BranchService {
     try {
       const skip = (page - 1) * limit;
 
-      const where: any = { is_active: true };
+      // Build where clause - don't filter by is_active, show all branches
+      const where: any = {};
       if (search) {
         where.OR = [
           { name: { contains: search, mode: "insensitive" } },
           { code: { contains: search, mode: "insensitive" } },
+          { city: { contains: search, mode: "insensitive" } },
         ];
       }
 
       const [branches, total] = await Promise.all([
-        prisma.branch.findMany({ where, skip, take: limit }),
+        prisma.branch.findMany({
+          where,
+          skip,
+          take: limit,
+          orderBy: { created_at: "desc" }, // Order by latest first
+        }),
         prisma.branch.count({ where }),
       ]);
 

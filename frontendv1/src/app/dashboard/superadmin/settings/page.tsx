@@ -1,10 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useAuthStore } from "@/stores/authStore";
+import { apiClient } from "@/lib/apiClient";
 import DashboardLayout from "@/components/DashboardLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { superadminSidebarItems } from "@/config/sidebarConfig";
 import {
-  LayoutDashboard,
   Settings,
   Bell,
   Lock,
@@ -13,8 +15,12 @@ import {
   Save,
   AlertCircle,
 } from "lucide-react";
+import toast from "react-hot-toast";
 
 export default function SettingsPage() {
+  const { user } = useAuthStore();
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [schoolName, setSchoolName] = useState("Al-Noor Academy");
   const [email, setEmail] = useState("admin@alnoor.edu");
   const [phone, setPhone] = useState("+92-300-1234567");
@@ -35,22 +41,56 @@ export default function SettingsPage() {
     passwordExpiry: "90",
   });
 
-  const sidebarItems = [
-    {
-      label: "Dashboard",
-      href: "/dashboard/superadmin",
-      icon: <LayoutDashboard size={20} />,
-    },
-    {
-      label: "Settings",
-      href: "/dashboard/superadmin/settings",
-      icon: <Settings size={20} />,
-    },
-  ];
+  useEffect(() => {
+    fetchSettings();
+  }, [user]);
 
-  const handleSaveSchoolInfo = () => {
-    setSavedMessage(true);
-    setTimeout(() => setSavedMessage(false), 3000);
+  const fetchSettings = async () => {
+    try {
+      setLoading(true);
+      const response = await apiClient.getSettings(user?.branch_id);
+      if (response.data) {
+        const data = response.data;
+        setSchoolName(data.schoolName || "Al-Noor Academy");
+        setEmail(data.email || "admin@alnoor.edu");
+        setPhone(data.phone || "+92-300-1234567");
+        setAddress(data.address || "123 Education Street, City");
+        if (data.notifications) {
+          setNotifications(data.notifications);
+        }
+        if (data.security) {
+          setSecurity(data.security);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching settings:", error);
+      toast.error("Failed to load settings");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+  const handleSaveSchoolInfo = async () => {
+    try {
+      setSaving(true);
+      await apiClient.updateSettings({
+        schoolName,
+        email,
+        phone,
+        address,
+        notifications,
+        security,
+      });
+      setSavedMessage(true);
+      toast.success("Settings saved successfully");
+      setTimeout(() => setSavedMessage(false), 3000);
+    } catch (error) {
+      console.error("Error saving settings:", error);
+      toast.error("Failed to save settings");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleNotificationChange = (key: keyof typeof notifications) => {
@@ -72,7 +112,7 @@ export default function SettingsPage() {
 
   return (
     <ProtectedRoute>
-      <DashboardLayout title="Settings" sidebarItems={sidebarItems}>
+      <DashboardLayout title="Settings" sidebarItems={superadminSidebarItems}>
         <div className="space-y-6">
           {/* School Information */}
           <div className="bg-white rounded-lg shadow p-6">
