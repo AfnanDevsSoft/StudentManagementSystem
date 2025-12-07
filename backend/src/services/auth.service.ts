@@ -1,8 +1,7 @@
 import jwt, { SignOptions } from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { prisma } from "../lib/db";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 const JWT_REFRESH_SECRET =
@@ -86,6 +85,13 @@ export class AuthService {
         },
       });
 
+      console.log('🔍 User lookup result:', {
+        username,
+        userFound: !!user,
+        userId: user?.id,
+        isActive: user?.is_active,
+      });
+
       if (!user) {
         return {
           success: false,
@@ -102,10 +108,18 @@ export class AuthService {
       }
 
       // Verify password
+      console.log('🔐 Password verification:', {
+        username,
+        providedPassword: password,
+        hashFromDB: user.password_hash.substring(0, 20) + '...',
+      });
+
       const isPasswordValid = await bcrypt.compare(
         password,
         user.password_hash
       );
+
+      console.log('🔐 bcrypt.compare result:', isPasswordValid);
 
       if (!isPasswordValid) {
         return {

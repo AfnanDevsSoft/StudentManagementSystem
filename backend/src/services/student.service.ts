@@ -1,6 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { prisma } from "../lib/db";
 
 interface ApiResponse<T = any> {
   success: boolean;
@@ -370,7 +369,7 @@ class StudentService {
     }
   }
 
-  // Delete student
+  // Delete student (soft delete)
   static async deleteStudent(id: string): Promise<ApiResponse> {
     try {
       // Check if student exists
@@ -385,14 +384,16 @@ class StudentService {
         };
       }
 
-      // Delete student
-      await prisma.student.delete({
+      // Soft delete student by setting is_active to false
+      const updatedStudent = await prisma.student.update({
         where: { id },
+        data: { is_active: false },
       });
 
       return {
         success: true,
         message: "Student deleted successfully",
+        data: updatedStudent,
       };
     } catch (error: any) {
       console.error("deleteStudent error:", error);

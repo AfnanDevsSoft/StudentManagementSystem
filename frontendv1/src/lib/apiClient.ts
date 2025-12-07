@@ -44,18 +44,60 @@ class ApiClient {
       (error) => Promise.reject(error) // Added error handler
     );
 
-    // Response interceptor
+    // Response interceptor with token refresh
     this.client.interceptors.response.use(
       (response) => response,
-      (error: AxiosError) => {
+      async (error: AxiosError) => {
+        const originalRequest = error.config as any;
+
+        // If 401 and not already retried, attempt token refresh
+        if (error.response?.status === 401 && !originalRequest._retry) {
+          originalRequest._retry = true;
+
+          if (typeof window !== "undefined") {
+            const refreshToken = localStorage.getItem("refresh_token");
+
+            if (refreshToken) {
+              try {
+                // Attempt to refresh the access token
+                const response = await this.refreshToken(refreshToken);
+
+                // Validate response has token
+                if (!response.token) {
+                  throw new Error("No token in refresh response");
+                }
+
+                // Update stored tokens
+                localStorage.setItem("access_token", response.token);
+                if (response.refresh_token) {
+                  localStorage.setItem("refresh_token", response.refresh_token);
+                }
+
+                // Retry the original request with new token
+                originalRequest.headers.Authorization = `Bearer ${response.token}`;
+                return this.client(originalRequest);
+              } catch (refreshError) {
+                // Refresh failed, clear auth and redirect
+                localStorage.removeItem("access_token");
+                localStorage.removeItem("refresh_token");
+                localStorage.removeItem("user");
+                window.location.href = "/auth/login";
+                return Promise.reject(refreshError);
+              }
+            }
+          }
+        }
+
+        // Other 401 errors or refresh already attempted
         if (error.response?.status === 401) {
-          // Clear auth and redirect to login
           if (typeof window !== "undefined") {
             localStorage.removeItem("access_token");
+            localStorage.removeItem("refresh_token");
             localStorage.removeItem("user");
             window.location.href = "/auth/login";
           }
         }
+
         return Promise.reject(error);
       }
     );
@@ -72,6 +114,35 @@ class ApiClient {
 
   async logout(): Promise<void> {
     await this.client.post("/auth/logout");
+  }
+
+  async getMe(): Promise<ApiResponse<any>> {
+    const response = await this.client.get<ApiResponse<any>>("/auth/me");
+    return response.data;
+  }
+
+  async register(userData: {
+    username: string;
+    email: string;
+    password: string;
+    first_name: string;
+    last_name: string;
+    phone?: string;
+    branch_id?: string;
+    role_id?: string;
+  }): Promise<ApiResponse<any>> {
+    const response = await this.client.post<ApiResponse<any>>(
+      "/auth/register",
+      userData
+    );
+    return response.data;
+  }
+
+  async refreshToken(refreshToken: string): Promise<AuthResponse> {
+    const response = await this.client.post<AuthResponse>("/auth/refresh", {
+      refresh_token: refreshToken,
+    });
+    return response.data;
   }
 
   // Generic GET
@@ -310,23 +381,6 @@ class ApiClient {
 
   async updateAttendance(id: string, data: any) {
     return this.patch(`/attendance/${id}`, data);
-  }
-
-  // Roles
-  async getRoles(params?: any) {
-    return this.get("/roles", params);
-  }
-
-  async createRole(data: any) {
-    return this.post("/roles", data);
-  }
-
-  async updateRole(id: string, data: any) {
-    return this.patch(`/roles/${id}`, data);
-  }
-
-  async deleteRole(id: string) {
-    return this.delete(`/roles/${id}`);
   }
 
   // Settings
@@ -573,6 +627,91 @@ class ApiClient {
   }
   async deleteEvent(id: string) {
     return this.delete(`/events/${id}`);
+  }
+
+  // ==================== RBAC (Role-Based Access Control) ====================
+  async getRoles(branchId: string, limit = 20, offset = 0) {
+    return this.get(`/rbac/roles/${branchId}`, { limit, offset });
+  }
+
+  async getRoleById(roleId: string) {
+    return this.get(`/rbac/roles/detail/${roleId}`);
+  }
+
+  async createRole(
+    branchId: string,
+    roleName: string,
+    permissions: string[],
+    description?: string
+  ) {
+    return this.post("/rbac/roles", {
+      branchId,
+      roleName,
+      permissions,
+      description,
+    });
+  }
+
+  async updateRolePermissions(roleId: string, permissionIds: string[]) {
+    return this.put(`/rbac/roles/${roleId}`, { permissionIds });
+  }
+
+  async deleteRole(roleId: string) {
+    return this.delete(`/rbac/roles/${roleId}`);
+  }
+
+  async getAllPermissions(limit = 100, offset = 0) {
+    return this.get("/rbac/permissions", { limit, offset });
+  }
+
+  async createPermission(
+    permissionName: string,
+    resource: string,
+    action: string,
+    description?: string
+  ) {
+    return this.post("/rbac/permissions", {
+      permissionName,
+      resource,
+      action,
+      description,
+    });
+  }
+
+  async assignRoleToUser(
+    userId: string,
+    roleId: string,
+    branchId: string,
+    assignedBy: string,
+    expiryDate?: Date
+  ) {
+    return this.post("/rbac/assign", {
+      userId,
+      roleId,
+      branchId,
+      assignedBy,
+      expiryDate,
+    });
+  }
+
+  async removeUserRole(userRoleId: string) {
+    return this.delete(`/rbac/user-roles/${userRoleId}`);
+  }
+
+  async getUserRoles(userId: string) {
+    return this.get(`/rbac/user-roles/${userId}`);
+  }
+
+  async checkUserPermission(userId: string, permission: string) {
+    return this.post("/rbac/check-permission", { userId, permission });
+  }
+
+  async getUserPermissions(userId: string) {
+    return this.get(`/rbac/user-permissions/${userId}`);
+  }
+
+  async getPermissionHierarchy() {
+    return this.get("/rbac/permission-hierarchy");
   }
 }
 

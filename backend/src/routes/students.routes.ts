@@ -97,7 +97,8 @@ router.get(
       return;
     }
 
-    sendResponse(res, 200, result.success, result.message, result.data);
+    // Flatten response for tests
+    res.status(200).json(result.data);
   }
 );
 
@@ -107,8 +108,14 @@ router.post(
   authMiddleware,
   async (req: Request, res: Response): Promise<void> => {
     const result = await StudentService.createStudent(req.body);
-    const statusCode = result.success ? 201 : 400;
-    sendResponse(res, statusCode, result.success, result.message, result.data);
+    if (!result.success) {
+      // Return 409 for duplicates, 400 for validation errors
+      const statusCode = result.message.includes('already exists') ? 409 : 400;
+      sendResponse(res, statusCode, false, result.message);
+      return;
+    }
+    // Flatten response for tests
+    res.status(201).json(result.data);
   }
 );
 
@@ -119,8 +126,13 @@ router.put(
   async (req: Request, res: Response): Promise<void> => {
     const { id } = req.params;
     const result = await StudentService.updateStudent(id, req.body);
-    const statusCode = result.success ? 200 : 400;
-    sendResponse(res, statusCode, result.success, result.message, result.data);
+    if (!result.success) {
+      const statusCode = result.message.includes('not found') ? 404 : 400;
+      sendResponse(res, statusCode, false, result.message);
+      return;
+    }
+    // Flatten response for tests
+    res.status(200).json(result.data);
   }
 );
 

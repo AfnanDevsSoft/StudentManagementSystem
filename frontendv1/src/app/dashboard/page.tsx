@@ -10,6 +10,8 @@ import {
     adminSidebarItems,
     teacherSidebarItems,
     superadminSidebarItems,
+    getSidebarForRole,
+    getRoleDisplayName,
 } from "@/config/sidebarConfig";
 import {
     Users,
@@ -26,79 +28,8 @@ import {
     CheckCircle,
     AlertCircle,
     Mail,
-    LayoutDashboard,
-    FileText,
 } from "lucide-react";
 import toast from "react-hot-toast";
-
-// Role-based sidebar selection
-const getSidebarForRole = (role: number | string | { id: string; name: string }) => {
-    // Normalize role to string
-    let roleValue: string | number;
-    if (typeof role === 'object' && role !== null && 'name' in role) {
-        roleValue = role.name.toLowerCase();
-    } else if (typeof role === 'string') {
-        roleValue = role.toLowerCase();
-    } else {
-        roleValue = role;
-    }
-
-    switch (roleValue) {
-        case 1:
-        case 'superadmin':
-            return superadminSidebarItems;
-        case 2:
-        case 'admin':
-            return adminSidebarItems;
-        case 3:
-        case 'teacher':
-            return teacherSidebarItems;
-        case 4:
-        case 'student':
-            return [
-                { label: "Dashboard", href: "/dashboard", icon: <LayoutDashboard size={20} /> },
-                { label: "My Courses", href: "/dashboard/student/courses", icon: <BookOpen size={20} /> },
-                { label: "My Grades", href: "/dashboard/student/grades", icon: <FileText size={20} /> },
-                { label: "Attendance", href: "/dashboard/student/attendance", icon: <Calendar size={20} /> },
-            ];
-        case 5:
-        case 'parent':
-            return [
-                { label: "Dashboard", href: "/dashboard", icon: <LayoutDashboard size={20} /> },
-                { label: "Children", href: "/dashboard/parent/children", icon: <Users size={20} /> },
-                { label: "Fees", href: "/dashboard/parent/fees", icon: <DollarSign size={20} /> },
-            ];
-        default:
-            return adminSidebarItems;
-    }
-};
-
-// Role names
-const getRoleDisplayName = (role: number | string | { id: string; name: string }) => {
-    // Normalize role to string
-    let roleValue: string | number;
-    if (typeof role === 'object' && role !== null && 'name' in role) {
-        roleValue = role.name.toLowerCase();
-    } else if (typeof role === 'string') {
-        roleValue = role.toLowerCase();
-    } else {
-        roleValue = role;
-    }
-
-    switch (roleValue) {
-        case 1:
-        case 'superadmin': return "Super Admin";
-        case 2:
-        case 'admin': return "Admin";
-        case 3:
-        case 'teacher': return "Teacher";
-        case 4:
-        case 'student': return "Student";
-        case 5:
-        case 'parent': return "Parent";
-        default: return "User";
-    }
-};
 
 interface DashboardStats {
     students: { total: number; active: number; newThisMonth: number };
@@ -139,7 +70,7 @@ export default function UnifiedDashboard() {
     const [activities, setActivities] = useState<Activity[]>([]);
 
     // Get sidebar and role name based on user role
-    const sidebarItems = user ? getSidebarForRole(user.role) : adminSidebarItems;
+    const sidebarItems = user ? getSidebarForRole() : adminSidebarItems;
     const roleName = user ? getRoleDisplayName(user.role) : "User";
 
     useEffect(() => {
@@ -314,30 +245,7 @@ export default function UnifiedDashboard() {
         }
     };
 
-    // Determine base path for navigation based on role
-    const getBasePath = () => {
-        let roleValue: string | number | undefined;
-        if (user?.role && typeof user.role === 'object' && 'name' in user.role) {
-            roleValue = user.role.name.toLowerCase();
-        } else if (typeof user?.role === 'string') {
-            roleValue = user.role.toLowerCase();
-        } else {
-            roleValue = user?.role as number | undefined;
-        }
-
-        switch (roleValue) {
-            case 1:
-            case 'superadmin':
-                return '/dashboard/superadmin';
-            case 3:
-            case 'teacher':
-                return '/dashboard/teacher';
-            default:
-                return '/dashboard/admin';
-        }
-    };
-
-    const basePath = getBasePath();
+    // Navigation uses direct routes now (no role-based path prefixes)
 
     if (loading) {
         return (
@@ -388,7 +296,7 @@ export default function UnifiedDashboard() {
                             color="bg-blue-600"
                             trend="up"
                             trendValue={`+${stats.students.newThisMonth} this month`}
-                            onClick={() => router.push(`${basePath}/students`)}
+                            onClick={() => router.push('/dashboard/students')}
                         />
                         <StatCard
                             title="Total Teachers"
@@ -396,7 +304,7 @@ export default function UnifiedDashboard() {
                             subtitle={`${stats.teachers.active} active`}
                             icon={Users}
                             color="bg-green-600"
-                            onClick={() => router.push(`${basePath}/teachers`)}
+                            onClick={() => router.push('/dashboard/teachers')}
                         />
                         <StatCard
                             title="Active Courses"
@@ -404,7 +312,7 @@ export default function UnifiedDashboard() {
                             subtitle="This semester"
                             icon={BookOpen}
                             color="bg-purple-600"
-                            onClick={() => router.push(`${basePath}/courses`)}
+                            onClick={() => router.push('/dashboard/courses')}
                         />
                         <StatCard
                             title="Attendance Rate"
@@ -474,14 +382,14 @@ export default function UnifiedDashboard() {
                                 description="Enroll new student"
                                 icon={GraduationCap}
                                 color="bg-blue-50"
-                                href={`${basePath}/students`}
+                                href="/dashboard/students"
                             />
                             <QuickActionCard
                                 title="Add Teacher"
                                 description="Register new teacher"
                                 icon={Users}
                                 color="bg-green-50"
-                                href={`${basePath}/teachers`}
+                                href="/dashboard/teachers"
                             />
                             <QuickActionCard
                                 title="Manage Fees"
@@ -534,7 +442,7 @@ export default function UnifiedDashboard() {
                         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                             <div className="flex items-center justify-between mb-4">
                                 <h3 className="text-lg font-bold text-gray-900">Recent Students</h3>
-                                <a href={`${basePath}/students`} className="text-blue-600 hover:text-blue-700 text-sm">
+                                <a href="/dashboard/students" className="text-blue-600 hover:text-blue-700 text-sm">
                                     View all
                                 </a>
                             </div>
@@ -545,7 +453,7 @@ export default function UnifiedDashboard() {
                                     recentStudents.map((student) => (
                                         <div
                                             key={student.id}
-                                            onClick={() => router.push(`${basePath}/students/${student.id}`)}
+                                            onClick={() => router.push(`/dashboard/students/${student.id}`)}
                                             className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer transition"
                                         >
                                             <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-semibold">
@@ -569,7 +477,7 @@ export default function UnifiedDashboard() {
                         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                             <div className="flex items-center justify-between mb-4">
                                 <h3 className="text-lg font-bold text-gray-900">Recent Teachers</h3>
-                                <a href={`${basePath}/teachers`} className="text-blue-600 hover:text-blue-700 text-sm">
+                                <a href="/dashboard/teachers" className="text-blue-600 hover:text-blue-700 text-sm">
                                     View all
                                 </a>
                             </div>
@@ -580,7 +488,7 @@ export default function UnifiedDashboard() {
                                     recentTeachers.map((teacher) => (
                                         <div
                                             key={teacher.id}
-                                            onClick={() => router.push(`${basePath}/teachers/${teacher.id}`)}
+                                            onClick={() => router.push(`/dashboard/teachers/${teacher.id}`)}
                                             className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer transition"
                                         >
                                             <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 font-semibold">

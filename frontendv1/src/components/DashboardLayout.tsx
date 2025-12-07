@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuthStore } from "@/stores/authStore";
 import { getRoleName } from "@/types";
+import { getSidebarForRole } from "@/config/sidebarConfig";
 import NotificationCenter from "@/components/NotificationCenter";
 import {
   Menu,
@@ -27,7 +28,7 @@ interface SidebarItem {
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
-  sidebarItems: SidebarItem[];
+  sidebarItems?: SidebarItem[]; // Now optional
   title: string;
 }
 
@@ -39,6 +40,9 @@ export default function DashboardLayout({
   const router = useRouter();
   const pathname = usePathname();
   const { user, logout } = useAuthStore();
+
+  // Auto-detect sidebar if not provided
+  const effectiveSidebarItems = sidebarItems || getSidebarForRole();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>(
     {}
@@ -48,7 +52,7 @@ export default function DashboardLayout({
   useEffect(() => {
     const newExpandedItems: Record<string, boolean> = {};
 
-    sidebarItems.forEach((item) => {
+    effectiveSidebarItems.forEach((item) => {
       if (item.children && item.children.length > 0) {
         // Check if any child path matches current pathname
         const hasActiveChild = item.children.some((child) =>
@@ -98,7 +102,7 @@ export default function DashboardLayout({
         {hasChildren ? (
           <button
             onClick={() => toggleExpanded(item.label)}
-            className="w-full flex items-center justify-between px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition"
+            className="w-full flex items-center justify-between px-4 py-3 text-gray-900 hover:bg-gray-100 rounded-lg transition font-medium"
           >
             <div className="flex items-center space-x-3">
               {item.icon}
@@ -118,7 +122,7 @@ export default function DashboardLayout({
             <div
               className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition ${isActive(item.href)
                 ? "bg-blue-100 text-blue-700 font-semibold"
-                : "text-gray-700 hover:bg-gray-100"
+                : "text-gray-900 hover:bg-gray-100 font-medium"
                 }`}
             >
               {item.icon}
@@ -167,7 +171,7 @@ export default function DashboardLayout({
 
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto p-4 space-y-2">
-          {sidebarItems.map((item) => (
+          {effectiveSidebarItems.map((item) => (
             <SidebarItemComponent key={item.label} item={item} />
           ))}
         </nav>

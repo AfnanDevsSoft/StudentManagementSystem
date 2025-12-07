@@ -123,11 +123,22 @@ export default function RolesPage() {
   const fetchRoles = async () => {
     try {
       setLoading(true);
-      const response = await apiClient.getRoles();
-      setRoles(Array.isArray(response.data) ? response.data : []);
+
+      // Get branch ID from user context
+      const branchId = user?.branch_id || user?.branchId;
+
+      if (!branchId) {
+        toast.error("No branch assigned to user");
+        setRoles(DEFAULT_ROLES); // Fallback to default roles
+        return;
+      }
+
+      const response = await apiClient.getRoles(branchId);
+      setRoles(Array.isArray(response.data) ? response.data : DEFAULT_ROLES);
     } catch (error) {
       console.error("Error fetching roles:", error);
       toast.error("Failed to load roles");
+      setRoles(DEFAULT_ROLES); // Fallback to default roles on error
     } finally {
       setLoading(false);
     }
@@ -170,19 +181,25 @@ export default function RolesPage() {
     }
 
     try {
+      const branchId = user?.branch_id || user?.branchId;
+
+      if (!branchId) {
+        toast.error("No branch assigned to user");
+        return;
+      }
+
       if (editingRole) {
-        await apiClient.updateRole(editingRole.id, {
-          name: formData.name,
-          description: formData.description,
-          permissions: formData.permissions,
-        });
+        // For updating, we need permission IDs, not permission names
+        // For now, use permission names as IDs (will need mapping in production)
+        await apiClient.updateRolePermissions(editingRole.id, formData.permissions);
         toast.success("Role updated successfully");
       } else {
-        await apiClient.createRole({
-          name: formData.name,
-          description: formData.description,
-          permissions: formData.permissions,
-        });
+        await apiClient.createRole(
+          branchId,
+          formData.name,
+          formData.permissions,
+          formData.description
+        );
         toast.success("Role created successfully");
       }
       setShowModal(false);

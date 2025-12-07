@@ -1,4 +1,4 @@
-// Shared sidebar configuration for Admin Dashboard
+// Single unified sidebar configuration for ALL users
 import {
     LayoutDashboard,
     Users,
@@ -16,105 +16,13 @@ import {
     Heart,
     Library,
     CalendarDays,
+    Building2,
+    Shield,
+    TrendingUp,
 } from "lucide-react";
 
-export const adminSidebarItems = [
-    {
-        label: "Dashboard",
-        href: "/dashboard",
-        icon: <LayoutDashboard size={20} />,
-    },
-    {
-        label: "Students",
-        href: "/dashboard/admin/students",
-        icon: <GraduationCap size={20} />,
-    },
-    {
-        label: "Teachers",
-        href: "/dashboard/admin/teachers",
-        icon: <Users size={20} />,
-    },
-    {
-        label: "Courses",
-        href: "/dashboard/admin/courses",
-        icon: <BookOpen size={20} />,
-    },
-    {
-        label: "Attendance",
-        href: "/dashboard/admin/attendance",
-        icon: <Calendar size={20} />,
-    },
-    {
-        label: "Admissions",
-        href: "/dashboard/admin/admissions",
-        icon: <UserPlus size={20} />,
-    },
-    {
-        label: "Fees",
-        href: "/dashboard/admin/fees",
-        icon: <DollarSign size={20} />,
-    },
-    {
-        label: "Payroll",
-        href: "/dashboard/admin/payroll",
-        icon: <Wallet size={20} />,
-    },
-    {
-        label: "Messages",
-        href: "/dashboard/messaging/inbox",
-        icon: <Mail size={20} />,
-    },
-    {
-        label: "Timetable",
-        href: "/dashboard/admin/timetable",
-        icon: <Clock size={20} />,
-    },
-    {
-        label: "Health Records",
-        href: "/dashboard/admin/health",
-        icon: <Heart size={20} />,
-    },
-    {
-        label: "Library",
-        href: "/dashboard/admin/library",
-        icon: <Library size={20} />,
-    },
-    {
-        label: "Events",
-        href: "/dashboard/admin/events",
-        icon: <CalendarDays size={20} />,
-    },
-    {
-        label: "Reports",
-        href: "/dashboard/admin/reports",
-        icon: <BarChart3 size={20} />,
-    },
-];
-
-export const teacherSidebarItems = [
-    {
-        label: "Dashboard",
-        href: "/dashboard",
-        icon: <LayoutDashboard size={20} />,
-    },
-    {
-        label: "My Courses",
-        href: "/dashboard/teacher/courses",
-        icon: <BookOpen size={20} />,
-    },
-    {
-        label: "Grades",
-        href: "/dashboard/teacher/grades",
-        icon: <FileText size={20} />,
-    },
-    {
-        label: "Attendance",
-        href: "/dashboard/teacher/attendance",
-        icon: <Calendar size={20} />,
-    },
-];
-
-export const superadminSidebarItems = [
+// ONE UNIFIED SIDEBAR - All routes in one place
+export const unifiedSidebarItems = [
     {
         label: "Dashboard",
         href: "/dashboard",
@@ -127,18 +35,18 @@ export const superadminSidebarItems = [
         children: [
             {
                 label: "Branches",
-                href: "/dashboard/superadmin/branches",
-                icon: <LayoutDashboard size={18} />,
+                href: "/dashboard/branches",
+                icon: <Building2 size={18} />,
             },
             {
                 label: "Users",
-                href: "/dashboard/superadmin/users",
+                href: "/dashboard/users",
                 icon: <Users size={18} />,
             },
             {
                 label: "Roles & Permissions",
-                href: "/dashboard/superadmin/roles",
-                icon: <Users size={18} />,
+                href: "/dashboard/roles",
+                icon: <Shield size={18} />,
             },
         ],
     },
@@ -149,30 +57,35 @@ export const superadminSidebarItems = [
         children: [
             {
                 label: "Students",
-                href: "/dashboard/superadmin/students",
+                href: "/dashboard/students",
                 icon: <GraduationCap size={18} />,
             },
             {
                 label: "Teachers",
-                href: "/dashboard/superadmin/teachers",
+                href: "/dashboard/teachers",
                 icon: <Users size={18} />,
             },
             {
                 label: "Courses",
-                href: "/dashboard/superadmin/courses",
+                href: "/dashboard/courses",
                 icon: <BookOpen size={18} />,
             },
             {
                 label: "Attendance",
-                href: "/dashboard/admin/attendance",
+                href: "/dashboard/attendance",
                 icon: <Calendar size={18} />,
+            },
+            {
+                label: "Timetable",
+                href: "/dashboard/timetable",
+                icon: <Clock size={18} />,
             },
         ],
     },
     {
         label: "Admissions",
-        href: "/dashboard/admin/admissions",
-        icon: <GraduationCap size={20} />,
+        href: "/dashboard/admissions",
+        icon: <UserPlus size={20} />,
     },
     {
         label: "Financial",
@@ -180,35 +93,110 @@ export const superadminSidebarItems = [
         icon: <DollarSign size={20} />,
         children: [
             {
-                label: "Fee Management",
-                href: "/dashboard/admin/fees",
+                label: "Fees",
+                href: "/dashboard/fees",
                 icon: <DollarSign size={18} />,
             },
             {
                 label: "Payroll",
-                href: "/dashboard/admin/payroll",
-                icon: <DollarSign size={18} />,
+                href: "/dashboard/payroll",
+                icon: <Wallet size={18} />,
             },
         ],
     },
     {
-        label: "Reports",
-        href: "/dashboard/admin/reports",
+        label: "Health & Wellness",
+        href: "#",
+        icon: <Heart size={20} />,
+        children: [
+            {
+                label: "Health Records",
+                href: "/dashboard/health",
+                icon: <Heart size={18} />,
+            },
+        ],
+    },
+    {
+        label: "Resources",
+        href: "#",
+        icon: <Library size={20} />,
+        children: [
+            {
+                label: "Library",
+                href: "/dashboard/library",
+                icon: <Library size={18} />,
+            },
+            {
+                label: "Events",
+                href: "/dashboard/events",
+                icon: <CalendarDays size={18} />,
+            },
+        ],
+    },
+    {
+        label: "Reports & Analytics",
+        href: "#",
         icon: <BarChart3 size={20} />,
+        children: [
+            {
+                label: "Reports",
+                href: "/dashboard/reports",
+                icon: <FileText size={18} />,
+            },
+            {
+                label: "Analytics",
+                href: "/dashboard/analytics",
+                icon: <TrendingUp size={18} />,
+            },
+        ],
     },
     {
         label: "Messages",
         href: "/dashboard/messaging/inbox",
-        icon: <LayoutDashboard size={20} />,
-    },
-    {
-        label: "Analytics",
-        href: "/dashboard/superadmin/analytics",
-        icon: <BarChart3 size={20} />,
+        icon: <Mail size={20} />,
     },
     {
         label: "Settings",
-        href: "/dashboard/superadmin/settings",
-        icon: <LayoutDashboard size={20} />,
+        href: "/dashboard/settings",
+        icon: <Settings size={20} />,
     },
 ];
+
+// Export the unified sidebar as default for all roles
+export const getSidebarForRole = () => {
+    return unifiedSidebarItems;
+};
+
+// Keep these exports for backward compatibility (they all return the same sidebar now)
+export const adminSidebarItems = unifiedSidebarItems;
+export const teacherSidebarItems = unifiedSidebarItems;
+export const superadminSidebarItems = unifiedSidebarItems;
+export const studentSidebarItems = unifiedSidebarItems;
+export const parentSidebarItems = unifiedSidebarItems;
+
+// Helper function to get role display name
+export const getRoleDisplayName = (role: number | string | { id: string; name: string }) => {
+    // Normalize role to string or number
+    let roleValue: string | number;
+    if (typeof role === 'object' && role !== null && 'name' in role) {
+        roleValue = role.name.toLowerCase();
+    } else if (typeof role === 'string') {
+        roleValue = role.toLowerCase();
+    } else {
+        roleValue = role;
+    }
+
+    switch (roleValue) {
+        case 1:
+        case 'superadmin': return "Super Admin";
+        case 2:
+        case 'admin': return "Admin";
+        case 3:
+        case 'teacher': return "Teacher";
+        case 4:
+        case 'student': return "Student";
+        case 5:
+        case 'parent': return "Parent";
+        default: return "User";
+    }
+};
