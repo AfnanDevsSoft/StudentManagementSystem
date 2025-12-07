@@ -383,15 +383,6 @@ class ApiClient {
     return this.patch(`/attendance/${id}`, data);
   }
 
-  // Settings
-  async getSettings(branchId?: string) {
-    return this.get("/settings", branchId ? { branchId } : {});
-  }
-
-  async updateSettings(data: any) {
-    return this.patch("/settings", data);
-  }
-
   // Fee Management
   async getFees(branchId?: string, params?: any) {
     return this.get("/fees", { branchId, ...params });
@@ -438,28 +429,6 @@ class ApiClient {
     return this.post("/academic-years", data);
   }
 
-  // Course Content Management
-  async getCourseContent(courseId: string) {
-    return this.get(`/courses/${courseId}/content`);
-  }
-
-  async uploadCourseContent(courseId: string, data: FormData) {
-    const response = await this.client.post(`/courses/${courseId}/content`, data, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-    return response.data;
-  }
-
-  async updateCourseContent(courseId: string, contentId: string, data: any) {
-    return this.patch(`/courses/${courseId}/content/${contentId}`, data);
-  }
-
-  async deleteCourseContent(courseId: string, contentId: string) {
-    return this.delete(`/courses/${courseId}/content/${contentId}`);
-  }
-
   // Course Announcements
   async getCourseAnnouncements(courseId: string) {
     return this.get(`/courses/${courseId}/announcements`);
@@ -475,35 +444,6 @@ class ApiClient {
 
   async deleteCourseAnnouncement(courseId: string, announcementId: string) {
     return this.delete(`/courses/${courseId}/announcements/${announcementId}`);
-  }
-
-  // Notifications
-  async getNotifications(params?: { unreadOnly?: boolean; limit?: number }) {
-    return this.get("/notifications", params);
-  }
-
-  async getUnreadNotificationCount() {
-    return this.get("/notifications/unread-count");
-  }
-
-  async markNotificationAsRead(notificationId: string) {
-    return this.patch(`/notifications/${notificationId}/read`, {});
-  }
-
-  async markAllNotificationsAsRead() {
-    return this.patch("/notifications/read-all", {});
-  }
-
-  async deleteNotification(notificationId: string) {
-    return this.delete(`/notifications/${notificationId}`);
-  }
-
-  async getNotificationPreferences() {
-    return this.get("/notification-preferences");
-  }
-
-  async updateNotificationPreferences(data: any) {
-    return this.patch("/notification-preferences", data);
   }
   // ==================== TIMETABLE ====================
   async getTimeSlots(branchId: string) {
@@ -712,6 +652,442 @@ class ApiClient {
 
   async getPermissionHierarchy() {
     return this.get("/rbac/permission-hierarchy");
+  }
+
+  // ==================== TIMETABLE MANAGEMENT ====================
+  async getTimetables(params?: any) {
+    return this.get("/timetables", params);
+  }
+
+  async getTimetableById(id: string) {
+    return this.get(`/timetables/${id}`);
+  }
+
+  async createTimetable(data: any) {
+    return this.post("/timetables", data);
+  }
+
+  async updateTimetable(id: string, data: any) {
+    return this.patch(`/timetables/${id}`, data);
+  }
+
+  async deleteTimetable(id: string) {
+    return this.delete(`/timetables/${id}`);
+  }
+
+  async getTimetableSlots(timetableId: string) {
+    return this.get(`/timetables/${timetableId}/slots`);
+  }
+
+  async createTimetableSlot(timetableId: string, data: any) {
+    return this.post(`/timetables/${timetableId}/slots`, data);
+  }
+
+  async updateTimetableSlot(timetableId: string, slotId: string, data: any) {
+    return this.patch(`/timetables/${timetableId}/slots/${slotId}`, data);
+  }
+
+  async deleteTimetableSlot(timetableId: string, slotId: string) {
+    return this.delete(`/timetables/${timetableId}/slots/${slotId}`);
+  }
+
+  // ==================== FEE MANAGEMENT ====================
+  async getFeeStructures(params?: any) {
+    return this.get("/fees/structures", params);
+  }
+
+  async createFeeStructure(data: any) {
+    return this.post("/fees/structures", data);
+  }
+
+  async updateFeeStructure(id: string, data: any) {
+    return this.patch(`/fees/structures/${id}`, data);
+  }
+
+  async deleteFeeStructure(id: string) {
+    return this.delete(`/fees/structures/${id}`);
+  }
+
+  async getStudentFees(studentId: string) {
+    return this.get(`/fees/students/${studentId}`);
+  }
+
+  async recordPayment(data: {
+    studentId: string;
+    amount: number;
+    paymentMethod: string;
+    feeType?: string;
+  }) {
+    return this.post("/fees/payments", data);
+  }
+
+  async getFeeReports(params?: any) {
+    return this.get("/fees/reports", params);
+  }
+
+  async getDuePayments(params?: any) {
+    return this.get("/fees/due", params);
+  }
+
+  // ==================== ADMISSIONS ====================
+  async getApplications(params?: any) {
+    return this.get("/admissions/applications", params);
+  }
+
+  async getApplicationById(id: string) {
+    return this.get(`/admissions/applications/${id}`);
+  }
+
+  async createApplication(data: any) {
+    return this.post("/admissions/applications", data);
+  }
+
+  async updateApplication(id: string, data: any) {
+    return this.patch(`/admissions/applications/${id}`, data);
+  }
+
+  async updateApplicationStatus(id: string, status: string, remarks?: string) {
+    return this.patch(`/admissions/applications/${id}/status`, {
+      status,
+      remarks,
+    });
+  }
+
+  async deleteApplication(id: string) {
+    return this.delete(`/admissions/applications/${id}`);
+  }
+
+  // ==================== MEDICAL/HEALTH RECORDS ====================
+  async getStudentMedicalRecords(studentId: string) {
+    return this.get(`/medical/students/${studentId}/records`);
+  }
+
+  async createMedicalRecord(studentId: string, data: any) {
+    return this.post(`/medical/students/${studentId}/records`, data);
+  }
+
+  async updateMedicalRecord(recordId: string, data: any) {
+    return this.patch(`/medical/records/${recordId}`, data);
+  }
+
+  async deleteMedicalRecord(recordId: string) {
+    return this.delete(`/medical/records/${recordId}`);
+  }
+
+  async getVaccinationRecords(studentId: string) {
+    return this.get(`/medical/students/${studentId}/vaccinations`);
+  }
+
+  async addVaccinationRecord(studentId: string, data: any) {
+    return this.post(`/medical/students/${studentId}/vaccinations`, data);
+  }
+
+  async getHealthCheckups(studentId: string) {
+    return this.get(`/medical/students/${studentId}/checkups`);
+  }
+
+  async scheduleHealthCheckup(data: any) {
+    return this.post("/medical/checkups", data);
+  }
+
+  // ==================== PAYROLL ====================
+  async getPayrollRecords(params?: any) {
+    return this.get("/payroll/records", params);
+  }
+
+  async generatePayroll(data: {
+    employeeId: string;
+    month: number;
+    year: number;
+    basicSalary: number;
+    allowances?: number;
+    deductions?: number;
+  }) {
+    return this.post("/payroll/generate", data);
+  }
+
+  async getEmployeeSalary(employeeId: string) {
+    return this.get(`/payroll/employees/${employeeId}/salary`);
+  }
+
+  async updateSalaryStructure(employeeId: string, data: any) {
+    return this.patch(`/payroll/employees/${employeeId}/salary`, data);
+  }
+
+  async getPayslip(recordId: string) {
+    return this.get(`/payroll/records/${recordId}/payslip`);
+  }
+
+  async approvePayroll(recordId: string) {
+    return this.post(`/payroll/records/${recordId}/approve`, {});
+  }
+
+  // ==================== LEAVE MANAGEMENT ====================
+  async getLeaveRequests(params?: any) {
+    return this.get("/leave/requests", params);
+  }
+
+  async createLeaveRequest(data: {
+    employeeId: string;
+    leaveType: string;
+    startDate: string;
+    endDate: string;
+    reason: string;
+  }) {
+    return this.post("/leave/requests", data);
+  }
+
+  async updateLeaveRequest(id: string, data: any) {
+    return this.patch(`/leave/requests/${id}`, data);
+  }
+
+  async approveLeaveRequest(id: string, approverId: string) {
+    return this.patch(`/leave/requests/${id}/approve`, { approverId });
+  }
+
+  async rejectLeaveRequest(id: string, reason: string) {
+    return this.patch(`/leave/requests/${id}/reject`, { reason });
+  }
+
+  async getLeaveBalance(employeeId: string) {
+    return this.get(`/leave/employees/${employeeId}/balance`);
+  }
+
+  // ==================== COURSE CONTENT ====================
+  async getCourseContent(courseId: string, params?: any) {
+    return this.get(`/courses/${courseId}/content`, params);
+  }
+
+  async uploadCourseContent(courseId: string, formData: FormData) {
+    // Special handling for file upload
+    const response = await this.client.post(
+      `/courses/${courseId}/content`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+    return response.data;
+  }
+
+  async updateCourseContent(contentId: string, data: any) {
+    return this.patch(`/course-content/${contentId}`, data);
+  }
+
+  async deleteCourseContent(contentId: string) {
+    return this.delete(`/course-content/${contentId}`);
+  }
+
+  async downloadCourseContent(contentId: string) {
+    return this.get(`/course-content/${contentId}/download`, {
+      responseType: "blob",
+    });
+  }
+
+  // ==================== REPORTING ====================
+  async generateReport(reportType: string, params: any) {
+    return this.post(`/reports/${reportType}/generate`, params);
+  }
+
+  async getReportHistory(params?: any) {
+    return this.get("/reports/history", params);
+  }
+
+  async downloadReport(reportId: string) {
+    return this.get(`/reports/${reportId}/download`, { responseType: "blob" });
+  }
+
+  async scheduleReport(data: {
+    reportType: string;
+    frequency: string;
+    recipients: string[];
+    parameters: any;
+  }) {
+    return this.post("/reports/schedule", data);
+  }
+
+  // ==================== ANNOUNCEMENTS ====================
+  async getAnnouncements(params?: {
+    branchId?: string;
+    targetAudience?: string;
+    limit?: number;
+    offset?: number;
+  }) {
+    return this.get("/announcements", params);
+  }
+
+  async getAnnouncementById(id: string) {
+    return this.get(`/announcements/${id}`);
+  }
+
+  async createAnnouncement(data: {
+    title: string;
+    content: string;
+    targetAudience: string;
+    branchId?: string;
+    priority?: string;
+    expiryDate?: string;
+  }) {
+    return this.post("/announcements", data);
+  }
+
+  async updateAnnouncement(id: string, data: any) {
+    return this.patch(`/announcements/${id}`, data);
+  }
+
+  async deleteAnnouncement(id: string) {
+    return this.delete(`/announcements/${id}`);
+  }
+
+  async publishAnnouncement(id: string) {
+    return this.patch(`/announcements/${id}/publish`, {});
+  }
+
+  async unpublishAnnouncement(id: string) {
+    return this.patch(`/announcements/${id}/unpublish`, {});
+  }
+
+  // ==================== NOTIFICATIONS ====================
+  async getNotifications(params?: { unreadOnly?: boolean; limit?: number }) {
+    return this.get("/notifications", params);
+  }
+
+  async getUnreadNotificationCount() {
+    return this.get("/notifications/unread/count");
+  }
+
+  async markNotificationAsRead(id: string) {
+    return this.patch(`/notifications/${id}/read`, {});
+  }
+
+  async markAllNotificationsAsRead() {
+    return this.patch("/notifications/read-all", {});
+  }
+
+  async deleteNotification(id: string) {
+    return this.delete(`/notifications/${id}`);
+  }
+
+  async getNotificationPreferences(userId: string) {
+    return this.get(`/notifications/preferences/${userId}`);
+  }
+
+  async updateNotificationPreferences(userId: string, preferences: any) {
+    return this.patch(`/notifications/preferences/${userId}`, preferences);
+  }
+
+  // ==================== SYSTEM MANAGEMENT ====================
+
+  // Backup & Restore
+  async createBackup(data?: { description?: string; includeFiles?: boolean }) {
+    return this.post("/backup/create", data);
+  }
+
+  async getBackups(params?: any) {
+    return this.get("/backup/list", params);
+  }
+
+  async downloadBackup(backupId: string) {
+    return this.get(`/backup/${backupId}/download`, { responseType: "blob" });
+  }
+
+  async restoreBackup(backupId: string) {
+    return this.post(`/backup/${backupId}/restore`, {});
+  }
+
+  async deleteBackup(backupId: string) {
+    return this.delete(`/backup/${backupId}`);
+  }
+
+  // Cache Management
+  async clearCache(cacheType?: string) {
+    return this.post("/cache/clear", { cacheType });
+  }
+
+  async getCacheStats() {
+    return this.get("/cache/stats");
+  }
+
+  async warmupCache() {
+    return this.post("/cache/warmup", {});
+  }
+
+  // System Logs
+  async getSystemLogs(params?: {
+    level?: string;
+    limit?: number;
+    startDate?: string;
+    endDate?: string;
+  }) {
+    return this.get("/logs", params);
+  }
+
+  async getAuditLogs(params?: {
+    userId?: string;
+    action?: string;
+    limit?: number;
+  }) {
+    return this.get("/logs/audit", params);
+  }
+
+  async getErrorLogs(params?: { limit?: number; severity?: string }) {
+    return this.get("/logs/errors", params);
+  }
+
+  // File Export/Import
+  async exportData(exportType: string, params?: any) {
+    return this.post(`/export/${exportType}`, params, {
+      responseType: "blob",
+    });
+  }
+
+  async importData(importType: string, formData: FormData) {
+    const response = await this.client.post(
+      `/import/${importType}`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+    return response.data;
+  }
+
+  async getExportHistory(params?: any) {
+    return this.get("/export/history", params);
+  }
+
+  // System Health
+  async getSystemHealth() {
+    return this.get("/health");
+  }
+
+  async getSystemStatus() {
+    return this.get("/health/status");
+  }
+
+  async getDatabaseStatus() {
+    return this.get("/health/database");
+  }
+
+  // System Settings
+  async getSystemSettings() {
+    return this.get("/settings/system");
+  }
+
+  async updateSystemSettings(settings: any) {
+    return this.patch("/settings/system", settings);
+  }
+
+  async getBranchSettings(branchId: string) {
+    return this.get(`/settings/branch/${branchId}`);
+  }
+
+  async updateBranchSettings(branchId: string, settings: any) {
+    return this.patch(`/settings/branch/${branchId}`, settings);
   }
 }
 
