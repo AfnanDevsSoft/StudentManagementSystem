@@ -1,572 +1,452 @@
 "use client";
+
 import { useState, useEffect } from "react";
-import { toast } from "react-hot-toast";
-import apiClient from "@/lib/apiClient";
-import { adminSidebarItems } from "@/config/sidebarConfig";
-import { Clock, Plus, Building2, CalendarClock, X } from "lucide-react";
+import { useAuthStore } from "@/stores/authStore";
+import { apiClient } from "@/lib/apiClient";
+import DashboardLayout from "@/components/DashboardLayout";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import PermissionGuard from "@/components/PermissionGuard";
+import { superadminSidebarItems } from "@/config/sidebarConfig";
+import {
+    Calendar,
+    Clock,
+    Plus,
+    Edit2,
+    Trash2,
+    User,
+    MapPin,
+    Save,
+    X,
+} from "lucide-react";
+import toast from "react-hot-toast";
 
 interface TimeSlot {
     id: string;
-    slot_name: string;
+    day_of_week: string;
     start_time: string;
     end_time: string;
-    slot_type: string;
-    sort_order: number;
+    subject: string;
+    teacher_id?: string;
+    teacher_name?: string;
+    room?: string;
+    color?: string;
 }
 
-interface Room {
+interface Timetable {
     id: string;
-    room_number: string;
-    room_name?: string;
-    capacity: number;
-    room_type: string;
-    building?: string;
+    name: string;
+    branch_id: string;
+    academic_year: string;
+    semester?: string;
+    slots: TimeSlot[];
 }
+
+const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+const TIME_SLOTS = [
+    "08:00-09:00",
+    "09:00-10:00",
+    "10:00-11:00",
+    "11:00-12:00",
+    "12:00-13:00", // Lunch
+    "13:00-14:00",
+    "14:00-15:00",
+    "15:00-16:00",
+];
+
+const SUBJECT_COLORS: Record<string, string> = {
+    Mathematics: "bg-blue-100 text-blue-800 border-blue-300",
+    Science: "bg-green-100 text-green-800 border-green-300",
+    English: "bg-purple-100 text-purple-800 border-purple-300",
+    History: "bg-yellow-100 text-yellow-800 border-yellow-300",
+    Geography: "bg-orange-100 text-orange-800 border-orange-300",
+    Physics: "bg-indigo-100 text-indigo-800 border-indigo-300",
+    Chemistry: "bg-pink-100 text-pink-800 border-pink-300",
+    Biology: "bg-emerald-100 text-emerald-800 border-emerald-300",
+    default: "bg-gray-100 text-gray-800 border-gray-300",
+};
 
 export default function TimetablePage() {
-    const [activeTab, setActiveTab] = useState<"slots" | "rooms" | "schedule">("slots");
-    const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
-    const [rooms, setRooms] = useState<Room[]>([]);
-    const [loading, setLoading] = useState(false);
-    const [showSlotModal, setShowSlotModal] = useState(false);
-    const [showRoomModal, setShowRoomModal] = useState(false);
-    const [branchId, setBranchId] = useState<string>("");
+    const { user } = useAuthStore();
+    const [timetables, setTimetables] = useState<Timetable[]>([]);
+    const [selectedTimetable, setSelectedTimetable] = useState<Timetable | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [showModal, setShowModal] = useState(false);
+    const [editingSlot, setEditingSlot] = useState<TimeSlot | null>(null);
+    const [selectedDay, setSelectedDay] = useState<string>("");
+    const [selectedTime, setSelectedTime] = useState<string>("");
+
+    const [formData, setFormData] = useState({
+        subject: "",
+        teacher_id: "",
+        teacher_name: "",
+        room: "",
+    });
 
     useEffect(() => {
-        const user = localStorage.getItem("user");
-        if (user) {
-            const userData = JSON.parse(user);
-            setBranchId(userData.branch_id);
-            if (userData.branch_id) {
-                fetchTimeSlots(userData.branch_id);
-                fetchRooms(userData.branch_id);
-            }
-        }
-    }, []);
+        fetchTimetables();
+    }, [user]);
 
-    const fetchTimeSlots = async (branchId: string) => {
+    const fetchTimetables = async () => {
         try {
-            const response = await apiClient.getTimeSlots(branchId);
-            if (response.data.success) {
-                setTimeSlots(response.data.data || []);
+            setLoading(true);
+            const branchId = user?.branch_id || user?.branchId;
+            if (!branchId) return;
+
+            const response = await apiClient.getTimetables({ branch_id: branchId });
+            setTimetables(response.data || []);
+
+            if (response.data && response.data.length > 0) {
+                setSelectedTimetable(response.data[0]);
+                await fetchTimetableSlots(response.data[0].id);
             }
         } catch (error) {
-            console.error("Error fetching time slots:", error);
-        }
-    };
-
-    const fetchRooms = async (branchId: string) => {
-        try {
-            const response = await apiClient.getRooms(branchId);
-            if (response.data.success) {
-                setRooms(response.data.data || []);
-            }
-        } catch (error) {
-            console.error("Error fetching rooms:", error);
-        }
-    };
-
-    const handleCreateTimeSlot = async (data: Partial<TimeSlot>) => {
-        setLoading(true);
-        try {
-            const response = await apiClient.createTimeSlot({
-                ...data,
-                branch_id: branchId,
-            });
-            if (response.data.success) {
-                toast.success("Time slot created successfully!");
-                fetchTimeSlots(branchId);
-                setShowSlotModal(false);
-            }
-        } catch (error: any) {
-            toast.error(error.response?.data?.message || "Failed to create time slot");
+            console.error("Error fetching timetables:", error);
+            toast.error("Failed to load timetables");
         } finally {
             setLoading(false);
         }
     };
 
-    const handleCreateRoom = async (data: Partial<Room>) => {
-        setLoading(true);
+    const fetchTimetableSlots = async (timetableId: string) => {
         try {
-            const response = await apiClient.createRoom({
-                ...data,
-                branch_id: branchId,
-            });
-            if (response.data.success) {
-                toast.success("Room created successfully!");
-                fetchRooms(branchId);
-                setShowRoomModal(false);
+            const response = await apiClient.getTimetableSlots(timetableId);
+            if (selectedTimetable) {
+                setSelectedTimetable({
+                    ...selectedTimetable,
+                    slots: response.data || [],
+                });
             }
-        } catch (error: any) {
-            toast.error(error.response?.data?.message || "Failed to create room");
-        } finally {
-            setLoading(false);
+        } catch (error) {
+            console.error("Error fetching slots:", error);
         }
     };
 
-    return (
-        <div className="min-h-screen bg-gray-50">
-            {/* Header */}
-            <div className="bg-white border-b px-6 py-4">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h1 className="text-2xl font-bold text-gray-900">Timetable Management</h1>
-                        <p className="text-sm text-gray-600 mt-1">
-                            Manage class schedules, time slots, and room allocations
-                        </p>
+    const handleAddSlot = (day: string, time: string) => {
+        setEditingSlot(null);
+        setSelectedDay(day);
+        setSelectedTime(time);
+        setFormData({
+            subject: "",
+            teacher_id: "",
+            teacher_name: "",
+            room: "",
+        });
+        setShowModal(true);
+    };
+
+    const handleEditSlot = (slot: TimeSlot) => {
+        setEditingSlot(slot);
+        setSelectedDay(slot.day_of_week);
+        setSelectedTime(`${slot.start_time}-${slot.end_time}`);
+        setFormData({
+            subject: slot.subject,
+            teacher_id: slot.teacher_id || "",
+            teacher_name: slot.teacher_name || "",
+            room: slot.room || "",
+        });
+        setShowModal(true);
+    };
+
+    const handleSaveSlot = async () => {
+        if (!selectedTimetable || !formData.subject.trim()) {
+            toast.error("Subject is required");
+            return;
+        }
+
+        const [start_time, end_time] = selectedTime.split("-");
+
+        try {
+            if (editingSlot) {
+                await apiClient.updateTimetableSlot(
+                    selectedTimetable.id,
+                    editingSlot.id,
+                    {
+                        subject: formData.subject,
+                        teacher_id: formData.teacher_id,
+                        teacher_name: formData.teacher_name,
+                        room: formData.room,
+                    }
+                );
+                toast.success("Slot updated successfully");
+            } else {
+                await apiClient.createTimetableSlot(selectedTimetable.id, {
+                    day_of_week: selectedDay,
+                    start_time,
+                    end_time,
+                    subject: formData.subject,
+                    teacher_id: formData.teacher_id,
+                    teacher_name: formData.teacher_name,
+                    room: formData.room,
+                });
+                toast.success("Slot added successfully");
+            }
+
+            setShowModal(false);
+            fetchTimetableSlots(selectedTimetable.id);
+        } catch (error: any) {
+            console.error("Error saving slot:", error);
+            const message = error.response?.data?.message || "Failed to save slot";
+            toast.error(message);
+        }
+    };
+
+    const handleDeleteSlot = async (slotId: string) => {
+        if (!selectedTimetable || !window.confirm("Delete this slot?")) return;
+
+        try {
+            await apiClient.deleteTimetableSlot(selectedTimetable.id, slotId);
+            toast.success("Slot deleted");
+            fetchTimetableSlots(selectedTimetable.id);
+        } catch (error) {
+            toast.error("Failed to delete slot");
+        }
+    };
+
+    const getSlotForCell = (day: string, time: string): TimeSlot | undefined => {
+        const [start_time] = time.split("-");
+        return selectedTimetable?.slots.find(
+            (slot) =>
+                slot.day_of_week === day &&
+                slot.start_time === start_time
+        );
+    };
+
+    const getSubjectColor = (subject: string): string => {
+        return SUBJECT_COLORS[subject] || SUBJECT_COLORS.default;
+    };
+
+    if (loading) {
+        return (
+            <ProtectedRoute>
+                <DashboardLayout title="Timetable" sidebarItems={superadminSidebarItems}>
+                    <div className="flex items-center justify-center h-64">
+                        <div className="text-gray-500">Loading timetable...</div>
                     </div>
-                </div>
-            </div>
+                </DashboardLayout>
+            </ProtectedRoute>
+        );
+    }
 
-            {/* Tabs */}
-            <div className="bg-white border-b px-6">
-                <div className="flex space-x-8">
-                    <button
-                        onClick={() => setActiveTab("slots")}
-                        className={`py-4 px-2 border-b-2 font-medium text-sm transition-colors ${activeTab === "slots"
-                                ? "border-blue-500 text-blue-600"
-                                : "border-transparent text-gray-500 hover:text-gray-700"
-                            }`}
-                    >
-                        <Clock className="inline mr-2" size={18} />
-                        Time Slots
-                    </button>
-                    <button
-                        onClick={() => setActiveTab("rooms")}
-                        className={`py-4 px-2 border-b-2 font-medium text-sm transition-colors ${activeTab === "rooms"
-                                ? "border-blue-500 text-blue-600"
-                                : "border-transparent text-gray-500 hover:text-gray-700"
-                            }`}
-                    >
-                        <Building2 className="inline mr-2" size={18} />
-                        Rooms
-                    </button>
-                    <button
-                        onClick={() => setActiveTab("schedule")}
-                        className={`py-4 px-2 border-b-2 font-medium text-sm transition-colors ${activeTab === "schedule"
-                                ? "border-blue-500 text-blue-600"
-                                : "border-transparent text-gray-500 hover:text-gray-700"
-                            }`}
-                    >
-                        <CalendarClock className="inline mr-2" size={18} />
-                        Weekly Schedule
-                    </button>
-                </div>
-            </div>
-
-            {/* Content */}
-            <div className="p-6">
-                {activeTab === "slots" && (
-                    <TimeSlotsTab
-                        timeSlots={timeSlots}
-                        onCreateSlot={() => setShowSlotModal(true)}
-                        onDeleteSlot={async (id) => {
-                            await apiClient.deleteTimeSlot(id);
-                            fetchTimeSlots(branchId);
-                            toast.success("Time slot deleted");
-                        }}
-                    />
-                )}
-                {activeTab === "rooms" && (
-                    <RoomsTab
-                        rooms={rooms}
-                        onCreateRoom={() => setShowRoomModal(true)}
-                        onDeleteRoom={async (id) => {
-                            await apiClient.deleteRoom(id);
-                            fetchRooms(branchId);
-                            toast.success("Room deleted");
-                        }}
-                    />
-                )}
-                {activeTab === "schedule" && (
-                    <ScheduleTab timeSlots={timeSlots} rooms={rooms} />
-                )}
-            </div>
-
-            {/* Modals */}
-            {showSlotModal && (
-                <TimeSlotModal
-                    onClose={() => setShowSlotModal(false)}
-                    onSubmit={handleCreateTimeSlot}
-                    loading={loading}
-                />
-            )}
-            {showRoomModal && (
-                <RoomModal
-                    onClose={() => setShowRoomModal(false)}
-                    onSubmit={handleCreateRoom}
-                    loading={loading}
-                />
-            )}
-        </div>
-    );
-}
-
-// Time Slots Tab Component
-function TimeSlotsTab({
-    timeSlots,
-    onCreateSlot,
-    onDeleteSlot,
-}: {
-    timeSlots: TimeSlot[];
-    onCreateSlot: () => void;
-    onDeleteSlot: (id: string) => void;
-}) {
     return (
-        <div className="bg-white rounded-lg shadow">
-            <div className="p-6 border-b flex justify-between items-center">
-                <h2 className="text-lg font-semibold">Time Slots</h2>
-                <button
-                    onClick={onCreateSlot}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2"
-                >
-                    <Plus size={18} />
-                    Add Time Slot
-                </button>
-            </div>
-            <div className="overflow-x-auto">
-                <table className="w-full">
-                    <thead className="bg-gray-50">
-                        <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                Slot Name
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                Start Time
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                End Time
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                Type
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                Actions
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200">
-                        {timeSlots.map((slot) => (
-                            <tr key={slot.id} className="hover:bg-gray-50">
-                                <td className="px-6 py-4 font-medium">{slot.slot_name}</td>
-                                <td className="px-6 py-4 text-sm text-gray-600">{slot.start_time}</td>
-                                <td className="px-6 py-4 text-sm text-gray-600">{slot.end_time}</td>
-                                <td className="px-6 py-4">
-                                    <span
-                                        className={`px-2 py-1 rounded-full text-xs ${slot.slot_type === "class"
-                                                ? "bg-blue-100 text-blue-800"
-                                                : slot.slot_type === "break"
-                                                    ? "bg-green-100 text-green-800"
-                                                    : "bg-orange-100 text-orange-800"
-                                            }`}
-                                    >
-                                        {slot.slot_type}
-                                    </span>
-                                </td>
-                                <td className="px-6 py-4">
-                                    <button
-                                        onClick={() => onDeleteSlot(slot.id)}
-                                        className="text-red-600 hover:text-red-800"
-                                    >
-                                        Delete
-                                    </button>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    );
-}
-
-// Rooms Tab Component
-function RoomsTab({
-    rooms,
-    onCreateRoom,
-    onDeleteRoom,
-}: {
-    rooms: Room[];
-    onCreateRoom: () => void;
-    onDeleteRoom: (id: string) => void;
-}) {
-    return (
-        <div className="bg-white rounded-lg shadow">
-            <div className="p-6 border-b flex justify-between items-center">
-                <h2 className="text-lg font-semibold">Rooms & Classrooms</h2>
-                <button
-                    onClick={onCreateRoom}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2"
-                >
-                    <Plus size={18} />
-                    Add Room
-                </button>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
-                {rooms.map((room) => (
-                    <div key={room.id} className="border rounded-lg p-4 hover:shadow-md transition">
-                        <div className="flex justify-between items-start mb-2">
-                            <div>
-                                <h3 className="font-semibold text-lg">{room.room_number}</h3>
-                                {room.room_name && (
-                                    <p className="text-sm text-gray-600">{room.room_name}</p>
-                                )}
-                            </div>
-                            <button
-                                onClick={() => onDeleteRoom(room.id)}
-                                className="text-red-600 hover:text-red-800"
-                            >
-                                <X size={18} />
-                            </button>
-                        </div>
-                        <div className="space-y-1 text-sm">
-                            <p>
-                                <span className="text-gray-500">Capacity:</span> {room.capacity} students
-                            </p>
-                            <p>
-                                <span className="text-gray-500">Type:</span>{" "}
-                                <span className="capitalize">{room.room_type}</span>
-                            </p>
-                            {room.building && (
-                                <p>
-                                    <span className="text-gray-500">Building:</span> {room.building}
+        <ProtectedRoute>
+            <DashboardLayout title="Timetable Management" sidebarItems={superadminSidebarItems}>
+                <div className="space-y-6">
+                    {/* Header */}
+                    <div className="flex justify-between items-center">
+                        <div>
+                            <h2 className="text-2xl font-bold text-gray-800">
+                                Weekly Timetable
+                            </h2>
+                            {selectedTimetable && (
+                                <p className="text-sm text-gray-600 mt-1">
+                                    {selectedTimetable.name} • {selectedTimetable.academic_year}
                                 </p>
                             )}
                         </div>
+                        <PermissionGuard permission="manage_timetable">
+                            <button className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                                <Plus size={20} />
+                                <span>New Timetable</span>
+                            </button>
+                        </PermissionGuard>
                     </div>
-                ))}
-            </div>
-        </div>
-    );
-}
 
-// Schedule Tab Component (Placeholder for now)
-function ScheduleTab({
-    timeSlots,
-    rooms,
-}: {
-    timeSlots: TimeSlot[];
-    rooms: Room[];
-}) {
-    return (
-        <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-lg font-semibold mb-4">Weekly Schedule</h2>
-            <p className="text-gray-600">
-                Schedule management coming soon. This will show a weekly grid view of all scheduled
-                classes with drag-and-drop functionality.
-            </p>
-            <div className="mt-4 text-sm text-gray-500">
-                <p>• {timeSlots.length} time slots configured</p>
-                <p>• {rooms.length} rooms available</p>
-            </div>
-        </div>
-    );
-}
+                    {/* Timetable Grid */}
+                    <div className="bg-white rounded-lg shadow overflow-hidden">
+                        <div className="overflow-x-auto">
+                            <table className="w-full border-collapse">
+                                <thead>
+                                    <tr className="bg-gray-50">
+                                        <th className="border border-gray-200 px-4 py-3 text-left font-semibold text-gray-700 w-24">
+                                            Time
+                                        </th>
+                                        {DAYS.map((day) => (
+                                            <th
+                                                key={day}
+                                                className="border border-gray-200 px-4 py-3 text-center font-semibold text-gray-700"
+                                            >
+                                                {day}
+                                            </th>
+                                        ))}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {TIME_SLOTS.map((time) => (
+                                        <tr key={time} className="hover:bg-gray-50">
+                                            <td className="border border-gray-200 px-4 py-3 font-medium text-gray-700 text-sm">
+                                                {time}
+                                            </td>
+                                            {DAYS.map((day) => {
+                                                const slot = getSlotForCell(day, time);
+                                                const isLunch = time === "12:00-13:00";
 
-// Time Slot Modal
-function TimeSlotModal({
-    onClose,
-    onSubmit,
-    loading,
-}: {
-    onClose: () => void;
-    onSubmit: (data: Partial<TimeSlot>) => void;
-    loading: boolean;
-}) {
-    const [formData, setFormData] = useState({
-        slot_name: "",
-        start_time: "",
-        end_time: "",
-        slot_type: "class",
-        sort_order: 1,
-    });
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        onSubmit(formData);
-    };
-
-    return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-md">
-                <h2 className="text-xl font-bold mb-4">Add Time Slot</h2>
-                <form onSubmit={handleSubmit}>
-                    <div className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-medium mb-1">Slot Name *</label>
-                            <input
-                                type="text"
-                                value={formData.slot_name}
-                                onChange={(e) => setFormData({ ...formData, slot_name: e.target.value })}
-                                className="w-full px-3 py-2 border rounded-lg"
-                                placeholder="e.g., Period 1"
-                                required
-                            />
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Start Time *</label>
-                                <input
-                                    type="time"
-                                    value={formData.start_time}
-                                    onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
-                                    className="w-full px-3 py-2 border rounded-lg"
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium mb-1">End Time *</label>
-                                <input
-                                    type="time"
-                                    value={formData.end_time}
-                                    onChange={(e) => setFormData({ ...formData, end_time: e.target.value })}
-                                    className="w-full px-3 py-2 border rounded-lg"
-                                    required
-                                />
-                            </div>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium mb-1">Type *</label>
-                            <select
-                                value={formData.slot_type}
-                                onChange={(e) => setFormData({ ...formData, slot_type: e.target.value })}
-                                className="w-full px-3 py-2 border rounded-lg"
-                            >
-                                <option value="class">Class</option>
-                                <option value="break">Break</option>
-                                <option value="lunch">Lunch</option>
-                            </select>
+                                                return (
+                                                    <td
+                                                        key={`${day}-${time}`}
+                                                        className={`border border-gray-200 p-2 ${isLunch ? "bg-gray-100" : ""
+                                                            }`}
+                                                    >
+                                                        {isLunch ? (
+                                                            <div className="text-center text-gray-500 text-sm py-6">
+                                                                Lunch Break
+                                                            </div>
+                                                        ) : slot ? (
+                                                            <div
+                                                                className={`${getSubjectColor(
+                                                                    slot.subject
+                                                                )} border-2 rounded-lg p-3 relative group cursor-pointer`}
+                                                                onClick={() => handleEditSlot(slot)}
+                                                            >
+                                                                <div className="font-semibold text-sm mb-1">
+                                                                    {slot.subject}
+                                                                </div>
+                                                                {slot.teacher_name && (
+                                                                    <div className="flex items-center text-xs mb-1">
+                                                                        <User size={12} className="mr-1" />
+                                                                        {slot.teacher_name}
+                                                                    </div>
+                                                                )}
+                                                                {slot.room && (
+                                                                    <div className="flex items-center text-xs">
+                                                                        <MapPin size={12} className="mr-1" />
+                                                                        {slot.room}
+                                                                    </div>
+                                                                )}
+                                                                <PermissionGuard permission="manage_timetable">
+                                                                    <button
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            handleDeleteSlot(slot.id);
+                                                                        }}
+                                                                        className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 bg-red-500 text-white p-1 rounded hover:bg-red-600 transition"
+                                                                    >
+                                                                        <Trash2 size={12} />
+                                                                    </button>
+                                                                </PermissionGuard>
+                                                            </div>
+                                                        ) : (
+                                                            <PermissionGuard permission="manage_timetable">
+                                                                <button
+                                                                    onClick={() => handleAddSlot(day, time)}
+                                                                    className="w-full h-20 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition flex items-center justify-center text-gray-400 hover:text-blue-600"
+                                                                >
+                                                                    <Plus size={20} />
+                                                                </button>
+                                                            </PermissionGuard>
+                                                        )}
+                                                    </td>
+                                                );
+                                            })}
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
-                    <div className="flex gap-2 mt-6">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50"
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-                        >
-                            {loading ? "Creating..." : "Create"}
-                        </button>
+
+                    {/* Legend */}
+                    <div className="bg-white rounded-lg shadow p-4">
+                        <h3 className="font-semibold text-gray-800 mb-3">Subject Colors</h3>
+                        <div className="flex flex-wrap gap-3">
+                            {Object.entries(SUBJECT_COLORS).map(([subject, color]) => {
+                                if (subject === "default") return null;
+                                return (
+                                    <div
+                                        key={subject}
+                                        className={`${color} px-3 py-1 rounded-full text-sm font-medium`}
+                                    >
+                                        {subject}
+                                    </div>
+                                );
+                            })}
+                        </div>
                     </div>
-                </form>
-            </div>
-        </div>
-    );
-}
+                </div>
 
-// Room Modal
-function RoomModal({
-    onClose,
-    onSubmit,
-    loading,
-}: {
-    onClose: () => void;
-    onSubmit: (data: Partial<Room>) => void;
-    loading: boolean;
-}) {
-    const [formData, setFormData] = useState({
-        room_number: "",
-        room_name: "",
-        capacity: 40,
-        room_type: "classroom",
-        building: "",
-    });
+                {/* Add/Edit Modal */}
+                {showModal && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                        <div className="bg-white rounded-lg shadow-xl p-8 max-w-md w-full mx-4">
+                            <h2 className="text-2xl font-bold text-gray-800 mb-6">
+                                {editingSlot ? "Edit Slot" : "Add Slot"}
+                            </h2>
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        onSubmit(formData);
-    };
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Day & Time
+                                    </label>
+                                    <div className="text-gray-600 bg-gray-50 px-4 py-2 rounded-lg">
+                                        {selectedDay} • {selectedTime}
+                                    </div>
+                                </div>
 
-    return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-md">
-                <h2 className="text-xl font-bold mb-4">Add Room</h2>
-                <form onSubmit={handleSubmit}>
-                    <div className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-medium mb-1">Room Number *</label>
-                            <input
-                                type="text"
-                                value={formData.room_number}
-                                onChange={(e) => setFormData({ ...formData, room_number: e.target.value })}
-                                className="w-full px-3 py-2 border rounded-lg"
-                                placeholder="e.g., 101"
-                                required
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium mb-1">Room Name</label>
-                            <input
-                                type="text"
-                                value={formData.room_name}
-                                onChange={(e) => setFormData({ ...formData, room_name: e.target.value })}
-                                className="w-full px-3 py-2 border rounded-lg"
-                                placeholder="e.g., Science Lab"
-                            />
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Capacity *</label>
-                                <input
-                                    type="number"
-                                    value={formData.capacity}
-                                    onChange={(e) =>
-                                        setFormData({ ...formData, capacity: parseInt(e.target.value) })
-                                    }
-                                    className="w-full px-3 py-2 border rounded-lg"
-                                    min="1"
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Type *</label>
-                                <select
-                                    value={formData.room_type}
-                                    onChange={(e) => setFormData({ ...formData, room_type: e.target.value })}
-                                    className="w-full px-3 py-2 border rounded-lg"
-                                >
-                                    <option value="classroom">Classroom</option>
-                                    <option value="lab">Lab</option>
-                                    <option value="auditorium">Auditorium</option>
-                                    <option value="library">Library</option>
-                                </select>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Subject *
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formData.subject}
+                                        onChange={(e) =>
+                                            setFormData({ ...formData, subject: e.target.value })
+                                        }
+                                        placeholder="e.g., Mathematics"
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Teacher Name
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formData.teacher_name}
+                                        onChange={(e) =>
+                                            setFormData({ ...formData, teacher_name: e.target.value })
+                                        }
+                                        placeholder="e.g., Mr. Smith"
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Room
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formData.room}
+                                        onChange={(e) =>
+                                            setFormData({ ...formData, room: e.target.value })
+                                        }
+                                        placeholder="e.g., Room 101"
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                    />
+                                </div>
+
+                                <div className="flex space-x-3 pt-4">
+                                    <button
+                                        onClick={() => setShowModal(false)}
+                                        className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                                    >
+                                        <X className="inline mr-2" size={16} />
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={handleSaveSlot}
+                                        className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                                    >
+                                        <Save className="inline mr-2" size={16} />
+                                        Save
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium mb-1">Building</label>
-                            <input
-                                type="text"
-                                value={formData.building}
-                                onChange={(e) => setFormData({ ...formData, building: e.target.value })}
-                                className="w-full px-3 py-2 border rounded-lg"
-                                placeholder="e.g., Main Building"
-                            />
-                        </div>
                     </div>
-                    <div className="flex gap-2 mt-6">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50"
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-                        >
-                            {loading ? "Creating..." : "Create"}
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
+                )}
+            </DashboardLayout>
+        </ProtectedRoute>
     );
 }

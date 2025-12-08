@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import PermissionGuard from "@/components/PermissionGuard";
 import Modal from "@/components/Modal";
 import CourseForm, { CourseFormData } from "@/components/CourseForm";
 import DeleteConfirmation from "@/components/DeleteConfirmation";
@@ -209,13 +210,15 @@ export default function CoursesList() {
                 />
               </div>
             </div>
-            <button
-              onClick={() => setShowAddModal(true)}
-              className="ml-4 flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-            >
-              <Plus size={20} />
-              <span>Add Course</span>
-            </button>
+            <PermissionGuard permission="manage_courses">
+              <button
+                onClick={() => setShowAddModal(true)}
+                className="ml-4 flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+              >
+                <Plus size={20} />
+                <span>Add Course</span>
+              </button>
+            </PermissionGuard>
           </div>
 
           {/* Courses Table */}

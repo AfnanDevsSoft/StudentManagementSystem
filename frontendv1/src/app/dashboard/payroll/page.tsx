@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import PermissionGuard from "@/components/PermissionGuard";
 import { useAuthStore } from "@/stores/authStore";
 import { apiClient } from "@/lib/apiClient";
 import { adminSidebarItems } from "@/config/sidebarConfig";
@@ -205,22 +206,24 @@ export default function PayrollPage() {
                             <h1 className="text-2xl font-bold text-gray-900">Payroll Management</h1>
                             <p className="text-gray-600">Manage employee salaries and payments</p>
                         </div>
-                        <div className="flex space-x-3">
-                            <button
-                                onClick={handleExportPayroll}
-                                className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
-                            >
-                                <Download size={18} />
-                                <span>Export</span>
-                            </button>
-                            <button
-                                onClick={() => setShowGenerateModal(true)}
-                                className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-                            >
-                                <Calculator size={18} />
-                                <span>Generate Payroll</span>
-                            </button>
-                        </div>
+                        <PermissionGuard permission="manage_payroll">
+                            <div className="flex space-x-3">
+                                <button
+                                    onClick={handleExportPayroll}
+                                    className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+                                >
+                                    <Download size={18} />
+                                    <span>Export</span>
+                                </button>
+                                <button
+                                    onClick={() => setShowGenerateModal(true)}
+                                    className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                                >
+                                    <Calculator size={18} />
+                                    <span>Generate Payroll</span>
+                                </button>
+                            </div>
+                        </PermissionGuard>
                     </div>
 
                     {/* Month Selector */}

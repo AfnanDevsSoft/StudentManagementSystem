@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import DashboardLayout from "@/components/DashboardLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import PermissionGuard from "@/components/PermissionGuard";
 import { useAuthStore } from "@/stores/authStore";
 import { apiClient } from "@/lib/apiClient";
 import { adminSidebarItems } from "@/config/sidebarConfig";
@@ -274,13 +275,15 @@ export default function AdmissionsPage() {
                             <h1 className="text-2xl font-bold text-gray-900">Admissions Management</h1>
                             <p className="text-gray-600">Process and track student applications</p>
                         </div>
-                        <button
-                            onClick={() => setShowNewAppModal(true)}
-                            className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-                        >
-                            <Plus size={18} />
-                            <span>New Application</span>
-                        </button>
+                        <PermissionGuard permission="manage_admissions">
+                            <button
+                                onClick={() => setShowNewAppModal(true)}
+                                className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                            >
+                                <Plus size={18} />
+                                <span>New Application</span>
+                            </button>
+                        </PermissionGuard>
                     </div>
 
                     {/* Stats */}

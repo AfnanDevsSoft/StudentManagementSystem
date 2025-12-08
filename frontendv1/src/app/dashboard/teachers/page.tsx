@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import PermissionGuard from "@/components/PermissionGuard";
 import Modal from "@/components/Modal";
 import TeacherForm, { TeacherFormData } from "@/components/TeacherForm";
 import DeleteConfirmation from "@/components/DeleteConfirmation";
@@ -243,13 +244,15 @@ export default function TeachersList() {
                 />
               </div>
             </div>
-            <button
-              onClick={() => setShowAddModal(true)}
-              className="ml-4 flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-            >
-              <Plus size={20} />
-              <span>Add Teacher</span>
-            </button>
+            <PermissionGuard permission="manage_teachers">
+              <button
+                onClick={() => setShowAddModal(true)}
+                className="ml-4 flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+              >
+                <Plus size={20} />
+                <span>Add Teacher</span>
+              </button>
+            </PermissionGuard>
           </div>
 
           {/* Teachers Table */}
@@ -309,18 +312,20 @@ export default function TeachersList() {
                           {teacher.designation}
                         </td>
                         <td className="px-6 py-4 text-sm text-right space-x-2 flex justify-end">
-                          <button
-                            onClick={() => openEditModal(teacher)}
-                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
-                          >
-                            <Edit2 size={16} />
-                          </button>
-                          <button
-                            onClick={() => openDeleteModal(teacher)}
-                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
-                          >
-                            <Trash2 size={16} />
-                          </button>
+                          <PermissionGuard permission="manage_teachers">
+                            <button
+                              onClick={() => openEditModal(teacher)}
+                              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                            >
+                              <Edit2 size={16} />
+                            </button>
+                            <button
+                              onClick={() => openDeleteModal(teacher)}
+                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </PermissionGuard>
                         </td>
                       </tr>
                     ))}

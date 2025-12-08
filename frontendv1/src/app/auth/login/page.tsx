@@ -25,15 +25,21 @@ export default function LoginPage() {
       const response = await apiClient.login(username, password);
 
       if (response.success) {
-        // Backend returns response.data.user structure
-        const backendUser = response.data?.user || response.data;
-        const token =
-          response.data?.access_token ||
-          response.access_token ||
-          response.token;
+        // Backend returns token and user at top level (not nested in data)
+        const token = response.token || response.data?.access_token || response.access_token;
+        const backendUser = (response.user || response.data?.user || response.data) as any;
 
         if (!token) {
+          console.error("Token missing from response:", response);
           setError("No token received from server");
+          setIsLoading(false);
+          return;
+        }
+
+        // Check if we have user data
+        if (!backendUser || !backendUser.id) {
+          console.error("Invalid response structure:", response);
+          setError("Invalid user data received from server");
           setIsLoading(false);
           return;
         }

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import PermissionGuard from "@/components/PermissionGuard";
 import { useAuthStore } from "@/stores/authStore";
 import { apiClient } from "@/lib/apiClient";
 import { adminSidebarItems } from "@/config/sidebarConfig";
@@ -176,8 +177,8 @@ export default function ReportsPage() {
                         <h3 className="font-semibold text-gray-900">{report.title}</h3>
                         <p className="text-sm text-gray-500 mt-1">{report.description}</p>
                         <span className={`inline-block mt-2 px-2 py-1 rounded-full text-xs font-medium ${report.category === 'academic' ? 'bg-blue-100 text-blue-700' :
-                                report.category === 'financial' ? 'bg-green-100 text-green-700' :
-                                    'bg-purple-100 text-purple-700'
+                            report.category === 'financial' ? 'bg-green-100 text-green-700' :
+                                'bg-purple-100 text-purple-700'
                             }`}>
                             {report.category.charAt(0).toUpperCase() + report.category.slice(1)}
                         </span>
@@ -198,29 +199,31 @@ export default function ReportsPage() {
                             <p className="text-gray-600">Generate and export comprehensive reports</p>
                         </div>
                         {reportData && (
-                            <div className="flex space-x-3">
-                                <button
-                                    onClick={handlePrint}
-                                    className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
-                                >
-                                    <Printer size={18} />
-                                    <span>Print</span>
-                                </button>
-                                <button
-                                    onClick={() => handleExport("excel")}
-                                    className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
-                                >
-                                    <Download size={18} />
-                                    <span>Excel</span>
-                                </button>
-                                <button
-                                    onClick={() => handleExport("pdf")}
-                                    className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-                                >
-                                    <FileText size={18} />
-                                    <span>PDF</span>
-                                </button>
-                            </div>
+                            <PermissionGuard permission="view_reports">
+                                <div className="flex space-x-3">
+                                    <button
+                                        onClick={handlePrint}
+                                        className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+                                    >
+                                        <Printer size={18} />
+                                        <span>Print</span>
+                                    </button>
+                                    <button
+                                        onClick={() => handleExport("excel")}
+                                        className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+                                    >
+                                        <Download size={18} />
+                                        <span>Excel</span>
+                                    </button>
+                                    <button
+                                        onClick={() => handleExport("pdf")}
+                                        className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                                    >
+                                        <FileText size={18} />
+                                        <span>PDF</span>
+                                    </button>
+                                </div>
+                            </PermissionGuard>
                         )}
                     </div>
 

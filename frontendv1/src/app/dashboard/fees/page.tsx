@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import PermissionGuard from "@/components/PermissionGuard";
 import Modal from "@/components/Modal";
 import DeleteConfirmation from "@/components/DeleteConfirmation";
 import { useAuthStore } from "@/stores/authStore";
@@ -316,20 +317,24 @@ export default function FeeManagement() {
                                 </div>
                             </div>
                             <div className="flex gap-2">
-                                <button
-                                    onClick={() => setShowPaymentModal(true)}
-                                    className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors whitespace-nowrap"
-                                >
-                                    <CreditCard size={20} />
-                                    Record Payment
-                                </button>
-                                <button
-                                    onClick={() => setShowAddModal(true)}
-                                    className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors whitespace-nowrap"
-                                >
-                                    <Plus size={20} />
-                                    Add Fee
-                                </button>
+                                <PermissionGuard permission="record_payments">
+                                    <button
+                                        onClick={() => setShowPaymentModal(true)}
+                                        className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors whitespace-nowrap"
+                                    >
+                                        <CreditCard size={20} />
+                                        Record Payment
+                                    </button>
+                                </PermissionGuard>
+                                <PermissionGuard permission="manage_fees">
+                                    <button
+                                        onClick={() => setShowAddModal(true)}
+                                        className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors whitespace-nowrap"
+                                    >
+                                        <Plus size={20} />
+                                        Add Fee
+                                    </button>
+                                </PermissionGuard>
                             </div>
                         </div>
                     </div>
@@ -397,18 +402,20 @@ export default function FeeManagement() {
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-4 text-sm text-right space-x-2 flex justify-end">
-                                                    <button
-                                                        onClick={() => openEditModal(fee)}
-                                                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
-                                                    >
-                                                        <Edit2 size={16} />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => openDeleteModal(fee)}
-                                                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
-                                                    >
-                                                        <Trash2 size={16} />
-                                                    </button>
+                                                    <PermissionGuard permission="manage_fees">
+                                                        <button
+                                                            onClick={() => openEditModal(fee)}
+                                                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                                                        >
+                                                            <Edit2 size={16} />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => openDeleteModal(fee)}
+                                                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                                                        >
+                                                            <Trash2 size={16} />
+                                                        </button>
+                                                    </PermissionGuard>
                                                 </td>
                                             </tr>
                                         ))}

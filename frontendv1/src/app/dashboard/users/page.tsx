@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import PermissionGuard from "@/components/PermissionGuard";
 import Modal from "@/components/Modal";
 import DeleteConfirmation from "@/components/DeleteConfirmation";
 import { useAuthStore } from "@/stores/authStore";
@@ -259,13 +260,15 @@ export default function UsersList() {
                   />
                 </div>
               </div>
-              <button
-                onClick={openAddModal}
-                className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors whitespace-nowrap"
-              >
-                <Plus size={20} />
-                Add User
-              </button>
+              <PermissionGuard permission="manage_users">
+                <button
+                  onClick={openAddModal}
+                  className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors whitespace-nowrap"
+                >
+                  <Plus size={20} />
+                  Add User
+                </button>
+              </PermissionGuard>
             </div>
           </div>
 

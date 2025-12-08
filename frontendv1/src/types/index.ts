@@ -38,11 +38,12 @@ export interface AuthResponse {
   token?: string;
   access_token?: string;
   refresh_token?: string;
-  data: {
+  user?: User;  // User can be at top level (from /auth/login)
+  data?: {  // Or nested in data (from other endpoints)
     user?: User;
     access_token?: string;
     refresh_token?: string;
-  } & User;
+  };
 }
 
 // Branch Types
