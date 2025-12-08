@@ -108,6 +108,7 @@ export default function RolesPage() {
   const { user } = useAuthStore();
   const [roles, setRoles] = useState<Role[]>([]);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editingRole, setEditingRole] = useState<Role | null>(null);
   const [formData, setFormData] = useState({
@@ -127,13 +128,17 @@ export default function RolesPage() {
       // Get branch ID from user context
       const branchId = user?.branch_id || user?.branchId;
 
+      console.log("Fetching roles for branch:", branchId);
+
       if (!branchId) {
+        console.warn("No branch ID found, using default roles");
         toast.error("No branch assigned to user");
         setRoles(DEFAULT_ROLES); // Fallback to default roles
         return;
       }
 
       const response = await apiClient.getRoles(branchId);
+      console.log("Roles API response:", response);
       setRoles(Array.isArray(response.data) ? response.data : DEFAULT_ROLES);
     } catch (error) {
       console.error("Error fetching roles:", error);
@@ -170,6 +175,8 @@ export default function RolesPage() {
   };
 
   const handleSaveRole = async () => {
+    console.log("handleSaveRole called", { formData });
+
     if (!formData.name.trim()) {
       toast.error("Role name is required");
       return;
@@ -181,44 +188,58 @@ export default function RolesPage() {
     }
 
     try {
+      setSaving(true);
       const branchId = user?.branch_id || user?.branchId;
 
       if (!branchId) {
         toast.error("No branch assigned to user");
+        setSaving(false);
         return;
       }
+
+      console.log("Saving role:", { branchId, formData, editingRole });
 
       if (editingRole) {
         // For updating, we need permission IDs, not permission names
         // For now, use permission names as IDs (will need mapping in production)
-        await apiClient.updateRolePermissions(editingRole.id, formData.permissions);
+        const response = await apiClient.updateRolePermissions(editingRole.id, formData.permissions);
+        console.log("Update role response:", response);
         toast.success("Role updated successfully");
       } else {
-        await apiClient.createRole(
+        const response = await apiClient.createRole(
           branchId,
           formData.name,
           formData.permissions,
           formData.description
         );
+        console.log("Create role response:", response);
         toast.success("Role created successfully");
       }
       setShowModal(false);
-      fetchRoles();
-    } catch (error) {
+      await fetchRoles();
+    } catch (error: any) {
       console.error("Error saving role:", error);
-      toast.error("Failed to save role");
+      console.error("Error response:", error.response?.data);
+      const errorMessage = error.response?.data?.message || "Failed to save role";
+      toast.error(errorMessage);
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleDeleteRole = async (roleId: string) => {
     if (window.confirm("Are you sure you want to delete this role?")) {
       try {
-        await apiClient.deleteRole(roleId);
+        console.log("Deleting role:", roleId);
+        const response = await apiClient.deleteRole(roleId);
+        console.log("Delete role response:", response);
         toast.success("Role deleted successfully");
         fetchRoles();
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error deleting role:", error);
-        toast.error("Failed to delete role");
+        console.error("Error response:", error.response?.data);
+        const errorMessage = error.response?.data?.message || "Failed to delete role";
+        toast.error(errorMessage);
       }
     }
   };
@@ -435,10 +456,20 @@ export default function RolesPage() {
                   </button>
                   <button
                     onClick={handleSaveRole}
-                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium flex items-center justify-center space-x-2"
+                    disabled={saving}
+                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <Save size={18} />
-                    <span>Save Role</span>
+                    {saving ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        <span>Saving...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Save size={18} />
+                        <span>Save Role</span>
+                      </>
+                    )}
                   </button>
                 </div>
               </div>

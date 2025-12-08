@@ -74,12 +74,13 @@ export default function NotificationCenter({ className = "" }: NotificationCente
             if (response.data && Array.isArray(response.data)) {
                 setNotifications(response.data);
             } else {
-                // Use mock data if API doesn't return data
-                setNotifications(getMockNotifications());
+                // Fallback: show error toast
+                toast.error("Failed to load notifications");
+                setNotifications([]);
             }
         } catch (error) {
-            console.log("Using mock notification data");
-            setNotifications(getMockNotifications());
+            toast.error("Error fetching notifications");
+            setNotifications([]);
         } finally {
             setLoading(false);
         }

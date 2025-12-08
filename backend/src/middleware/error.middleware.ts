@@ -56,6 +56,9 @@ export const authMiddleware = (
     return;
   }
 
+  // Attach user information to request (for now, use token as user ID placeholder)
+  (req as any).user = { id: token };
+
   next();
 };
 

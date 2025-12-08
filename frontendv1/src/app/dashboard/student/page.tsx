@@ -70,6 +70,16 @@ export default function StudentDashboard() {
       icon: <LayoutDashboard size={20} />,
     },
     {
+      label: "My Timetable",
+      href: "/dashboard/student/timetable",
+      icon: <Calendar size={20} />,
+    },
+    {
+      label: "Assignments",
+      href: "/dashboard/student/assignments",
+      icon: <FileText size={20} />,
+    },
+    {
       label: "My Courses",
       href: "/dashboard/student/courses",
       icon: <BookOpen size={20} />,
@@ -85,9 +95,9 @@ export default function StudentDashboard() {
       icon: <Calendar size={20} />,
     },
     {
-      label: "Assignments",
-      href: "/dashboard/student/assignments",
-      icon: <FileText size={20} />,
+      label: "Fees",
+      href: "/dashboard/student/fees",
+      icon: <BarChart3 size={20} />,
     },
     {
       label: "Messages",
@@ -158,24 +168,116 @@ export default function StudentDashboard() {
             <h2 className="text-xl font-bold text-gray-800 mb-4">
               Quick Actions
             </h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <a
-                href="/dashboard/student/courses"
-                className="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg text-center transition"
-              >
-                <p className="font-semibold text-blue-900">View Courses</p>
-              </a>
-              <a
-                href="/dashboard/student/grades"
+                href="/dashboard/student/timetable"
                 className="p-4 bg-purple-50 hover:bg-purple-100 rounded-lg text-center transition"
               >
-                <p className="font-semibold text-purple-900">View Grades</p>
+                <Calendar className="mx-auto mb-2 text-purple-600" size={24} />
+                <p className="font-semibold text-purple-900">My Timetable</p>
               </a>
               <a
-                href="/dashboard/student/messages"
+                href="/dashboard/student/assignments"
+                className="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg text-center transition"
+              >
+                <FileText className="mx-auto mb-2 text-blue-600" size={24} />
+                <p className="font-semibold text-blue-900">Assignments</p>
+              </a>
+              <a
+                href="/dashboard/student/fees"
                 className="p-4 bg-green-50 hover:bg-green-100 rounded-lg text-center transition"
               >
-                <p className="font-semibold text-green-900">Messages</p>
+                <BookOpen className="mx-auto mb-2 text-green-600" size={24} />
+                <p className="font-semibold text-green-900">Pay Fees</p>
+              </a>
+              <a
+                href="/dashboard/student/courses"
+                className="p-4 bg-orange-50 hover:bg-orange-100 rounded-lg text-center transition"
+              >
+                <BookOpen className="mx-auto mb-2 text-orange-600" size={24} />
+                <p className="font-semibold text-orange-900">View Courses</p>
+              </a>
+            </div>
+          </div>
+
+          {/* Upcoming Assignments & Deadlines */}
+          <div className="bg-white rounded-lg shadow p-6">
+            <h2 className="text-xl font-bold text-gray-800 mb-4">
+              Upcoming Assignments & Deadlines
+            </h2>
+            <div className="space-y-3">
+              <div className="p-4 border-l-4 border-blue-600 bg-blue-50 rounded-lg">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="font-semibold text-blue-900">
+                      Calculus Problem Set 3
+                    </p>
+                    <p className="text-sm text-blue-700 mt-1">Mathematics</p>
+                  </div>
+                  <span className="text-xs bg-blue-200 text-blue-800 px-2 py-1 rounded-full">
+                    Due in 7 days
+                  </span>
+                </div>
+              </div>
+              <div className="p-4 border-l-4 border-yellow-600 bg-yellow-50 rounded-lg">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="font-semibold text-yellow-900">
+                      Physics Lab Report
+                    </p>
+                    <p className="text-sm text-yellow-700 mt-1">Physics</p>
+                  </div>
+                  <span className="text-xs bg-yellow-200 text-yellow-800 px-2 py-1 rounded-full">
+                    Due in 2 days
+                  </span>
+                </div>
+              </div>
+              <a
+                href="/dashboard/student/assignments"
+                className="block text-center text-blue-600 hover:text-blue-700 text-sm font-medium mt-3"
+              >
+                View all assignments →
+              </a>
+            </div>
+          </div>
+
+          {/* Fee Status */}
+          <div className="bg-white rounded-lg shadow p-6">
+            <h2 className="text-xl font-bold text-gray-800 mb-4">
+              Fee Status & Notifications
+            </h2>
+            <div className="space-y-3">
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <Calendar className="text-green-600 mt-0.5" size={20} />
+                  <div className="flex-1">
+                    <p className="font-semibold text-green-900">
+                      January 2025 - Paid
+                    </p>
+                    <p className="text-sm text-green-700 mt-1">
+                      PKR 15,000 paid on Jan 5, 2025
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <Calendar className="text-yellow-600 mt-0.5" size={20} />
+                  <div className="flex-1">
+                    <p className="font-semibold text-yellow-900">
+                      February 2025 - Pending
+                    </p>
+                    <p className="text-sm text-yellow-700 mt-1">
+                      PKR 15,000 due by Feb 10, 2025
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <a
+                href="/dashboard/student/fees"
+                className="block w-full text-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition"
+              >
+                Pay Now
               </a>
             </div>
           </div>

@@ -55,6 +55,30 @@ router.post(
     );
   }
 );
+// Get notifications for the authenticated user
+router.get("/", authMiddleware, async (req: Request, res: Response) => {
+  const userId = (req as any).user?.id;
+  if (!userId) {
+    return sendResponse(res, 401, false, "Unauthenticated");
+  }
+  const limit = parseInt(req.query.limit as string) || 20;
+  const offset = parseInt(req.query.offset as string) || 0;
+  const unreadOnly = req.query.unreadOnly === "true";
+  const result = await NotificationService.getNotifications(
+    userId,
+    limit,
+    offset,
+    unreadOnly
+  );
+  sendResponse(
+    res,
+    result.success ? 200 : 400,
+    result.success,
+    result.message,
+    result.data
+  );
+});
+
 
 // Get user notifications
 router.get(

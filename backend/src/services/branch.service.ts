@@ -86,23 +86,31 @@ export class BranchService {
         };
       }
 
+      // Build create data object with only defined values
+      const createData: any = {
+        name: branchData.name,
+        code: branchData.code,
+        timezone: branchData.timezone || "UTC",
+        currency: branchData.currency || "USD",
+        is_active:
+          branchData.is_active !== undefined ? branchData.is_active : true,
+      };
+
+      // Only add optional fields if they have values
+      if (branchData.address) createData.address = branchData.address;
+      if (branchData.city) createData.city = branchData.city;
+      if (branchData.state_province) createData.state = branchData.state_province;
+      else if (branchData.state) createData.state = branchData.state;
+      if (branchData.country) createData.country = branchData.country;
+      if (branchData.postal_code) createData.postal_code = branchData.postal_code;
+      if (branchData.phone) createData.phone = branchData.phone;
+      if (branchData.email) createData.email = branchData.email;
+      if (branchData.website) createData.website = branchData.website;
+      if (branchData.principal_name) createData.principal_name = branchData.principal_name;
+      if (branchData.principal_email) createData.principal_email = branchData.principal_email;
+
       const branch = await prisma.branch.create({
-        data: {
-          name: branchData.name,
-          code: branchData.code,
-          address: branchData.address,
-          city: branchData.city,
-          state: branchData.state_province || branchData.state, // Handle both field names
-          country: branchData.country,
-          phone: branchData.phone,
-          email: branchData.email,
-          principal_name: branchData.principal_name,
-          principal_email: branchData.principal_email,
-          timezone: branchData.timezone || "UTC",
-          currency: branchData.currency || "USD",
-          is_active:
-            branchData.is_active !== undefined ? branchData.is_active : true,
-        },
+        data: createData,
       });
 
       return {
@@ -111,7 +119,11 @@ export class BranchService {
         message: "Branch created successfully",
       };
     } catch (error: any) {
-      return { success: false, message: error.message };
+      console.error("Branch creation error:", error);
+      return {
+        success: false,
+        message: error.message || "Failed to create branch"
+      };
     }
   }
 

@@ -91,27 +91,41 @@ export default function BranchesList() {
   const handleAddBranch = async (formData: BranchFormData) => {
     setIsLoading(true);
     try {
+      console.log("Sending branch data:", formData);
       const response = await apiClient.createBranch(formData);
+      console.log("Backend response:", response);
       if (response.success) {
         toast.success("Branch created successfully");
         setShowAddModal(false);
         await fetchBranches();
       } else {
-        toast.error(response.message || "Failed to create branch");
+        console.error("Backend error response:", response);
+        const errorMessage = response.message || "Failed to create branch";
+        // Extract user-friendly error messages
+        let displayMessage = errorMessage;
+        if (errorMessage.includes("Unique constraint failed")) {
+          if (errorMessage.includes("`name`")) {
+            displayMessage = "A branch with this name already exists. Please use a different name.";
+          } else if (errorMessage.includes("`code`") || errorMessage.includes("code")) {
+            displayMessage = "A branch with this code already exists. Please use a different code.";
+          }
+        }
+        toast.error(displayMessage);
       }
     } catch (error: unknown) {
       const err = error as { response?: { data?: { message?: string } } };
       console.error("Error creating branch:", error);
+      console.error("Error response data:", err.response?.data);
       const errorMessage =
         err.response?.data?.message || "Failed to create branch";
       // Extract more user-friendly error messages
       let displayMessage = errorMessage;
-      if (
-        errorMessage.includes("Unique constraint failed") &&
-        errorMessage.includes("code")
-      ) {
-        displayMessage =
-          "A branch with this code already exists. Please use a different code.";
+      if (errorMessage.includes("Unique constraint failed")) {
+        if (errorMessage.includes("`name`")) {
+          displayMessage = "A branch with this name already exists. Please use a different name.";
+        } else if (errorMessage.includes("`code`") || errorMessage.includes("code")) {
+          displayMessage = "A branch with this code already exists. Please use a different code.";
+        }
       }
       toast.error(displayMessage);
     } finally {
@@ -282,8 +296,8 @@ export default function BranchesList() {
                     </div>
                     <span
                       className={`px-3 py-1 rounded-full text-xs font-semibold ${branch.is_active
-                          ? "bg-green-100 text-green-800"
-                          : "bg-red-100 text-red-800"
+                        ? "bg-green-100 text-green-800"
+                        : "bg-red-100 text-red-800"
                         }`}
                     >
                       {branch.is_active ? "Active" : "Inactive"}
@@ -351,8 +365,8 @@ export default function BranchesList() {
                     key={page}
                     onClick={() => setPagination((prev) => ({ ...prev, page }))}
                     className={`px-4 py-2 rounded-lg ${pagination.page === page
-                        ? "bg-blue-600 text-white"
-                        : "border border-gray-300 hover:bg-gray-50"
+                      ? "bg-blue-600 text-white"
+                      : "border border-gray-300 hover:bg-gray-50"
                       }`}
                   >
                     {page}

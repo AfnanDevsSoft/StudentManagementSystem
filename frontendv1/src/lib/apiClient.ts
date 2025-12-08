@@ -195,6 +195,18 @@ class ApiClient {
     return this.delete(`/branches/${id}`);
   }
 
+  async getBranchStatistics(branchId: string) {
+    return this.get(`/branches/${branchId}/statistics`);
+  }
+
+  async getBranchDashboard(branchId: string) {
+    return this.get(`/branches/${branchId}/dashboard`);
+  }
+
+  async getBranchSummary(branchId: string) {
+    return this.get(`/branches/${branchId}/summary`);
+  }
+
   // Users
   async getUsers(page = 1, limit = 10, search = "", branchId?: string) {
     return this.get("/users", { page, limit, search, branch_id: branchId });
@@ -214,6 +226,22 @@ class ApiClient {
 
   async deleteUser(id: string) {
     return this.delete(`/users/${id}`);
+  }
+
+  async resetUserPassword(userId: string, newPassword: string) {
+    return this.post(`/users/${userId}/reset-password`, { newPassword });
+  }
+
+  async activateUser(userId: string) {
+    return this.post(`/users/${userId}/activate`, {});
+  }
+
+  async deactivateUser(userId: string) {
+    return this.post(`/users/${userId}/deactivate`, {});
+  }
+
+  async assignUserRole(userId: string, roleId: string, branchId: string) {
+    return this.post(`/users/${userId}/assign-role`, { roleId, branchId });
   }
 
   // Students
@@ -241,6 +269,22 @@ class ApiClient {
     return this.delete(`/students/${id}`);
   }
 
+  async getStudentEnrollment(studentId: string) {
+    return this.get(`/students/${studentId}/enrollment`);
+  }
+
+  async getStudentProfile(studentId: string) {
+    return this.get(`/students/${studentId}/profile`);
+  }
+
+  async getStudentDashboard(studentId: string) {
+    return this.get(`/students/${studentId}/dashboard`);
+  }
+
+  async getStudentPerformance(studentId: string) {
+    return this.get(`/students/${studentId}/performance`);
+  }
+
   // Teachers
   async getTeachers(branchId?: string, params?: any) {
     if (!branchId) {
@@ -266,6 +310,26 @@ class ApiClient {
     return this.delete(`/teachers/${id}`);
   }
 
+  async getTeacherCourses(teacherId: string) {
+    return this.get(`/teachers/${teacherId}/courses`);
+  }
+
+  async getTeacherAttendance(teacherId: string) {
+    return this.get(`/teachers/${teacherId}/attendance`);
+  }
+
+  async getTeacherProfile(teacherId: string) {
+    return this.get(`/teachers/${teacherId}/profile`);
+  }
+
+  async getTeacherDashboard(teacherId: string) {
+    return this.get(`/teachers/${teacherId}/dashboard`);
+  }
+
+  async getTeacherSchedule(teacherId: string) {
+    return this.get(`/teachers/${teacherId}/schedule`);
+  }
+
   // Courses
   async getCourses(academicYearId?: string, params?: any) {
     return this.get(`/academic-years/${academicYearId}/courses`, params);
@@ -287,6 +351,70 @@ class ApiClient {
     return this.delete(`/courses/${id}`);
   }
 
+  async getCourseEnrollments(courseId: string) {
+    return this.get(`/courses/${courseId}/enrollments`);
+  }
+
+  async getCourseStudents(courseId: string) {
+    return this.get(`/courses/${courseId}/students`);
+  }
+
+  async enrollStudent(courseId: string, studentId: string) {
+    return this.post(`/courses/${courseId}/enroll`, { student_id: studentId });
+  }
+
+  async unenrollStudent(courseId: string, studentId: string) {
+    return this.delete(`/courses/${courseId}/enroll/${studentId}`);
+  }
+
+  async getCourseStatistics(courseId: string) {
+    return this.get(`/courses/${courseId}/statistics`);
+  }
+
+  async getCoursePerformance(courseId: string) {
+    return this.get(`/courses/${courseId}/performance`);
+  }
+
+  async getCourseCompletion(courseId: string) {
+    return this.get(`/courses/${courseId}/completion`);
+  }
+
+  // Validation & Verification
+  async validateEmail(email: string) {
+    return this.post("/validation/email", { email });
+  }
+
+  async validatePhone(phone: string) {
+    return this.post("/validation/phone", { phone });
+  }
+
+  async validateStudentId(studentId: string, branchId: string) {
+    return this.post("/validation/student-id", { studentId, branchId });
+  }
+
+  async checkEnrollmentEligibility(studentId: string, courseId: string) {
+    return this.post("/validation/enrollment-eligibility", { studentId, courseId });
+  }
+
+  // Import Helpers
+  async getImportTemplate(type: string) {
+    const response = await this.client.get(`/import/template/${type}`, {
+      responseType: "blob",
+    });
+    return response.data;
+  }
+
+  async validateImportData(type: string, data: any) {
+    return this.post(`/import/validate/${type}`, data);
+  }
+
+  async previewImport(type: string, formData: FormData) {
+    const response = await this.client.post(`/import/preview/${type}`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return response.data;
+  }
+
   // Analytics
   async getAnalyticsDashboard(branchId: string) {
     return this.get(`/analytics/dashboard`, { branchId });
@@ -306,6 +434,18 @@ class ApiClient {
 
   async getFeeMetrics(branchId: string) {
     return this.get(`/analytics/fees`, { branchId });
+  }
+
+  async getStudentAnalytics(branchId: string, params?: any) {
+    return this.get("/analytics/students", { branchId, ...params });
+  }
+
+  async getTeacherAnalytics(branchId: string, params?: any) {
+    return this.get("/analytics/teachers", { branchId, ...params });
+  }
+
+  async getTrendAnalytics(branchId: string, params?: any) {
+    return this.get("/analytics/trends", { branchId, ...params });
   }
 
   // Messaging
@@ -332,17 +472,38 @@ class ApiClient {
   }
 
   async markMessageAsRead(messageId: string) {
-    return this.post(`/messages/${messageId}/read`, {});
+    return this.post(`/messages/${messageId}/mark-read`, {});
   }
 
-  // Announcements
-  async getAnnouncements(courseId: string, limit = 20, offset = 0) {
-    return this.get(`/announcements/${courseId}`, { limit, offset });
+  async getMessage(messageId: string) {
+    return this.get(`/messages/${messageId}`);
   }
 
-  async createAnnouncement(courseId: string, data: any) {
-    return this.post("/announcements", { courseId, ...data });
+  async markAllMessagesAsRead(userId: string) {
+    return this.post("/messages/mark-all-read", { userId });
   }
+
+  async deleteMessage(messageId: string) {
+    return this.delete(`/messages/${messageId}`);
+  }
+
+  async searchMessages(query: string, userId: string) {
+    return this.get("/messages/search", { query, userId });
+  }
+
+  async getConversation(userId: string, otherUserId: string) {
+    return this.get(`/messages/conversation/${otherUserId}`, { userId });
+  }
+
+  // Announcements - LEGACY (use getAnnouncements and getCourseAnnouncements methods below instead)
+  // These old methods are deprecated and kept only for backward compatibility
+  // async getAnnouncements(courseId: string, limit = 20, offset = 0) {
+  //   return this.get(`/announcements/${courseId}`, { limit, offset });
+  // }
+  //
+  // async createAnnouncement(courseId: string, data: any) {
+  //   return this.post("/announcements", { courseId, ...data });
+  // }
 
 
   // Grades
@@ -366,6 +527,14 @@ class ApiClient {
     return this.delete(`/grades/${id}`);
   }
 
+  async getGradeById(id: string) {
+    return this.get(`/grades/${id}`);
+  }
+
+  async bulkCreateGrades(grades: any[]) {
+    return this.post("/grades/bulk", { grades });
+  }
+
   // Attendance
   async getStudentAttendance(studentId: string, courseId?: string) {
     return this.get(`/students/${studentId}/attendance`, { courseId });
@@ -381,6 +550,23 @@ class ApiClient {
 
   async updateAttendance(id: string, data: any) {
     return this.patch(`/attendance/${id}`, data);
+  }
+
+  async deleteAttendance(id: string) {
+    return this.delete(`/attendance/${id}`);
+  }
+
+  async bulkMarkAttendance(attendanceRecords: any[]) {
+    return this.post("/attendance/bulk", { records: attendanceRecords });
+  }
+
+  async getAttendanceStatistics(params?: {
+    branchId?: string;
+    courseId?: string;
+    startDate?: string;
+    endDate?: string;
+  }) {
+    return this.get("/attendance/statistics", params);
   }
 
   // Fee Management
@@ -416,6 +602,64 @@ class ApiClient {
     return this.patch(`/fee-payments/${id}`, data);
   }
 
+  async calculateFee(studentId: string, feeType?: string) {
+    return this.post("/fees/calculate", { studentId, feeType });
+  }
+
+  async processFeePayment(data: {
+    studentId: string;
+    feeId?: string;
+    amount: number;
+    paymentMethod: string;
+    transactionId?: string;
+  }) {
+    return this.post("/fees/payment", data);
+  }
+
+  async getOutstandingFees(studentId: string) {
+    return this.get(`/fees/${studentId}/outstanding`);
+  }
+
+  async getFeeRecords(params?: {
+    branchId?: string;
+    studentId?: string;
+    status?: string;
+    limit?: number;
+    offset?: number;
+  }) {
+    return this.get("/fees/records", params);
+  }
+
+  async getFeeStatistics(branchId?: string) {
+    return this.get("/fees/statistics", { branchId });
+  }
+
+  async getFeeStructures(branchId?: string) {
+    return this.get("/fees/structures", { branchId });
+  }
+
+  async getFeeStructureById(id: string) {
+    return this.get(`/fees/structures/${id}`);
+  }
+
+  async createFeeStructure(data: {
+    name: string;
+    branchId: string;
+    feeType: string;
+    amount: number;
+    description?: string;
+  }) {
+    return this.post("/fees/structures", data);
+  }
+
+  async updateFeeStructure(id: string, data: any) {
+    return this.patch(`/fees/structures/${id}`, data);
+  }
+
+  async deleteFeeStructure(id: string) {
+    return this.delete(`/fees/structures/${id}`);
+  }
+
   // Academic Years
   async getAcademicYears(branchId?: string) {
     return this.get("/academic-years", { branchId });
@@ -427,6 +671,18 @@ class ApiClient {
 
   async createAcademicYear(data: any) {
     return this.post("/academic-years", data);
+  }
+
+  async updateAcademicYear(yearId: string, data: any) {
+    return this.patch(`/academic-years/${yearId}`, data);
+  }
+
+  async deleteAcademicYear(yearId: string) {
+    return this.delete(`/academic-years/${yearId}`);
+  }
+
+  async setActiveAcademicYear(yearId: string, branchId: string) {
+    return this.patch(`/academic-years/${yearId}/set-active`, { branchId });
   }
 
   // Course Announcements
@@ -486,24 +742,48 @@ class ApiClient {
     return this.delete(`/timetable/entries/${id}`);
   }
 
+  async getTimetableEntries(academicYearId: string) {
+    return this.get(`/timetable/entries/${academicYearId}`);
+  }
+
+  async getRoomTimetable(roomId: string) {
+    return this.get(`/timetable/room/${roomId}`);
+  }
+
+  async updateTimetableEntry(id: string, data: any) {
+    return this.patch(`/timetable/entries/${id}`, data);
+  }
+
   // ==================== HEALTH/MEDICAL ====================
   async getHealthRecord(studentId: string) {
-    return this.get(`/medical/student/${studentId}`);
+    return this.get(`/medical/health-records/${studentId}`);
   }
-  async upsertHealthRecord(studentId: string, data: any) {
-    return this.post(`/medical/student/${studentId}`, data);
+  async createHealthRecord(data: any) {
+    return this.post("/medical/health-records", data);
   }
-  async getMedicalCheckups(studentId: string) {
-    return this.get(`/medical/checkups/${studentId}`);
+  async getMedicalCheckups(healthRecordId: string) {
+    return this.get(`/medical/checkups/${healthRecordId}`);
   }
-  async addMedicalCheckup(studentId: string, data: any) {
-    return this.post(`/medical/checkups/${studentId}`, data);
+  async addMedicalCheckup(data: any) {
+    return this.post("/medical/checkups", data);
   }
-  async getVaccinations(studentId: string) {
-    return this.get(`/medical/vaccinations/${studentId}`);
+  async updateMedicalCheckup(id: string, data: any) {
+    return this.patch(`/medical/checkups/${id}`, data);
   }
-  async addVaccination(studentId: string, data: any) {
-    return this.post(`/medical/vaccinations/${studentId}`, data);
+  async deleteMedicalCheckup(id: string) {
+    return this.delete(`/medical/checkups/${id}`);
+  }
+  async getVaccinations(healthRecordId: string) {
+    return this.get(`/medical/vaccinations/${healthRecordId}`);
+  }
+  async addVaccination(data: any) {
+    return this.post("/medical/vaccinations", data);
+  }
+  async updateVaccination(id: string, data: any) {
+    return this.patch(`/medical/vaccinations/${id}`, data);
+  }
+  async deleteVaccination(id: string) {
+    return this.delete(`/medical/vaccinations/${id}`);
   }
   async getMedicalIncidents(studentId: string) {
     return this.get(`/medical/incidents/${studentId}`);
@@ -511,8 +791,14 @@ class ApiClient {
   async reportMedicalIncident(data: any) {
     return this.post("/medical/incidents", data);
   }
-  async getHealthSummary(studentId: string) {
-    return this.get(`/medical/summary/${studentId}`);
+  async updateMedicalIncident(id: string, data: any) {
+    return this.patch(`/medical/incidents/${id}`, data);
+  }
+  async deleteMedicalIncident(id: string) {
+    return this.delete(`/medical/incidents/${id}`);
+  }
+  async getMedicalIncidentDetails(id: string) {
+    return this.get(`/medical/incidents/${id}/details`);
   }
 
   // ==================== LIBRARY ====================
@@ -548,6 +834,22 @@ class ApiClient {
     return this.post(`/library/fines/${id}/pay`, { amount, method });
   }
 
+  async getActiveLoans(params?: any) {
+    return this.get("/library/loans/active", params);
+  }
+
+  async getOverdueLoans(params?: any) {
+    return this.get("/library/loans/overdue", params);
+  }
+
+  async getLoanHistory(borrowerId: string, borrowerType: string) {
+    return this.get(`/library/loans/history/${borrowerId}`, { borrower_type: borrowerType });
+  }
+
+  async waiveFine(fineId: string, reason?: string) {
+    return this.post(`/library/fines/waive`, { fineId, reason });
+  }
+
   // ==================== EVENTS ====================
   async getEvents(branchId: string, filters?: any) {
     const params = new URLSearchParams({ branch_id: branchId, ...filters });
@@ -567,6 +869,14 @@ class ApiClient {
   }
   async deleteEvent(id: string) {
     return this.delete(`/events/${id}`);
+  }
+
+  async getEventById(id: string) {
+    return this.get(`/events/${id}`);
+  }
+
+  async getEventCalendar(branchId: string) {
+    return this.get(`/events/calendar/${branchId}`);
   }
 
   // ==================== RBAC (Role-Based Access Control) ====================
@@ -654,6 +964,22 @@ class ApiClient {
     return this.get("/rbac/permission-hierarchy");
   }
 
+  async getRolePermissions(roleId: string) {
+    return this.get(`/rbac/roles/${roleId}/permissions`);
+  }
+
+  async assignPermissionToRole(roleId: string, permissionId: string) {
+    return this.post(`/rbac/roles/${roleId}/permissions`, { permissionId });
+  }
+
+  async bulkAssignPermissions(roleId: string, permissionIds: string[]) {
+    return this.post("/rbac/roles/assign-permissions", { roleId, permissionIds });
+  }
+
+  async removePermissionFromRole(roleId: string, permissionId: string) {
+    return this.delete(`/rbac/roles/${roleId}/permissions/${permissionId}`);
+  }
+
   // ==================== TIMETABLE MANAGEMENT ====================
   async getTimetables(params?: any) {
     return this.get("/timetables", params);
@@ -692,21 +1018,22 @@ class ApiClient {
   }
 
   // ==================== FEE MANAGEMENT ====================
-  async getFeeStructures(params?: any) {
-    return this.get("/fees/structures", params);
-  }
+  // DEPRECATED: Duplicate methods - use the ones defined earlier with better types
+  // async getFeeStructures(params?: any) {
+  //   return this.get("/fees/structures", params);
+  // }
 
-  async createFeeStructure(data: any) {
-    return this.post("/fees/structures", data);
-  }
+  // async createFeeStructure(data: any) {
+  //   return this.post("/fees/structures", data);
+  // }
 
-  async updateFeeStructure(id: string, data: any) {
-    return this.patch(`/fees/structures/${id}`, data);
-  }
+  // async updateFeeStructure(id: string, data: any) {
+  //   return this.patch(`/fees/structures/${id}`, data);
+  // }
 
-  async deleteFeeStructure(id: string) {
-    return this.delete(`/fees/structures/${id}`);
-  }
+  // async deleteFeeStructure(id: string) {
+  //   return this.delete(`/fees/structures/${id}`);
+  // }
 
   async getStudentFees(studentId: string) {
     return this.get(`/fees/students/${studentId}`);
@@ -731,64 +1058,74 @@ class ApiClient {
 
   // ==================== ADMISSIONS ====================
   async getApplications(params?: any) {
-    return this.get("/admissions/applications", params);
+    return this.get("/admission/applications", params);
   }
 
   async getApplicationById(id: string) {
-    return this.get(`/admissions/applications/${id}`);
+    return this.get(`/admission/applications/${id}`);
   }
 
   async createApplication(data: any) {
-    return this.post("/admissions/applications", data);
+    return this.post("/admission/applications", data);
   }
 
   async updateApplication(id: string, data: any) {
-    return this.patch(`/admissions/applications/${id}`, data);
+    return this.patch(`/admission/applications/${id}`, data);
   }
 
   async updateApplicationStatus(id: string, status: string, remarks?: string) {
-    return this.patch(`/admissions/applications/${id}/status`, {
+    return this.patch(`/admission/applications/${id}/status`, {
       status,
       remarks,
     });
   }
 
+  async approveApplication(id: string) {
+    return this.post(`/admission/applications/${id}/approve`, {});
+  }
+
+  async rejectApplication(id: string, remarks?: string) {
+    return this.post(`/admission/applications/${id}/reject`, { remarks });
+  }
+
   async deleteApplication(id: string) {
-    return this.delete(`/admissions/applications/${id}`);
+    return this.delete(`/admission/applications/${id}`);
   }
 
-  // ==================== MEDICAL/HEALTH RECORDS ====================
-  async getStudentMedicalRecords(studentId: string) {
-    return this.get(`/medical/students/${studentId}/records`);
-  }
-
-  async createMedicalRecord(studentId: string, data: any) {
-    return this.post(`/medical/students/${studentId}/records`, data);
-  }
-
-  async updateMedicalRecord(recordId: string, data: any) {
-    return this.patch(`/medical/records/${recordId}`, data);
-  }
-
-  async deleteMedicalRecord(recordId: string) {
-    return this.delete(`/medical/records/${recordId}`);
-  }
-
-  async getVaccinationRecords(studentId: string) {
-    return this.get(`/medical/students/${studentId}/vaccinations`);
-  }
-
-  async addVaccinationRecord(studentId: string, data: any) {
-    return this.post(`/medical/students/${studentId}/vaccinations`, data);
-  }
-
-  async getHealthCheckups(studentId: string) {
-    return this.get(`/medical/students/${studentId}/checkups`);
-  }
-
-  async scheduleHealthCheckup(data: any) {
-    return this.post("/medical/checkups", data);
-  }
+  // ==================== MEDICAL/HEALTH RECORDS (DUPLICATE - DEPRECATED) ====================
+  // These methods are duplicates and use incorrect paths.
+  // Use the methods in the "HEALTH/MEDICAL" section above instead.
+  // async getStudentMedicalRecords(studentId: string) {
+  //   return this.get(`/medical/students/${studentId}/records`);
+  // }
+  //
+  // async createMedicalRecord(studentId: string, data: any) {
+  //   return this.post(`/medical/students/${studentId}/records`, data);
+  // }
+  //
+  // async updateMedicalRecord(recordId: string, data: any) {
+  //   return this.patch(`/medical/records/${recordId}`, data);
+  // }
+  //
+  // async deleteMedicalRecord(recordId: string) {
+  //   return this.delete(`/medical/records/${recordId}`);
+  // }
+  //
+  // async getVaccinationRecords(studentId: string) {
+  //   return this.get(`/medical/students/${studentId}/vaccinations`);
+  // }
+  //
+  // async addVaccinationRecord(studentId: string, data: any) {
+  //   return this.post(`/medical/students/${studentId}/vaccinations`, data);
+  // }
+  //
+  // async getHealthCheckups(studentId: string) {
+  //   return this.get(`/medical/students/${studentId}/checkups`);
+  // }
+  //
+  // async scheduleHealthCheckup(data: any) {
+  //   return this.post("/medical/checkups", data);
+  // }
 
   // ==================== PAYROLL ====================
   async getPayrollRecords(params?: any) {
@@ -822,9 +1159,43 @@ class ApiClient {
     return this.post(`/payroll/records/${recordId}/approve`, {});
   }
 
+  async getSalaries(params?: {
+    teacherId?: string;
+    branchId?: string;
+    month?: number;
+    year?: number;
+    status?: string;
+  }) {
+    return this.get("/payroll/salaries", params);
+  }
+
+  async calculateSalary(data: {
+    teacherId: string;
+    month: number;
+    year: number;
+  }) {
+    return this.post("/payroll/calculate", data);
+  }
+
+  async processSalary(recordId: string) {
+    return this.post("/payroll/process", { recordId });
+  }
+
+  async markSalaryAsPaid(recordId: string, paidDate?: string) {
+    return this.post(`/payroll/${recordId}/mark-paid`, { paidDate });
+  }
+
   // ==================== LEAVE MANAGEMENT ====================
   async getLeaveRequests(params?: any) {
-    return this.get("/leave/requests", params);
+    return this.get("/leaves/requests", params);
+  }
+
+  async getPendingLeaveRequests() {
+    return this.get("/leaves/pending");
+  }
+
+  async getLeaveStatistics() {
+    return this.get("/leaves/statistics");
   }
 
   async createLeaveRequest(data: {
@@ -834,23 +1205,27 @@ class ApiClient {
     endDate: string;
     reason: string;
   }) {
-    return this.post("/leave/requests", data);
+    return this.post("/leaves/request", data);
   }
 
   async updateLeaveRequest(id: string, data: any) {
-    return this.patch(`/leave/requests/${id}`, data);
+    return this.patch(`/leaves/requests/${id}`, data);
   }
 
-  async approveLeaveRequest(id: string, approverId: string) {
-    return this.patch(`/leave/requests/${id}/approve`, { approverId });
+  async approveLeaveRequest(id: string) {
+    return this.post(`/leaves/${id}/approve`, {});
   }
 
   async rejectLeaveRequest(id: string, reason: string) {
-    return this.patch(`/leave/requests/${id}/reject`, { reason });
+    return this.post(`/leaves/${id}/reject`, { reason });
   }
 
-  async getLeaveBalance(employeeId: string) {
-    return this.get(`/leave/employees/${employeeId}/balance`);
+  async getLeaveBalance(teacherId: string) {
+    return this.get(`/leaves/${teacherId}/balance`);
+  }
+
+  async getLeaveHistory(teacherId: string) {
+    return this.get(`/leaves/${teacherId}/history`);
   }
 
   // ==================== COURSE CONTENT ====================
@@ -873,15 +1248,31 @@ class ApiClient {
   }
 
   async updateCourseContent(contentId: string, data: any) {
-    return this.patch(`/course-content/${contentId}`, data);
+    return this.patch(`/course-content/item/${contentId}`, data);
   }
 
   async deleteCourseContent(contentId: string) {
-    return this.delete(`/course-content/${contentId}`);
+    return this.delete(`/course-content/item/${contentId}`);
+  }
+
+  async getContentItem(contentId: string) {
+    return this.get(`/course-content/item/${contentId}`);
+  }
+
+  async incrementContentView(contentId: string) {
+    return this.post(`/course-content/item/${contentId}/increment-view`, {});
+  }
+
+  async pinContent(contentId: string) {
+    return this.post(`/course-content/item/${contentId}/pin`, {});
+  }
+
+  async unpinContent(contentId: string) {
+    return this.post(`/course-content/item/${contentId}/unpin`, {});
   }
 
   async downloadCourseContent(contentId: string) {
-    return this.get(`/course-content/${contentId}/download`, {
+    return this.get(`/course-content/item/${contentId}/download`, {
       responseType: "blob",
     });
   }
@@ -906,6 +1297,45 @@ class ApiClient {
     parameters: any;
   }) {
     return this.post("/reports/schedule", data);
+  }
+
+  async getReportById(reportId: string) {
+    return this.get(`/reports/${reportId}`);
+  }
+
+  async deleteReport(reportId: string) {
+    return this.delete(`/reports/${reportId}`);
+  }
+
+  async getReportSchedules(params?: any) {
+    return this.get("/reports/schedules", params);
+  }
+
+  async generateCustomReport(config: {
+    reportType: string;
+    filters: any;
+    format?: string;
+  }) {
+    return this.post("/reports/custom", config);
+  }
+
+  async updateReportSchedule(scheduleId: string, data: any) {
+    return this.patch(`/reports/schedules/${scheduleId}`, data);
+  }
+
+  async deleteReportSchedule(scheduleId: string) {
+    return this.delete(`/reports/schedules/${scheduleId}`);
+  }
+
+  async generateAttendanceReport(params: {
+    branchId?: string;
+    courseId?: string;
+    studentId?: string;
+    startDate: string;
+    endDate: string;
+    format?: string;
+  }) {
+    return this.post("/reports/attendance", params);
   }
 
   // ==================== ANNOUNCEMENTS ====================
@@ -949,6 +1379,61 @@ class ApiClient {
     return this.patch(`/announcements/${id}/unpublish`, {});
   }
 
+  // General Announcements (specific endpoints)
+  async getGeneralAnnouncements(params?: {
+    branchId?: string;
+    limit?: number;
+    offset?: number;
+  }) {
+    return this.get("/announcements/general", params);
+  }
+
+  async getGeneralAnnouncement(id: string) {
+    return this.get(`/announcements/general/${id}`);
+  }
+
+  async updateGeneralAnnouncement(id: string, data: any) {
+    return this.patch(`/announcements/general/${id}`, data);
+  }
+
+  async deleteGeneralAnnouncement(id: string) {
+    return this.delete(`/announcements/general/${id}`);
+  }
+
+  // Class Announcements
+  async createClassAnnouncement(data: {
+    courseId: string;
+    createdBy: string;
+    title: string;
+    content: string;
+    priority?: string;
+    announcementType?: string;
+    attachmentUrl?: string;
+    isPinned?: boolean;
+  }) {
+    return this.post("/announcements/class", data);
+  }
+
+  async pinClassAnnouncement(id: string) {
+    return this.post(`/announcements/class/${id}/pin`, {});
+  }
+
+  async getCourseClassAnnouncements(courseId: string) {
+    return this.get(`/announcements/class/${courseId}`);
+  }
+
+  async getClassAnnouncementById(id: string) {
+    return this.get(`/announcements/class/${id}`);
+  }
+
+  async getPinnedClassAnnouncements(courseId: string) {
+    return this.get(`/announcements/class/pinned/${courseId}`);
+  }
+
+  async getTeacherClassAnnouncements(teacherId: string) {
+    return this.get(`/announcements/class/for-teacher/${teacherId}`);
+  }
+
   // ==================== NOTIFICATIONS ====================
   async getNotifications(params?: { unreadOnly?: boolean; limit?: number }) {
     return this.get("/notifications", params);
@@ -962,8 +1447,43 @@ class ApiClient {
     return this.patch(`/notifications/${id}/read`, {});
   }
 
-  async markAllNotificationsAsRead() {
-    return this.patch("/notifications/read-all", {});
+  async markAllNotificationsAsRead(userId?: string) {
+    return this.patch("/notifications/read-all", { userId });
+  }
+
+  async getNotificationSettings(userId: string) {
+    return this.get(`/notifications/settings/${userId}`);
+  }
+
+  async updateNotificationSettings(userId: string, settings: any) {
+    return this.patch(`/notifications/settings/${userId}`, settings);
+  }
+
+  async scheduleNotification(data: {
+    userId: string;
+    title: string;
+    message: string;
+    scheduledAt: string;
+  }) {
+    return this.post("/notifications/schedule", data);
+  }
+
+  // Communication
+  async sendParentCommunication(data: {
+    studentId: string;
+    subject: string;
+    message: string;
+    method: string; // email, sms, both
+  }) {
+    return this.post("/communication/parent", data);
+  }
+
+  async getEmailTemplates(type?: string) {
+    return this.get("/communication/templates/email", { type });
+  }
+
+  async getSMSTemplates(type?: string) {
+    return this.get("/communication/templates/sms", { type });
   }
 
   async deleteNotification(id: string) {
@@ -976,6 +1496,24 @@ class ApiClient {
 
   async updateNotificationPreferences(userId: string, preferences: any) {
     return this.patch(`/notifications/preferences/${userId}`, preferences);
+  }
+
+  async sendNotification(data: {
+    userId: string;
+    title: string;
+    message: string;
+    notificationType?: string;
+  }) {
+    return this.post("/notifications/send", data);
+  }
+
+  async broadcastNotification(data: {
+    userIds: string[];
+    title: string;
+    message: string;
+    notificationType?: string;
+  }) {
+    return this.post("/notifications/broadcast", data);
   }
 
   // ==================== SYSTEM MANAGEMENT ====================
@@ -999,6 +1537,22 @@ class ApiClient {
 
   async deleteBackup(backupId: string) {
     return this.delete(`/backup/${backupId}`);
+  }
+
+  async getBackupById(backupId: string) {
+    return this.get(`/backups/${backupId}`);
+  }
+
+  async listBackupSchedules() {
+    return this.get("/backups/schedules");
+  }
+
+  async createBackupSchedule(data: {
+    backupType: string;
+    frequency: string;
+    retentionDays?: number;
+  }) {
+    return this.post("/backups/schedules", data);
   }
 
   // Cache Management
@@ -1036,11 +1590,56 @@ class ApiClient {
     return this.get("/logs/errors", params);
   }
 
+  async getUserActivityLogs(userId: string, params?: {
+    startDate?: string;
+    endDate?: string;
+    action?: string;
+    limit?: number;
+  }) {
+    return this.get(`/logs/activity/${userId}`, params);
+  }
+
+  async getSystemAuditLogs(params?: {
+    userId?: string;
+    action?: string;
+    resource?: string;
+    startDate?: string;
+    endDate?: string;
+    limit?: number;
+  }) {
+    return this.get("/logs/audit/filter", params);
+  }
+
+  async getActivityTimeline(params?: {
+    entityType?: string;
+    entityId?: string;
+    limit?: number;
+  }) {
+    return this.get("/logs/timeline", params);
+  }
+
+  async trackUserSession(userId: string, action: string, metadata?: any) {
+    return this.post("/logs/session", { userId, action, metadata });
+  }
+
+  async createLogEntry(data: {
+    level: string;
+    message: string;
+    metadata?: any;
+  }) {
+    return this.post("/logs/log", data);
+  }
+
+  async clearOldLogs(days?: number) {
+    return this.post("/logs/clear", { days });
+  }
+
   // File Export/Import
   async exportData(exportType: string, params?: any) {
-    return this.post(`/export/${exportType}`, params, {
+    const response = await this.client.post(`/export/${exportType}`, params, {
       responseType: "blob",
     });
+    return response.data;
   }
 
   async importData(importType: string, formData: FormData) {
@@ -1058,6 +1657,25 @@ class ApiClient {
 
   async getExportHistory(params?: any) {
     return this.get("/export/history", params);
+  }
+
+  async requestExport(exportType: string, filters?: any) {
+    return this.post("/exports/request", { exportType, filters });
+  }
+
+  async listExports(params?: any) {
+    return this.get("/exports", params);
+  }
+
+  async getExportStatus(exportId: string) {
+    return this.get(`/exports/${exportId}`);
+  }
+
+  async downloadExportFile(exportId: string) {
+    const response = await this.client.get(`/exports/${exportId}/download`, {
+      responseType: "blob",
+    });
+    return response.data;
   }
 
   // System Health
@@ -1088,6 +1706,142 @@ class ApiClient {
 
   async updateBranchSettings(branchId: string, settings: any) {
     return this.patch(`/settings/branch/${branchId}`, settings);
+  }
+
+  // Global Search
+  async globalSearch(query: string, filters?: {
+    type?: string;
+    branchId?: string;
+    limit?: number;
+  }) {
+    return this.get("/search", { query, ...filters });
+  }
+
+  async searchStudents(query: string, branchId?: string) {
+    return this.get("/search/students", { query, branchId });
+  }
+
+  async searchTeachers(query: string, branchId?: string) {
+    return this.get("/search/teachers", { query, branchId });
+  }
+
+  async searchCourses(query: string) {
+    return this.get("/search/courses", { query });
+  }
+
+  // Batch Operations
+  async batchDeleteStudents(studentIds: string[]) {
+    return this.post("/students/batch-delete", { studentIds });
+  }
+
+  async batchUpdateStudents(updates: Array<{ id: string; data: any }>) {
+    return this.post("/students/batch-update", { updates });
+  }
+
+  async batchEnrollStudents(enrollments: Array<{ studentId: string; courseId: string }>) {
+    return this.post("/courses/batch-enroll", { enrollments });
+  }
+
+  // Advanced Filtering
+  async filterStudents(filters: {
+    branchId?: string;
+    grade?: string;
+    status?: string;
+    enrollmentYear?: number;
+    ageRange?: { min: number; max: number };
+  }) {
+    return this.post("/students/filter", filters);
+  }
+
+  async filterTeachers(filters: {
+    branchId?: string;
+    department?: string;
+    qualification?: string;
+    experience?: number;
+    status?: string;
+  }) {
+    return this.post("/teachers/filter", filters);
+  }
+
+  async filterCourses(filters: {
+    academicYearId?: string;
+    department?: string;
+    level?: string;
+    status?: string;
+  }) {
+    return this.post("/courses/filter", filters);
+  }
+
+  // System Monitoring
+  async getSystemMetrics() {
+    return this.get("/system/metrics");
+  }
+
+  async getSystemPerformance() {
+    return this.get("/system/performance");
+  }
+
+  async getDatabaseMetrics() {
+    return this.get("/system/database/metrics");
+  }
+
+  async getApiUsageStats(params?: {
+    startDate?: string;
+    endDate?: string;
+    endpoint?: string;
+  }) {
+    return this.get("/system/api-usage", params);
+  }
+
+  // Dashboard Quick Stats
+  async getQuickStats(branchId?: string) {
+    return this.get("/dashboard/quick-stats", { branchId });
+  }
+
+  async getRecentActivities(limit = 10) {
+    return this.get("/dashboard/recent-activities", { limit });
+  }
+
+  // DEPRECATED: Duplicate - use getUpcomingEvents in Events section
+  // async getUpcomingEvents(branchId?: string, days = 7) {
+  //   return this.get("/dashboard/upcoming-events", { branchId, days });
+  // }
+
+  // Data Cleanup & Maintenance
+  async cleanupOldData(params: {
+    type: string; // logs, backups, reports
+    olderThanDays: number;
+  }) {
+    return this.post("/maintenance/cleanup", params);
+  }
+
+  async findOrphanedRecords(entityType: string) {
+    return this.get(`/maintenance/orphaned/${entityType}`);
+  }
+
+  async checkDataIntegrity() {
+    return this.get("/maintenance/integrity-check");
+  }
+
+  async optimizeDatabaseTables() {
+    return this.post("/maintenance/optimize-db", {});
+  }
+
+  async findDuplicateRecords(entityType: string) {
+    return this.get(`/maintenance/duplicates/${entityType}`);
+  }
+
+  // Utility Helpers
+  async getTimezones() {
+    return this.get("/utils/timezones");
+  }
+
+  async getCurrencies() {
+    return this.get("/utils/currencies");
+  }
+
+  async getCountries() {
+    return this.get("/utils/countries");
   }
 }
 

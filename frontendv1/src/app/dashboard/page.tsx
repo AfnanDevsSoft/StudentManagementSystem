@@ -82,15 +82,15 @@ export default function UnifiedDashboard() {
             setLoading(true);
 
             // Fetch all data in parallel for performance
-            const [studentsRes, teachersRes, coursesRes] = await Promise.all([
+            // Note: Skipping courses for now since we don't have academic year context in dashboard
+            const [studentsRes, teachersRes] = await Promise.all([
                 apiClient.getStudents(user?.branch_id).catch(() => ({ data: [] })),
                 apiClient.getTeachers(user?.branch_id).catch(() => ({ data: [] })),
-                apiClient.getCourses(user?.branch_id).catch(() => ({ data: [] })),
             ]);
 
             const students = Array.isArray(studentsRes.data) ? studentsRes.data : [];
             const teachers = Array.isArray(teachersRes.data) ? teachersRes.data : [];
-            const courses = Array.isArray(coursesRes.data) ? coursesRes.data : [];
+            const courses: any[] = []; // Empty for now
 
             // Calculate stats
             const activeStudents = students.filter((s: any) => s.is_active).length;

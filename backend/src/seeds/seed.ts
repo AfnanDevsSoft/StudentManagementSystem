@@ -26,6 +26,10 @@ async function main() {
   await prisma.teacher.deleteMany({});
   await prisma.student.deleteMany({});
   await prisma.parentGuardian.deleteMany({});
+
+  // Delete direct_messages before users (foreign key constraint)
+  await prisma.$executeRaw`DELETE FROM direct_messages`;
+
   await prisma.userBranch.deleteMany({});
   await prisma.user.deleteMany({});
   await prisma.role.deleteMany({});
