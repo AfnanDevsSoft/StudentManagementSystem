@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,45 +7,42 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Branches
 model Branch {
-  id              String   @id @default(uuid()) @db.Uuid
-  name            String   @unique
-  code            String   @unique
-  address         String?
-  city            String?
-  state           String?
-  country         String?
-  postal_code     String?
-  phone           String?
-  email           String?
-  website         String?
-  principal_name  String?
-  principal_email String?
-  timezone        String   @default("UTC")
-  currency        String   @default("USD")
-  is_active       Boolean  @default(true)
-  created_at      DateTime @default(now())
-  updated_at      DateTime @updatedAt
-
-  users                    User[]
-  students                 Student[]
-  teachers                 Teacher[]
-  courses                  Course[]
-  academic_years           AcademicYear[]
-  branches_users           UserBranch[]
-  admissions_applications  AdmissionApplication[]
-  payroll_records          PayrollRecord[]
-  audit_logs               AuditLog[]
-  communication_logs       CommunicationLog[]
-  reports                  Report[]
-  analytics_metrics        AnalyticsMetric[]
+  id                      String                 @id @default(uuid()) @db.Uuid
+  name                    String                 @unique
+  code                    String                 @unique
+  address                 String?
+  city                    String?
+  state                   String?
+  country                 String?
+  postal_code             String?
+  phone                   String?
+  email                   String?
+  website                 String?
+  principal_name          String?
+  principal_email         String?
+  timezone                String                 @default("UTC")
+  currency                String                 @default("USD")
+  is_active               Boolean                @default(true)
+  created_at              DateTime               @default(now())
+  updated_at              DateTime               @updatedAt
+  academic_years          AcademicYear[]
+  admissions_applications AdmissionApplication[]
+  analytics_metrics       AnalyticsMetric[]
+  audit_logs              AuditLog[]
+  communication_logs      CommunicationLog[]
+  courses                 Course[]
+  payroll_records         PayrollRecord[]
+  reports                 Report[]
+  students                Student[]
+  teachers                Teacher[]
+  branches_users          UserBranch[]
+  users                   User[]
 
   @@index([code])
   @@map("branches")
 }
 
-// Roles
 model Role {
   id          String   @id @default(uuid()) @db.Uuid
   branch_id   String?  @db.Uuid
@@ -58,74 +52,68 @@ model Role {
   is_system   Boolean  @default(false)
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
-
-  users User[]
+  users       User[]
 
   @@unique([name, branch_id])
   @@map("roles")
 }
 
-// Users
 model User {
-  id              String   @id @default(uuid()) @db.Uuid
-  branch_id       String   @db.Uuid
-  role_id         String   @db.Uuid
-  username        String   @unique
-  email           String   @unique
-  password_hash   String
-  first_name      String
-  last_name       String
-  phone           String?
-  profile_photo   String?
-  is_active       Boolean  @default(true)
-  last_login      DateTime?
-  login_attempts  Int      @default(0)
-  locked_until    DateTime?
-  created_at      DateTime @default(now())
-  updated_at      DateTime @updatedAt
-
-  branch              Branch       @relation(fields: [branch_id], references: [id], onDelete: Restrict)
-  role                Role         @relation(fields: [role_id], references: [id])
-  user_branches       UserBranch[]
-  student             Student?
-  teacher             Teacher?
-  created_by_users    User[]       @relation("CreatedBy")
-  user_created_by     User?        @relation("CreatedBy", fields: [created_by_id], references: [id])
-  created_by_id       String?      @db.Uuid
-  updated_by_users    User[]       @relation("UpdatedBy")
-  user_updated_by     User?        @relation("UpdatedBy", fields: [updated_by_id], references: [id])
-  updated_by_id       String?      @db.Uuid
-  audit_logs          AuditLog[]
-  communication_logs  CommunicationLog[]
-  sent_messages       DirectMessage[] @relation("sent_messages")
-  user_roles          UserRole[]
-  received_messages   DirectMessage[] @relation("received_messages")
+  id                 String             @id @default(uuid()) @db.Uuid
+  branch_id          String             @db.Uuid
+  role_id            String             @db.Uuid
+  username           String             @unique
+  email              String             @unique
+  password_hash      String
+  first_name         String
+  last_name          String
+  phone              String?
+  profile_photo      String?
+  is_active          Boolean            @default(true)
+  last_login         DateTime?
+  login_attempts     Int                @default(0)
+  locked_until       DateTime?
+  created_at         DateTime           @default(now())
+  updated_at         DateTime           @updatedAt
+  created_by_id      String?            @db.Uuid
+  updated_by_id      String?            @db.Uuid
+  audit_logs         AuditLog[]
+  communication_logs CommunicationLog[]
+  received_messages  DirectMessage[]    @relation("received_messages")
+  sent_messages      DirectMessage[]    @relation("sent_messages")
+  student            Student?
+  teacher            Teacher?
+  user_branches      UserBranch[]
+  user_roles         UserRole[]
+  branch             Branch             @relation(fields: [branch_id], references: [id])
+  user_created_by    User?              @relation("CreatedBy", fields: [created_by_id], references: [id])
+  created_by_users   User[]             @relation("CreatedBy")
+  role               Role               @relation(fields: [role_id], references: [id])
+  user_updated_by    User?              @relation("UpdatedBy", fields: [updated_by_id], references: [id])
+  updated_by_users   User[]             @relation("UpdatedBy")
 
   @@index([email])
   @@index([branch_id])
   @@map("users")
 }
 
-// User Branches
 model UserBranch {
   user_id      String   @db.Uuid
   branch_id    String   @db.Uuid
   access_level String?
   created_at   DateTime @default(now())
-
-  user   User   @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  branch Branch @relation(fields: [branch_id], references: [id], onDelete: Cascade)
+  branch       Branch   @relation(fields: [branch_id], references: [id], onDelete: Cascade)
+  user         User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@id([user_id, branch_id])
   @@map("user_branches")
 }
 
-// Students
 model Student {
-  id                     String   @id @default(uuid()) @db.Uuid
-  branch_id              String   @db.Uuid
-  user_id                String?  @db.Uuid @unique
-  student_code           String   @unique
+  id                     String              @id @default(uuid()) @db.Uuid
+  branch_id              String              @db.Uuid
+  user_id                String?             @unique @db.Uuid
+  student_code           String              @unique
   first_name             String
   last_name              String
   date_of_birth          DateTime
@@ -141,62 +129,58 @@ model Student {
   personal_phone         String?
   personal_email         String?
   admission_date         DateTime
-  admission_status       String   @default("pending")
-  current_grade_level_id String?  @db.Uuid
+  admission_status       String              @default("pending")
+  current_grade_level_id String?             @db.Uuid
   previous_school        String?
   profile_photo          String?
-  is_active              Boolean  @default(true)
+  is_active              Boolean             @default(true)
   graduation_date        DateTime?
   graduation_status      String?
-  created_at             DateTime @default(now())
-  updated_at             DateTime @updatedAt
-
-  branch              Branch                  @relation(fields: [branch_id], references: [id], onDelete: Restrict)
-  user                User?                   @relation(fields: [user_id], references: [id])
-  parents             ParentGuardian[]        @relation("StudentParents")
-  enrollments         StudentEnrollment[]
-  attendance          Attendance[]
-  grades              Grade[]
-  communication_logs  CommunicationLog[]
-  fee_payments        FeePayment[]
-  scholarships        Scholarship[]
-  health_record       HealthRecord?
-  medical_incidents   MedicalIncident[]
-  book_loans          BookLoan[]
+  created_at             DateTime            @default(now())
+  updated_at             DateTime            @updatedAt
+  attendance             Attendance[]
+  book_loans             BookLoan[]
+  communication_logs     CommunicationLog[]
+  fee_payments           FeePayment[]
+  grades                 Grade[]
+  health_record          HealthRecord?
+  medical_incidents      MedicalIncident[]
+  scholarships           Scholarship[]
+  enrollments            StudentEnrollment[]
+  branch                 Branch              @relation(fields: [branch_id], references: [id])
+  user                   User?               @relation(fields: [user_id], references: [id])
+  parents                ParentGuardian[]    @relation("StudentParents")
 
   @@unique([branch_id, student_code])
   @@index([student_code])
   @@map("students")
 }
 
-// Parents/Guardians
 model ParentGuardian {
-  id            String   @id @default(uuid()) @db.Uuid
-  first_name    String
-  last_name     String
-  relationship  String // father, mother, guardian
-  primary_phone String
-  email         String?
-  occupation    String?
-  organization  String?
-  address       String?
-  city          String?
-  cnic          String?
-  is_active     Boolean  @default(true)
-  created_at    DateTime @default(now())
-
-  students       Student[]   @relation("StudentParents")
+  id             String             @id @default(uuid()) @db.Uuid
+  first_name     String
+  last_name      String
+  relationship   String
+  primary_phone  String
+  email          String?
+  occupation     String?
+  organization   String?
+  address        String?
+  city           String?
+  cnic           String?
+  is_active      Boolean            @default(true)
+  created_at     DateTime           @default(now())
   communications CommunicationLog[]
+  students       Student[]          @relation("StudentParents")
 
   @@map("parents_guardians")
 }
 
-// Teachers
 model Teacher {
-  id                String   @id @default(uuid()) @db.Uuid
-  branch_id         String   @db.Uuid
-  user_id           String?  @db.Uuid @unique
-  employee_code     String   @unique
+  id                String              @id @default(uuid()) @db.Uuid
+  branch_id         String              @db.Uuid
+  user_id           String?             @unique @db.Uuid
+  employee_code     String              @unique
   first_name        String
   last_name         String
   email             String
@@ -206,7 +190,7 @@ model Teacher {
   nationality       String?
   cnic              String?
   hire_date         DateTime
-  employment_type   String // full_time, part_time, contract
+  employment_type   String
   department        String?
   designation       String?
   qualification     String?
@@ -215,45 +199,41 @@ model Teacher {
   office_location   String?
   personal_address  String?
   salary_grade      String?
-  is_active         Boolean  @default(true)
-  employment_status String   @default("active")
+  is_active         Boolean             @default(true)
+  employment_status String              @default("active")
   profile_photo     String?
-  created_at        DateTime @default(now())
-  updated_at        DateTime @updatedAt
-
-  branch               Branch               @relation(fields: [branch_id], references: [id], onDelete: Restrict)
-  user                 User?                @relation(fields: [user_id], references: [id])
-  courses              Course[]
-  attendance           TeacherAttendance[]
-  payroll_records      PayrollRecord[]
-  leave_requests       LeaveRequest[]
-  grades_created       Grade[]
-  book_loans           BookLoan[]
+  created_at        DateTime            @default(now())
+  updated_at        DateTime            @updatedAt
+  book_loans        BookLoan[]
+  courses           Course[]
+  grades_created    Grade[]
+  leave_requests    LeaveRequest[]
+  payroll_records   PayrollRecord[]
+  attendance        TeacherAttendance[]
+  branch            Branch              @relation(fields: [branch_id], references: [id])
+  user              User?               @relation(fields: [user_id], references: [id])
 
   @@unique([branch_id, employee_code])
   @@index([employee_code])
   @@map("teachers")
 }
 
-// Academic Years
 model AcademicYear {
-  id          String   @id @default(uuid()) @db.Uuid
-  branch_id   String   @db.Uuid
-  year        String // e.g., "2024-2025"
-  start_date  DateTime
-  end_date    DateTime
-  is_current  Boolean  @default(false)
-  created_at  DateTime @default(now())
-
-  branch  Branch   @relation(fields: [branch_id], references: [id], onDelete: Restrict)
-  courses Course[]
-  grades  Grade[]
+  id         String   @id @default(uuid()) @db.Uuid
+  branch_id  String   @db.Uuid
+  year       String
+  start_date DateTime
+  end_date   DateTime
+  is_current Boolean  @default(false)
+  created_at DateTime @default(now())
+  branch     Branch   @relation(fields: [branch_id], references: [id])
+  courses    Course[]
+  grades     Grade[]
 
   @@unique([branch_id, year])
   @@map("academic_years")
 }
 
-// Grade Levels
 model GradeLevel {
   id         String   @id @default(uuid()) @db.Uuid
   branch_id  String   @db.Uuid
@@ -262,375 +242,344 @@ model GradeLevel {
   sort_order Int?
   is_active  Boolean  @default(true)
   created_at DateTime @default(now())
-
-  courses Course[]
+  courses    Course[]
 
   @@unique([branch_id, code])
   @@map("grade_levels")
 }
 
-// Subjects
 model Subject {
-  id         String   @id @default(uuid()) @db.Uuid
-  branch_id  String   @db.Uuid
-  name       String
-  code       String
+  id          String   @id @default(uuid()) @db.Uuid
+  branch_id   String   @db.Uuid
+  name        String
+  code        String
   description String?
-  credits    Int?
-  is_active  Boolean  @default(true)
-  created_at DateTime @default(now())
-
-  courses Course[]
+  credits     Int?
+  is_active   Boolean  @default(true)
+  created_at  DateTime @default(now())
+  courses     Course[]
 
   @@unique([branch_id, code])
   @@map("subjects")
 }
 
-// Courses
 model Course {
-  id               String   @id @default(uuid()) @db.Uuid
-  branch_id        String   @db.Uuid
-  academic_year_id String   @db.Uuid
-  subject_id       String   @db.Uuid
-  grade_level_id   String   @db.Uuid
-  teacher_id       String   @db.Uuid
-  course_name      String
-  course_code      String   @unique
-  description      String?
-  max_students     Int      @default(40)
-  room_number      String?
-  building         String?
-  schedule         Json?    // {monday: {start: "09:00", end: "10:00"}}
-  is_active        Boolean  @default(true)
-  created_at       DateTime @default(now())
-  updated_at       DateTime @updatedAt
-
-  branch              Branch                @relation(fields: [branch_id], references: [id])
-  academic_year       AcademicYear         @relation(fields: [academic_year_id], references: [id])
-  subject             Subject              @relation(fields: [subject_id], references: [id])
-  grade_level         GradeLevel           @relation(fields: [grade_level_id], references: [id])
-  teacher             Teacher              @relation(fields: [teacher_id], references: [id])
-  enrollments         StudentEnrollment[]
-  attendance          Attendance[]
-  grades              Grade[]
-  course_contents     CourseContent[]
-  announcements       ClassAnnouncement[]
-  timetable_entries   TimetableEntry[]
+  id                String              @id @default(uuid()) @db.Uuid
+  branch_id         String              @db.Uuid
+  academic_year_id  String              @db.Uuid
+  subject_id        String              @db.Uuid
+  grade_level_id    String              @db.Uuid
+  teacher_id        String              @db.Uuid
+  course_name       String
+  course_code       String              @unique
+  description       String?
+  max_students      Int                 @default(40)
+  room_number       String?
+  building          String?
+  schedule          Json?
+  is_active         Boolean             @default(true)
+  created_at        DateTime            @default(now())
+  updated_at        DateTime            @updatedAt
+  attendance        Attendance[]
+  announcements     ClassAnnouncement[]
+  course_contents   CourseContent[]
+  academic_year     AcademicYear        @relation(fields: [academic_year_id], references: [id])
+  branch            Branch              @relation(fields: [branch_id], references: [id])
+  grade_level       GradeLevel          @relation(fields: [grade_level_id], references: [id])
+  subject           Subject             @relation(fields: [subject_id], references: [id])
+  teacher           Teacher             @relation(fields: [teacher_id], references: [id])
+  grades            Grade[]
+  enrollments       StudentEnrollment[]
+  timetable_entries TimetableEntry[]
 
   @@index([course_code])
   @@map("courses")
 }
 
-// Student Enrollments
 model StudentEnrollment {
   id              String   @id @default(uuid()) @db.Uuid
   student_id      String   @db.Uuid
   course_id       String   @db.Uuid
   enrollment_date DateTime
-  status          String   @default("enrolled") // enrolled, completed, dropped
+  status          String   @default("enrolled")
   final_grade     String?
   gpa_points      Decimal? @db.Decimal(3, 2)
   created_at      DateTime @default(now())
-
-  student Student @relation(fields: [student_id], references: [id], onDelete: Cascade)
-  course  Course  @relation(fields: [course_id], references: [id], onDelete: Cascade)
+  course          Course   @relation(fields: [course_id], references: [id], onDelete: Cascade)
+  student         Student  @relation(fields: [student_id], references: [id], onDelete: Cascade)
 
   @@unique([student_id, course_id])
   @@index([student_id])
   @@map("student_enrollments")
 }
 
-// Student Attendance
 model Attendance {
   id          String   @id @default(uuid()) @db.Uuid
   student_id  String   @db.Uuid
   course_id   String   @db.Uuid
   date        DateTime
-  status      String   // present, absent, late, excused
+  status      String
   remarks     String?
   recorded_by String   @db.Uuid
   created_at  DateTime @default(now())
-
-  student Student @relation(fields: [student_id], references: [id], onDelete: Cascade)
-  course  Course  @relation(fields: [course_id], references: [id])
+  course      Course   @relation(fields: [course_id], references: [id])
+  student     Student  @relation(fields: [student_id], references: [id], onDelete: Cascade)
 
   @@unique([student_id, course_id, date])
   @@index([student_id])
   @@map("attendance")
 }
 
-// Grades
 model Grade {
-  id              String   @id @default(uuid()) @db.Uuid
-  student_id      String   @db.Uuid
-  course_id       String   @db.Uuid
-  academic_year_id String  @db.Uuid
-  assessment_type String   // quiz, assignment, midterm, final
-  assessment_name String
-  score           Decimal  @db.Decimal(5, 2)
-  max_score       Decimal  @db.Decimal(5, 2) @default(100)
-  weight          Decimal? @db.Decimal(5, 2)
-  grade_date      DateTime
-  graded_by       String   @db.Uuid
-  remarks         String?
-  created_at      DateTime @default(now())
-  updated_at      DateTime @updatedAt
-
-  student      Student      @relation(fields: [student_id], references: [id], onDelete: Cascade)
-  course       Course       @relation(fields: [course_id], references: [id])
-  academic_year AcademicYear @relation(fields: [academic_year_id], references: [id])
-  graded_by_teacher Teacher   @relation(fields: [graded_by], references: [id])
+  id                String       @id @default(uuid()) @db.Uuid
+  student_id        String       @db.Uuid
+  course_id         String       @db.Uuid
+  academic_year_id  String       @db.Uuid
+  assessment_type   String
+  assessment_name   String
+  score             Decimal      @db.Decimal(5, 2)
+  max_score         Decimal      @default(100) @db.Decimal(5, 2)
+  weight            Decimal?     @db.Decimal(5, 2)
+  grade_date        DateTime
+  graded_by         String       @db.Uuid
+  remarks           String?
+  created_at        DateTime     @default(now())
+  updated_at        DateTime     @updatedAt
+  academic_year     AcademicYear @relation(fields: [academic_year_id], references: [id])
+  course            Course       @relation(fields: [course_id], references: [id])
+  graded_by_teacher Teacher      @relation(fields: [graded_by], references: [id])
+  student           Student      @relation(fields: [student_id], references: [id], onDelete: Cascade)
 
   @@index([student_id])
   @@map("grades")
 }
 
-// Teacher Attendance
 model TeacherAttendance {
-  id          String   @id @default(uuid()) @db.Uuid
-  teacher_id  String   @db.Uuid
-  date        DateTime
-  check_in    DateTime?
-  check_out   DateTime?
-  status      String   // present, absent, half_day, on_leave
-  remarks     String?
-  created_at  DateTime @default(now())
-
-  teacher Teacher @relation(fields: [teacher_id], references: [id], onDelete: Cascade)
+  id         String    @id @default(uuid()) @db.Uuid
+  teacher_id String    @db.Uuid
+  date       DateTime
+  check_in   DateTime?
+  check_out  DateTime?
+  status     String
+  remarks    String?
+  created_at DateTime  @default(now())
+  teacher    Teacher   @relation(fields: [teacher_id], references: [id], onDelete: Cascade)
 
   @@unique([teacher_id, date])
   @@map("teacher_attendance")
 }
 
-// Payroll Records
 model PayrollRecord {
-  id               String   @id @default(uuid()) @db.Uuid
-  teacher_id       String   @db.Uuid
-  branch_id        String   @db.Uuid
-  month            Int
-  year             Int
-  base_salary      Decimal  @db.Decimal(10, 2)
-  allowances       Decimal  @db.Decimal(10, 2) @default(0)
-  gross_salary     Decimal  @db.Decimal(10, 2)
-  deductions       Decimal  @db.Decimal(10, 2) @default(0)
-  net_salary       Decimal  @db.Decimal(10, 2)
-  days_worked      Int?
-  days_absent      Int?
-  leave_days       Int?
-  status           String   @default("draft") // draft, approved, paid
-  paid_date        DateTime?
-  approved_by      String?  @db.Uuid
-  created_at       DateTime @default(now())
-
-  teacher Teacher @relation(fields: [teacher_id], references: [id])
-  branch  Branch  @relation(fields: [branch_id], references: [id])
+  id           String    @id @default(uuid()) @db.Uuid
+  teacher_id   String    @db.Uuid
+  branch_id    String    @db.Uuid
+  month        Int
+  year         Int
+  base_salary  Decimal   @db.Decimal(10, 2)
+  allowances   Decimal   @default(0) @db.Decimal(10, 2)
+  gross_salary Decimal   @db.Decimal(10, 2)
+  deductions   Decimal   @default(0) @db.Decimal(10, 2)
+  net_salary   Decimal   @db.Decimal(10, 2)
+  days_worked  Int?
+  days_absent  Int?
+  leave_days   Int?
+  status       String    @default("draft")
+  paid_date    DateTime?
+  approved_by  String?   @db.Uuid
+  created_at   DateTime  @default(now())
+  branch       Branch    @relation(fields: [branch_id], references: [id])
+  teacher      Teacher   @relation(fields: [teacher_id], references: [id])
 
   @@unique([teacher_id, month, year])
   @@map("payroll_records")
 }
 
-// Leave Requests
 model LeaveRequest {
-  id           String   @id @default(uuid()) @db.Uuid
-  teacher_id   String   @db.Uuid
-  leave_type   String   // annual, sick, casual
-  start_date   DateTime
-  end_date     DateTime
-  days_count   Int
-  reason       String
-  status       String   @default("pending") // pending, approved, rejected
-  approved_by  String?  @db.Uuid
+  id            String    @id @default(uuid()) @db.Uuid
+  teacher_id    String    @db.Uuid
+  leave_type    String
+  start_date    DateTime
+  end_date      DateTime
+  days_count    Int
+  reason        String
+  status        String    @default("pending")
+  approved_by   String?   @db.Uuid
   approval_date DateTime?
-  created_at   DateTime @default(now())
-
-  teacher Teacher @relation(fields: [teacher_id], references: [id], onDelete: Cascade)
+  created_at    DateTime  @default(now())
+  teacher       Teacher   @relation(fields: [teacher_id], references: [id], onDelete: Cascade)
 
   @@map("leave_requests")
 }
 
-// Admission Forms
 model AdmissionForm {
-  id                String                  @id @default(uuid()) @db.Uuid
-  branch_id         String                  @db.Uuid
-  form_name         String
-  form_template     Json // Dynamic form structure
-  is_active         Boolean                 @default(true)
-  created_at        DateTime                @default(now())
-  updated_at        DateTime                @updatedAt
+  id            String   @id @default(uuid()) @db.Uuid
+  branch_id     String   @db.Uuid
+  form_name     String
+  form_template Json
+  is_active     Boolean  @default(true)
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
 
   @@map("admission_forms")
 }
 
-// Admission Applications
 model AdmissionApplication {
-  id              String   @id @default(uuid()) @db.Uuid
-  branch_id       String   @db.Uuid
-  application_number String @unique
-  applicant_data  Json
-  applicant_email String
-  applicant_phone String
-  status          String   @default("submitted") // submitted, approved, rejected
-  application_date DateTime
-  review_notes    String?
-  reviewed_by     String?  @db.Uuid
-  review_date     DateTime?
-  payment_status  String   @default("pending")
-  created_at      DateTime @default(now())
-  updated_at      DateTime @updatedAt
-
-  branch Branch @relation(fields: [branch_id], references: [id])
+  id                 String    @id @default(uuid()) @db.Uuid
+  branch_id          String    @db.Uuid
+  application_number String    @unique
+  applicant_data     Json
+  applicant_email    String
+  applicant_phone    String
+  status             String    @default("submitted")
+  application_date   DateTime
+  review_notes       String?
+  reviewed_by        String?   @db.Uuid
+  review_date        DateTime?
+  payment_status     String    @default("pending")
+  created_at         DateTime  @default(now())
+  updated_at         DateTime  @updatedAt
+  branch             Branch    @relation(fields: [branch_id], references: [id])
 
   @@index([application_number])
   @@map("admission_applications")
 }
 
-// Notifications
 model Notification {
-  id              String   @id @default(uuid()) @db.Uuid
-  user_id         String   @db.Uuid
-  notification_type String  // email, sms, in_app
-  subject         String
-  message         String
-  status          String   @default("pending")
-  sent_at         DateTime?
-  read_at         DateTime?
-  created_at      DateTime @default(now())
+  id                String    @id @default(uuid()) @db.Uuid
+  user_id           String    @db.Uuid
+  notification_type String
+  subject           String
+  message           String
+  status            String    @default("pending")
+  sent_at           DateTime?
+  read_at           DateTime?
+  created_at        DateTime  @default(now())
 
   @@map("notifications")
 }
 
-// Communication Logs
 model CommunicationLog {
-  id                String   @id @default(uuid()) @db.Uuid
-  branch_id         String   @db.Uuid
-  student_id        String   @db.Uuid
-  parent_id         String?  @db.Uuid
-  created_by        String   @db.Uuid
-  communication_type String  // email, sms, phone, meeting
-  subject           String
-  message           String
-  status            String   @default("pending")
-  created_at        DateTime @default(now())
-  updated_at        DateTime @updatedAt
-
-  branch          Branch          @relation(fields: [branch_id], references: [id])
-  student         Student         @relation(fields: [student_id], references: [id], onDelete: Cascade)
-  parent          ParentGuardian? @relation(fields: [parent_id], references: [id], onDelete: SetNull)
-  created_by_user User            @relation(fields: [created_by], references: [id])
+  id                 String          @id @default(uuid()) @db.Uuid
+  branch_id          String          @db.Uuid
+  student_id         String          @db.Uuid
+  parent_id          String?         @db.Uuid
+  created_by         String          @db.Uuid
+  communication_type String
+  subject            String
+  message            String
+  status             String          @default("pending")
+  created_at         DateTime        @default(now())
+  updated_at         DateTime        @updatedAt
+  branch             Branch          @relation(fields: [branch_id], references: [id])
+  created_by_user    User            @relation(fields: [created_by], references: [id])
+  parent             ParentGuardian? @relation(fields: [parent_id], references: [id])
+  student            Student         @relation(fields: [student_id], references: [id], onDelete: Cascade)
 
   @@index([student_id])
   @@map("communication_logs")
 }
 
-// Fee Structure
 model Fee {
-  id                String   @id @default(uuid()) @db.Uuid
-  branch_id         String   @db.Uuid
-  fee_name          String
-  fee_type          String   // tuition, transport, activity, exam, hostel
-  grade_level_id    String?  @db.Uuid
-  amount            Decimal  @db.Decimal(10, 2)
-  due_date          DateTime
-  is_active         Boolean  @default(true)
-  created_at        DateTime @default(now())
-  updated_at        DateTime @updatedAt
+  id             String   @id @default(uuid()) @db.Uuid
+  branch_id      String   @db.Uuid
+  fee_name       String
+  fee_type       String
+  grade_level_id String?  @db.Uuid
+  amount         Decimal  @db.Decimal(10, 2)
+  due_date       DateTime
+  is_active      Boolean  @default(true)
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
 
   @@unique([branch_id, fee_name, fee_type])
   @@map("fees")
 }
 
-// Fee Payments
 model FeePayment {
-  id                String   @id @default(uuid()) @db.Uuid
-  student_id        String   @db.Uuid
-  fee_id            String   @db.Uuid
-  amount_paid       Decimal  @db.Decimal(10, 2)
-  payment_date      DateTime
-  payment_method    String   // cash, card, bank_transfer, online
-  transaction_id    String?
-  receipt_number    String?  @unique
-  remarks           String?
-  recorded_by       String   @db.Uuid
-  status            String   @default("completed") // pending, completed, failed
-  created_at        DateTime @default(now())
-  updated_at        DateTime @updatedAt
-
-  student Student @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  id             String   @id @default(uuid()) @db.Uuid
+  student_id     String   @db.Uuid
+  fee_id         String   @db.Uuid
+  amount_paid    Decimal  @db.Decimal(10, 2)
+  payment_date   DateTime
+  payment_method String
+  transaction_id String?
+  receipt_number String?  @unique
+  remarks        String?
+  recorded_by    String   @db.Uuid
+  status         String   @default("completed")
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+  student        Student  @relation(fields: [student_id], references: [id], onDelete: Cascade)
 
   @@index([student_id])
   @@map("fee_payments")
 }
 
-// Scholarships
 model Scholarship {
-  id                String   @id @default(uuid()) @db.Uuid
-  branch_id         String   @db.Uuid
-  student_id        String   @db.Uuid
-  scholarship_name  String
-  scholarship_type  String   // merit, need_based, sports, other
-  amount            Decimal  @db.Decimal(10, 2)
-  percentage        Decimal? @db.Decimal(5, 2)
-  start_date        DateTime
-  end_date          DateTime?
-  status            String   @default("active") // active, inactive, expired
-  approved_by       String   @db.Uuid
-  approval_date     DateTime
-  remarks           String?
-  created_at        DateTime @default(now())
-  updated_at        DateTime @updatedAt
-
-  student Student @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  id               String    @id @default(uuid()) @db.Uuid
+  branch_id        String    @db.Uuid
+  student_id       String    @db.Uuid
+  scholarship_name String
+  scholarship_type String
+  amount           Decimal   @db.Decimal(10, 2)
+  percentage       Decimal?  @db.Decimal(5, 2)
+  start_date       DateTime
+  end_date         DateTime?
+  status           String    @default("active")
+  approved_by      String    @db.Uuid
+  approval_date    DateTime
+  remarks          String?
+  created_at       DateTime  @default(now())
+  updated_at       DateTime  @updatedAt
+  student          Student   @relation(fields: [student_id], references: [id], onDelete: Cascade)
 
   @@index([student_id])
   @@map("scholarships")
 }
 
-// Announcements
 model Announcement {
-  id                String   @id @default(uuid()) @db.Uuid
-  branch_id         String   @db.Uuid
+  id                String    @id @default(uuid()) @db.Uuid
+  branch_id         String    @db.Uuid
   title             String
-  description       String   @db.Text
-  announcement_type String   // general, academic, event, urgent
-  target_audience   String   // all, students, teachers, parents
-  created_by        String   @db.Uuid
+  description       String
+  announcement_type String
+  target_audience   String
+  created_by        String    @db.Uuid
   start_date        DateTime
   end_date          DateTime?
-  is_active         Boolean  @default(true)
-  priority          String   @default("normal") // low, normal, high, urgent
+  is_active         Boolean   @default(true)
+  priority          String    @default("normal")
   attachment_url    String?
-  views_count       Int      @default(0)
-  created_at        DateTime @default(now())
-  updated_at        DateTime @updatedAt
+  views_count       Int       @default(0)
+  created_at        DateTime  @default(now())
+  updated_at        DateTime  @updatedAt
 
   @@index([branch_id])
   @@map("announcements")
 }
 
-// Messages
 model Message {
-  id                String   @id @default(uuid()) @db.Uuid
-  sender_id         String   @db.Uuid
-  recipient_id      String   @db.Uuid
-  subject           String?
-  message_body      String   @db.Text
-  message_type      String   @default("direct") // direct, broadcast, notification
-  read_at           DateTime?
-  attachment_url    String?
-  is_archived       Boolean  @default(false)
-  created_at        DateTime @default(now())
+  id             String    @id @default(uuid()) @db.Uuid
+  sender_id      String    @db.Uuid
+  recipient_id   String    @db.Uuid
+  subject        String?
+  message_body   String
+  message_type   String    @default("direct")
+  read_at        DateTime?
+  attachment_url String?
+  is_archived    Boolean   @default(false)
+  created_at     DateTime  @default(now())
 
   @@index([recipient_id])
   @@index([sender_id])
   @@map("messages")
 }
 
-// Audit Logs
 model AuditLog {
   id            String   @id @default(uuid()) @db.Uuid
   user_id       String?  @db.Uuid
   branch_id     String   @db.Uuid
-  action        String   // create, read, update, delete
+  action        String
   entity_type   String
   entity_id     String?
   entity_name   String?
@@ -639,38 +588,35 @@ model AuditLog {
   status        String   @default("success")
   error_message String?
   created_at    DateTime @default(now())
-
-  user   User?  @relation(fields: [user_id], references: [id])
-  branch Branch @relation(fields: [branch_id], references: [id])
+  branch        Branch   @relation(fields: [branch_id], references: [id])
+  user          User?    @relation(fields: [user_id], references: [id])
 
   @@index([user_id])
   @@map("audit_logs")
 }
 
-// Phase 2: Report Generation
 model Report {
-  id                String   @id @default(uuid()) @db.Uuid
-  branch_id         String   @db.Uuid
-  report_type       String   // student_progress, teacher_performance, fee_collection, attendance_summary
-  title             String
-  description       String?
-  generated_by      String   @db.Uuid
-  generated_at      DateTime @default(now())
-  report_format     String   @default("pdf") // pdf, excel, csv
-  file_url          String?
-  file_size         Int?
-  filters           Json?
-  date_range_start  DateTime?
-  date_range_end    DateTime?
-  status            String   @default("completed") // pending, processing, completed, failed
-  error_message     String?
-  download_count    Int      @default(0)
-  last_downloaded   DateTime?
-  is_public         Boolean  @default(false)
-  created_at        DateTime @default(now())
-  updated_at        DateTime @updatedAt
-
-  branch Branch @relation(fields: [branch_id], references: [id])
+  id               String    @id @default(uuid()) @db.Uuid
+  branch_id        String    @db.Uuid
+  report_type      String
+  title            String
+  description      String?
+  generated_by     String    @db.Uuid
+  generated_at     DateTime  @default(now())
+  report_format    String    @default("pdf")
+  file_url         String?
+  file_size        Int?
+  filters          Json?
+  date_range_start DateTime?
+  date_range_end   DateTime?
+  status           String    @default("completed")
+  error_message    String?
+  download_count   Int       @default(0)
+  last_downloaded  DateTime?
+  is_public        Boolean   @default(false)
+  created_at       DateTime  @default(now())
+  updated_at       DateTime  @updatedAt
+  branch           Branch    @relation(fields: [branch_id], references: [id])
 
   @@index([branch_id])
   @@index([report_type])
@@ -678,22 +624,20 @@ model Report {
   @@map("reports")
 }
 
-// Phase 2: Analytics Data
 model AnalyticsMetric {
-  id              String   @id @default(uuid()) @db.Uuid
-  branch_id       String   @db.Uuid
-  metric_type     String   // student_enrollment, attendance_rate, fee_collection, teacher_performance, dropout_risk
-  metric_name     String
-  metric_value    Float
+  id               String   @id @default(uuid()) @db.Uuid
+  branch_id        String   @db.Uuid
+  metric_type      String
+  metric_name      String
+  metric_value     Float
   comparison_value Float?
-  trend           String?   // up, down, stable
-  period_start    DateTime
-  period_end      DateTime
-  filters         Json?
-  created_at      DateTime @default(now())
-  updated_at      DateTime @updatedAt
-
-  branch Branch @relation(fields: [branch_id], references: [id])
+  trend            String?
+  period_start     DateTime
+  period_end       DateTime
+  filters          Json?
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+  branch           Branch   @relation(fields: [branch_id], references: [id])
 
   @@index([branch_id])
   @@index([metric_type])
@@ -701,29 +645,27 @@ model AnalyticsMetric {
   @@map("analytics_metrics")
 }
 
-// Phase 2: Course Content/Materials
 model CourseContent {
-  id                String   @id @default(uuid()) @db.Uuid
-  course_id         String   @db.Uuid
-  content_type      String   // lecture, assignment, quiz, resource, video
-  title             String
-  description       String?
-  content_url       String
-  file_name         String?
-  file_size         Int?
-  file_type         String?
-  duration          Int?
-  sequence_order    Int
-  uploaded_by       String   @db.Uuid
-  uploaded_at       DateTime @default(now())
-  view_count        Int      @default(0)
-  last_accessed     DateTime?
-  is_published      Boolean  @default(true)
-  is_pinned         Boolean  @default(false)
-  created_at        DateTime @default(now())
-  updated_at        DateTime @updatedAt
-
-  course Course @relation(fields: [course_id], references: [id])
+  id             String    @id @default(uuid()) @db.Uuid
+  course_id      String    @db.Uuid
+  content_type   String
+  title          String
+  description    String?
+  content_url    String
+  file_name      String?
+  file_size      Int?
+  file_type      String?
+  duration       Int?
+  sequence_order Int
+  uploaded_by    String    @db.Uuid
+  uploaded_at    DateTime  @default(now())
+  view_count     Int       @default(0)
+  last_accessed  DateTime?
+  is_published   Boolean   @default(true)
+  is_pinned      Boolean   @default(false)
+  created_at     DateTime  @default(now())
+  updated_at     DateTime  @updatedAt
+  course         Course    @relation(fields: [course_id], references: [id])
 
   @@index([course_id])
   @@index([content_type])
@@ -731,22 +673,20 @@ model CourseContent {
   @@map("course_contents")
 }
 
-// Phase 2: Direct Messaging
 model DirectMessage {
-  id              String   @id @default(uuid()) @db.Uuid
-  sender_id       String   @db.Uuid
-  recipient_id    String   @db.Uuid
-  subject         String?
-  message_body    String   @db.Text
-  attachment_url  String?
-  read_at         DateTime?
-  is_deleted      Boolean  @default(false)
-  deleted_at      DateTime?
-  created_at      DateTime @default(now())
-  updated_at      DateTime @updatedAt
-
-  sender    User @relation("sent_messages", fields: [sender_id], references: [id])
-  recipient User @relation("received_messages", fields: [recipient_id], references: [id])
+  id             String    @id @default(uuid()) @db.Uuid
+  sender_id      String    @db.Uuid
+  recipient_id   String    @db.Uuid
+  subject        String?
+  message_body   String
+  attachment_url String?
+  read_at        DateTime?
+  is_deleted     Boolean   @default(false)
+  deleted_at     DateTime?
+  created_at     DateTime  @default(now())
+  updated_at     DateTime  @updatedAt
+  recipient      User      @relation("received_messages", fields: [recipient_id], references: [id])
+  sender         User      @relation("sent_messages", fields: [sender_id], references: [id])
 
   @@index([sender_id])
   @@index([recipient_id])
@@ -754,24 +694,22 @@ model DirectMessage {
   @@map("direct_messages")
 }
 
-// Phase 2: Class Announcements
 model ClassAnnouncement {
-  id              String   @id @default(uuid()) @db.Uuid
-  course_id       String   @db.Uuid
-  created_by      String   @db.Uuid
-  title           String
-  content         String   @db.Text
-  priority        String   @default("normal") // low, normal, high, urgent
-  announcement_type String @default("general") // general, assignment, exam, holiday
-  attachment_url  String?
-  scheduled_for   DateTime?
-  expires_at      DateTime?
-  view_count      Int      @default(0)
-  is_pinned       Boolean  @default(false)
-  created_at      DateTime @default(now())
-  updated_at      DateTime @updatedAt
-
-  course Course @relation(fields: [course_id], references: [id])
+  id                String    @id @default(uuid()) @db.Uuid
+  course_id         String    @db.Uuid
+  created_by        String    @db.Uuid
+  title             String
+  content           String
+  priority          String    @default("normal")
+  announcement_type String    @default("general")
+  attachment_url    String?
+  scheduled_for     DateTime?
+  expires_at        DateTime?
+  view_count        Int       @default(0)
+  is_pinned         Boolean   @default(false)
+  created_at        DateTime  @default(now())
+  updated_at        DateTime  @updatedAt
+  course            Course    @relation(fields: [course_id], references: [id])
 
   @@index([course_id])
   @@index([created_by])
@@ -779,32 +717,29 @@ model ClassAnnouncement {
   @@map("class_announcements")
 }
 
-// Phase 3: Advanced Role-Based Access Control
 model Permission {
-  id              String   @id @default(uuid()) @db.Uuid
-  permission_name String   @unique
+  id              String     @id @default(uuid()) @db.Uuid
+  permission_name String     @unique
   description     String?
   resource        String
   action          String
-  created_at      DateTime @default(now())
-
-  rbac_roles      RBACRole[]
+  created_at      DateTime   @default(now())
+  rbac_roles      RBACRole[] @relation("PermissionToRBACRole")
 
   @@index([resource])
   @@map("permissions")
 }
 
 model RBACRole {
-  id          String   @id @default(uuid()) @db.Uuid
-  branch_id   String   @db.Uuid
+  id          String       @id @default(uuid()) @db.Uuid
+  branch_id   String       @db.Uuid
   role_name   String
   description String?
-  is_system   Boolean  @default(false)
-  created_at  DateTime @default(now())
-  updated_at  DateTime @updatedAt
-
-  permissions Permission[]
+  is_system   Boolean      @default(false)
+  created_at  DateTime     @default(now())
+  updated_at  DateTime     @updatedAt
   user_roles  UserRole[]
+  permissions Permission[] @relation("PermissionToRBACRole")
 
   @@unique([branch_id, role_name])
   @@index([branch_id])
@@ -812,16 +747,15 @@ model RBACRole {
 }
 
 model UserRole {
-  id          String   @id @default(uuid()) @db.Uuid
-  user_id     String   @db.Uuid
-  rbac_role_id String  @db.Uuid
-  branch_id   String   @db.Uuid
-  assigned_by String   @db.Uuid
-  assigned_at DateTime @default(now())
-  expires_at  DateTime?
-
-  user      User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  rbac_role RBACRole  @relation(fields: [rbac_role_id], references: [id], onDelete: Cascade)
+  id           String    @id @default(uuid()) @db.Uuid
+  user_id      String    @db.Uuid
+  rbac_role_id String    @db.Uuid
+  branch_id    String    @db.Uuid
+  assigned_by  String    @db.Uuid
+  assigned_at  DateTime  @default(now())
+  expires_at   DateTime?
+  rbac_role    RBACRole  @relation(fields: [rbac_role_id], references: [id], onDelete: Cascade)
+  user         User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@unique([user_id, rbac_role_id, branch_id])
   @@index([user_id])
@@ -829,17 +763,16 @@ model UserRole {
   @@map("user_roles")
 }
 
-// Phase 3: Enhanced Notifications
 model NotificationNew {
-  id                String   @id @default(uuid()) @db.Uuid
-  user_id           String   @db.Uuid
+  id                String    @id @default(uuid()) @db.Uuid
+  user_id           String    @db.Uuid
   title             String
-  message           String   @db.Text
+  message           String
   notification_type String
   data              Json?
-  is_read           Boolean  @default(false)
+  is_read           Boolean   @default(false)
   read_at           DateTime?
-  created_at        DateTime @default(now())
+  created_at        DateTime  @default(now())
 
   @@index([user_id])
   @@index([created_at])
@@ -847,39 +780,38 @@ model NotificationNew {
 }
 
 model NotificationPreference {
-  id                    String   @id @default(uuid()) @db.Uuid
-  user_id               String   @db.Uuid @unique
-  email_notifications   Boolean  @default(true)
-  push_notifications    Boolean  @default(true)
-  sms_notifications     Boolean  @default(false)
-  in_app_notifications  Boolean  @default(true)
-  muted_until           DateTime?
-  created_at            DateTime @default(now())
-  updated_at            DateTime @updatedAt
+  id                   String    @id @default(uuid()) @db.Uuid
+  user_id              String    @unique @db.Uuid
+  email_notifications  Boolean   @default(true)
+  push_notifications   Boolean   @default(true)
+  sms_notifications    Boolean   @default(false)
+  in_app_notifications Boolean   @default(true)
+  muted_until          DateTime?
+  created_at           DateTime  @default(now())
+  updated_at           DateTime  @updatedAt
 
   @@map("notification_preferences")
 }
 
 model DeviceToken {
-  id            String   @id @default(uuid()) @db.Uuid
-  user_id       String   @db.Uuid
-  device_token  String
-  device_type   String
-  device_name   String?
-  is_active     Boolean  @default(true)
-  created_at    DateTime @default(now())
-  updated_at    DateTime @updatedAt
+  id           String   @id @default(uuid()) @db.Uuid
+  user_id      String   @db.Uuid
+  device_token String
+  device_type  String
+  device_name  String?
+  is_active    Boolean  @default(true)
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
 
   @@unique([user_id, device_token])
   @@index([user_id])
   @@map("device_tokens")
 }
 
-// Phase 3: Logging & Monitoring
 model Log {
   id        String   @id @default(uuid()) @db.Uuid
   level     String
-  message   String   @db.Text
+  message   String
   metadata  Json?
   timestamp DateTime @default(now())
 
@@ -900,21 +832,20 @@ model SystemHealthCheck {
   @@map("system_health_checks")
 }
 
-// Phase 3: File Exports
 model FileExport {
-  id            String   @id @default(uuid()) @db.Uuid
-  user_id       String   @db.Uuid
-  export_type   String
-  format        String
-  filters       Json?
-  file_url      String?
-  file_size     Int?
-  status        String   @default("pending")
-  error_message String?
-  download_count Int     @default(0)
-  expires_at    DateTime
-  created_at    DateTime @default(now())
-  updated_at    DateTime @updatedAt
+  id             String   @id @default(uuid()) @db.Uuid
+  user_id        String   @db.Uuid
+  export_type    String
+  format         String
+  filters        Json?
+  file_url       String?
+  file_size      Int?
+  status         String   @default("pending")
+  error_message  String?
+  download_count Int      @default(0)
+  expires_at     DateTime
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
 
   @@index([user_id])
   @@index([created_at])
@@ -922,33 +853,32 @@ model FileExport {
 }
 
 model ExportSchedule {
-  id             String   @id @default(uuid()) @db.Uuid
-  user_id        String   @db.Uuid
-  export_type    String
-  format         String
-  frequency      String
-  filters        Json?
-  recipients     String[]
-  next_run_at    DateTime
-  is_active      Boolean  @default(true)
-  created_at     DateTime @default(now())
-  updated_at     DateTime @updatedAt
+  id          String   @id @default(uuid()) @db.Uuid
+  user_id     String   @db.Uuid
+  export_type String
+  format      String
+  frequency   String
+  filters     Json?
+  recipients  String[]
+  next_run_at DateTime
+  is_active   Boolean  @default(true)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
 
   @@index([user_id])
   @@index([next_run_at])
   @@map("export_schedules")
 }
 
-// Phase 3: Backups
 model Backup {
-  id              String   @id @default(uuid()) @db.Uuid
+  id              String    @id @default(uuid()) @db.Uuid
   backup_type     String
   backup_size     Int
   file_path       String?
   cloud_url       String?
-  status          String   @default("completed")
+  status          String    @default("completed")
   error_message   String?
-  created_at      DateTime @default(now())
+  created_at      DateTime  @default(now())
   verified_at     DateTime?
   retention_until DateTime
 
@@ -958,78 +888,68 @@ model Backup {
 }
 
 model BackupSchedule {
-  id            String   @id @default(uuid()) @db.Uuid
-  backup_type   String
-  frequency     String
-  time_of_day   String
+  id             String    @id @default(uuid()) @db.Uuid
+  backup_type    String
+  frequency      String
+  time_of_day    String
   retention_days Int
-  is_active     Boolean  @default(true)
-  next_run_at   DateTime
-  last_run_at   DateTime?
-  created_at    DateTime @default(now())
-  updated_at    DateTime @updatedAt
+  is_active      Boolean   @default(true)
+  next_run_at    DateTime
+  last_run_at    DateTime?
+  created_at     DateTime  @default(now())
+  updated_at     DateTime  @updatedAt
 
   @@index([next_run_at])
   @@map("backup_schedules")
 }
-// ============================================
-// TIMETABLE SYSTEM MODELS
-// ============================================
-// Add this to the end of schema.prisma (after line 970)
 
-// Time Slots - Define periods in a day (e.g., Period 1: 8:00-9:00)
 model TimeSlot {
-  id         String   @id @default(uuid()) @db.Uuid
-  branch_id  String   @db.Uuid
-  slot_name  String   // "Period 1", "Period 2", etc.
-  start_time String   // "08:00"
-  end_time   String   // "09:00"
-  slot_type  String   @default("class") // class, break, lunch
-  sort_order Int
-  is_active  Boolean  @default(true)
-  created_at DateTime @default(now())
-
+  id                String           @id @default(uuid()) @db.Uuid
+  branch_id         String           @db.Uuid
+  slot_name         String
+  start_time        String
+  end_time          String
+  slot_type         String           @default("class")
+  sort_order        Int
+  is_active         Boolean          @default(true)
+  created_at        DateTime         @default(now())
   timetable_entries TimetableEntry[]
 
   @@unique([branch_id, slot_name])
   @@map("time_slots")
 }
 
-// Rooms/Classrooms
 model Room {
-  id            String   @id @default(uuid()) @db.Uuid
-  branch_id     String   @db.Uuid
-  room_number   String
-  room_name     String?
-  building      String?
-  floor         String?
-  capacity      Int      @default(40)
-  room_type     String   @default("classroom") // classroom, lab, auditorium, library
-  facilities    Json?    // {projector: true, ac: true, whiteboard: true}
-  is_active     Boolean  @default(true)
-  created_at    DateTime @default(now())
-
+  id                String           @id @default(uuid()) @db.Uuid
+  branch_id         String           @db.Uuid
+  room_number       String
+  room_name         String?
+  building          String?
+  floor             String?
+  capacity          Int              @default(40)
+  room_type         String           @default("classroom")
+  facilities        Json?
+  is_active         Boolean          @default(true)
+  created_at        DateTime         @default(now())
   timetable_entries TimetableEntry[]
 
   @@unique([branch_id, room_number])
   @@map("rooms")
 }
 
-// Timetable Entries - Links courses to time slots, rooms, and days
 model TimetableEntry {
   id               String   @id @default(uuid()) @db.Uuid
   academic_year_id String   @db.Uuid
   course_id        String   @db.Uuid
   time_slot_id     String   @db.Uuid
   room_id          String?  @db.Uuid
-  day_of_week      Int      // 1=Monday, 2=Tuesday, ..., 7=Sunday
+  day_of_week      Int
   is_active        Boolean  @default(true)
   created_at       DateTime @default(now())
   updated_at       DateTime @updatedAt
-
-  course    Course    @relation(fields: [course_id], references: [id], onDelete: Cascade)
-  time_slot TimeSlot  @relation(fields: [time_slot_id], references: [id])
-  room      Room?     @relation(fields: [room_id], references: [id])
+  course           Course   @relation(fields: [course_id], references: [id], onDelete: Cascade)
+  room             Room?    @relation(fields: [room_id], references: [id])
+  time_slot        TimeSlot @relation(fields: [time_slot_id], references: [id])
 
   @@unique([course_id, time_slot_id, day_of_week])
   @@index([course_id])
@@ -1037,142 +957,118 @@ model TimetableEntry {
   @@map("timetable_entries")
 }
 
-// Also need to add this relation to the existing Course model:
-// timetable_entries TimetableEntry[]
-// ============================================
-// HEALTH RECORDS SYSTEM MODELS
-// ============================================
-// Add this to the end of schema.prisma
-
-// Student Health Records - Medical history and allergies
 model HealthRecord {
-  id                String   @id @default(uuid()) @db.Uuid
-  student_id        String   @db.Uuid @unique
-  blood_group       String?  // A+, B+, O-, etc.
-  height            Decimal? @db.Decimal(5, 2) // in cm
-  weight            Decimal? @db.Decimal(5, 2) // in kg
-  allergies         String?  @db.Text // Comma-separated or JSON
-  chronic_conditions String? @db.Text
-  medications       String?  @db.Text
-  emergency_contact String?
-  emergency_phone   String?
-  doctor_name       String?
-  doctor_phone      String?
+  id                 String           @id @default(uuid()) @db.Uuid
+  student_id         String           @unique @db.Uuid
+  blood_group        String?
+  height             Decimal?         @db.Decimal(5, 2)
+  weight             Decimal?         @db.Decimal(5, 2)
+  allergies          String?
+  chronic_conditions String?
+  medications        String?
+  emergency_contact  String?
+  emergency_phone    String?
+  doctor_name        String?
+  doctor_phone       String?
   insurance_provider String?
-  insurance_number  String?
-  notes             String?  @db.Text
-  last_updated      DateTime @default(now()) @updatedAt
-  created_at        DateTime @default(now())
-
-  student           Student            @relation(fields: [student_id], references: [id], onDelete: Cascade)
-  medical_checkups  MedicalCheckup[]
-  vaccinations      Vaccination[]
+  insurance_number   String?
+  notes              String?
+  last_updated       DateTime         @default(now()) @updatedAt
+  created_at         DateTime         @default(now())
+  student            Student          @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  medical_checkups   MedicalCheckup[]
+  vaccinations       Vaccination[]
 
   @@map("health_records")
 }
 
-// Medical Checkups - Regular health examinations
 model MedicalCheckup {
-  id                String   @id @default(uuid()) @db.Uuid
-  health_record_id  String   @db.Uuid
+  id                String       @id @default(uuid()) @db.Uuid
+  health_record_id  String       @db.Uuid
   checkup_date      DateTime
-  height            Decimal? @db.Decimal(5, 2) // in cm
-  weight            Decimal? @db.Decimal(5, 2) // in kg
-  blood_pressure    String?  // e.g., "120/80"
-  temperature       Decimal? @db.Decimal(4, 2) // in Celsius
-  pulse_rate        Int?     // beats per minute
-  vision_left       String?  // e.g., "20/20"
-  vision_right      String?  // e.g., "20/20"
-  dental_checkup    Boolean  @default(false)
+  height            Decimal?     @db.Decimal(5, 2)
+  weight            Decimal?     @db.Decimal(5, 2)
+  blood_pressure    String?
+  temperature       Decimal?     @db.Decimal(4, 2)
+  pulse_rate        Int?
+  vision_left       String?
+  vision_right      String?
+  dental_checkup    Boolean      @default(false)
   doctor_name       String?
-  findings          String?  @db.Text
-  recommendations   String?  @db.Text
+  findings          String?
+  recommendations   String?
   next_checkup_date DateTime?
-  created_at        DateTime @default(now())
-
-  health_record HealthRecord @relation(fields: [health_record_id], references: [id], onDelete: Cascade)
+  created_at        DateTime     @default(now())
+  health_record     HealthRecord @relation(fields: [health_record_id], references: [id], onDelete: Cascade)
 
   @@index([health_record_id])
   @@index([checkup_date])
   @@map("medical_checkups")
 }
 
-// Vaccinations - Immunization records
 model Vaccination {
-  id                String   @id @default(uuid()) @db.Uuid
-  health_record_id  String   @db.Uuid
-  vaccine_name      String   // e.g., "COVID-19", "MMR", "Hepatitis B"
-  vaccine_type      String?  // e.g., "Booster", "Primary dose 1"
-  dose_number       Int?     @default(1)
+  id                String       @id @default(uuid()) @db.Uuid
+  health_record_id  String       @db.Uuid
+  vaccine_name      String
+  vaccine_type      String?
+  dose_number       Int?         @default(1)
   administered_date DateTime
-  administered_by   String?  // Doctor/clinic name
+  administered_by   String?
   batch_number      String?
   manufacturer      String?
   next_dose_date    DateTime?
-  side_effects      String?  @db.Text
-  certificate_url   String?  // Link to vaccination certificate
-  created_at        DateTime @default(now())
-
-  health_record HealthRecord @relation(fields: [health_record_id], references: [id], onDelete: Cascade)
+  side_effects      String?
+  certificate_url   String?
+  created_at        DateTime     @default(now())
+  health_record     HealthRecord @relation(fields: [health_record_id], references: [id], onDelete: Cascade)
 
   @@index([health_record_id])
   @@index([administered_date])
   @@map("vaccinations")
 }
 
-// Medical Incidents - Accidents, injuries, sick bay visits
 model MedicalIncident {
-  id              String   @id @default(uuid()) @db.Uuid
-  student_id      String   @db.Uuid
-  incident_date   DateTime @default(now())
-  incident_type   String   // injury, illness, emergency, other
-  severity        String   // minor, moderate, severe, critical
-  description     String   @db.Text
-  treatment_given String?  @db.Text
-  attended_by     String?  // Staff member name
-  parent_notified Boolean  @default(false)
-  hospital_visit  Boolean  @default(false)
-  hospital_name   String?
-  follow_up_required Boolean @default(false)
-  follow_up_notes String?  @db.Text
-  resolved_at     DateTime?
-  created_at      DateTime @default(now())
-  updated_at      DateTime @updatedAt
-
-  student Student @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  id                 String    @id @default(uuid()) @db.Uuid
+  student_id         String    @db.Uuid
+  incident_date      DateTime  @default(now())
+  incident_type      String
+  severity           String
+  description        String
+  treatment_given    String?
+  attended_by        String?
+  parent_notified    Boolean   @default(false)
+  hospital_visit     Boolean   @default(false)
+  hospital_name      String?
+  follow_up_required Boolean   @default(false)
+  follow_up_notes    String?
+  resolved_at        DateTime?
+  created_at         DateTime  @default(now())
+  updated_at         DateTime  @updatedAt
+  student            Student   @relation(fields: [student_id], references: [id], onDelete: Cascade)
 
   @@index([student_id])
   @@index([incident_date])
   @@map("medical_incidents")
 }
 
-// Also need to add these relations to the existing Student model:
-// health_record      HealthRecord?
-// medical_incidents  MedicalIncident[]
-// ============================================
-// EVENT CALENDAR & LIBRARY SYSTEM MODELS
-// ============================================
-// Add this to the end of schema.prisma
-
-// Events - School calendar (holidays, meetings, events)
 model Event {
   id              String   @id @default(uuid()) @db.Uuid
   branch_id       String   @db.Uuid
   title           String
-  description     String?  @db.Text
-  event_type      String   // holiday, meeting, exam, sports, cultural, other
-  target_audience String   @default("all") // all, students, teachers, parents, specific_grade
+  description     String?
+  event_type      String
+  target_audience String   @default("all")
   grade_level_id  String?  @db.Uuid
   start_date      DateTime
   end_date        DateTime
-  start_time      String?  // "09:00"
-  end_time        String?  // "17:00"
+  start_time      String?
+  end_time        String?
   location        String?
   organizer       String?
   is_holiday      Boolean  @default(false)
   is_recurring    Boolean  @default(false)
-  recurrence_rule String?  // RRULE format for recurring events
-  attachments     Json?    // Array of file URLs
+  recurrence_rule String?
+  attachments     Json?
   created_by      String   @db.Uuid
   is_active       Boolean  @default(true)
   created_at      DateTime @default(now())
@@ -1184,32 +1080,26 @@ model Event {
   @@map("events")
 }
 
-// ============================================
-// LIBRARY MANAGEMENT SYSTEM MODELS
-// ============================================
-
-// Books - Library catalog
 model Book {
-  id              String   @id @default(uuid()) @db.Uuid
-  branch_id       String   @db.Uuid
-  isbn            String?  @unique
-  title           String
-  author          String
-  publisher       String?
+  id               String     @id @default(uuid()) @db.Uuid
+  branch_id        String     @db.Uuid
+  isbn             String?    @unique
+  title            String
+  author           String
+  publisher        String?
   publication_year Int?
-  category        String?  // fiction, non-fiction, reference, textbook
-  language        String   @default("English")
-  total_copies    Int      @default(1)
-  available_copies Int     @default(1)
-  shelf_location  String?
-  description     String?  @db.Text
-  cover_image_url String?
-  price           Decimal? @db.Decimal(10, 2)
-  is_active       Boolean  @default(true)
-  created_at      DateTime @default(now())
-  updated_at      DateTime @updatedAt
-
-  loans BookLoan[]
+  category         String?
+  language         String     @default("English")
+  total_copies     Int        @default(1)
+  available_copies Int        @default(1)
+  shelf_location   String?
+  description      String?
+  cover_image_url  String?
+  price            Decimal?   @db.Decimal(10, 2)
+  is_active        Boolean    @default(true)
+  created_at       DateTime   @default(now())
+  updated_at       DateTime   @updatedAt
+  loans            BookLoan[]
 
   @@index([branch_id])
   @@index([isbn])
@@ -1217,28 +1107,26 @@ model Book {
   @@map("books")
 }
 
-// Book Loans - Borrowing records
 model BookLoan {
-  id             String    @id @default(uuid()) @db.Uuid
-  book_id        String    @db.Uuid
-  student_id     String?   @db.Uuid
-  teacher_id     String?   @db.Uuid
-  borrower_type  String    // student, teacher, staff
-  issue_date     DateTime  @default(now())
-  due_date       DateTime
-  return_date    DateTime?
-  status         String    @default("active") // active, returned, overdue
-  renewed_count  Int       @default(0)
-  issued_by      String    @db.Uuid
-  returned_to    String?   @db.Uuid
-  notes          String?   @db.Text
-  created_at     DateTime  @default(now())
-  updated_at     DateTime  @updatedAt
-
-  book    Book      @relation(fields: [book_id], references: [id])
-  student Student?  @relation(fields: [student_id], references: [id])
-  teacher Teacher?  @relation(fields: [teacher_id], references: [id])
-  fines   BookFine[]
+  id            String     @id @default(uuid()) @db.Uuid
+  book_id       String     @db.Uuid
+  student_id    String?    @db.Uuid
+  teacher_id    String?    @db.Uuid
+  borrower_type String
+  issue_date    DateTime   @default(now())
+  due_date      DateTime
+  return_date   DateTime?
+  status        String     @default("active")
+  renewed_count Int        @default(0)
+  issued_by     String     @db.Uuid
+  returned_to   String?    @db.Uuid
+  notes         String?
+  created_at    DateTime   @default(now())
+  updated_at    DateTime   @updatedAt
+  fines         BookFine[]
+  book          Book       @relation(fields: [book_id], references: [id])
+  student       Student?   @relation(fields: [student_id], references: [id])
+  teacher       Teacher?   @relation(fields: [teacher_id], references: [id])
 
   @@index([book_id])
   @@index([student_id])
@@ -1247,29 +1135,23 @@ model BookLoan {
   @@map("book_loans")
 }
 
-// Book Fines - Overdue penalties
 model BookFine {
   id             String    @id @default(uuid()) @db.Uuid
   loan_id        String    @db.Uuid
   fine_amount    Decimal   @db.Decimal(10, 2)
   days_overdue   Int
   paid_amount    Decimal   @default(0) @db.Decimal(10, 2)
-  payment_status String    @default("unpaid") // unpaid, partially_paid, paid
+  payment_status String    @default("unpaid")
   payment_date   DateTime?
   payment_method String?
   waived         Boolean   @default(false)
   waived_by      String?   @db.Uuid
-  waived_reason  String?   @db.Text
+  waived_reason  String?
   created_at     DateTime  @default(now())
   updated_at     DateTime  @updatedAt
-
-  loan BookLoan @relation(fields: [loan_id], references: [id])
+  loan           BookLoan  @relation(fields: [loan_id], references: [id])
 
   @@index([loan_id])
   @@index([payment_status])
   @@map("book_fines")
 }
-
-// Also need to add these relations to existing models:
-// Student model: book_loans BookLoan[]
-// Teacher model: book_loans BookLoan[]
