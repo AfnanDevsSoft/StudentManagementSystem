@@ -114,7 +114,8 @@ router.get(
       const result = await AnnouncementService.getAnnouncements(
         courseId,
         parseInt(limit as string),
-        parseInt(offset as string)
+        parseInt(offset as string),
+        (req as any).user
       );
 
       return res.status(result.success ? 200 : 400).json(result);
@@ -162,7 +163,8 @@ router.get(
       const result = await AnnouncementService.getAnnouncementsByPriority(
         courseId,
         priority as any,
-        parseInt(limit as string)
+        parseInt(limit as string),
+        (req as any).user
       );
 
       return res.status(result.success ? 200 : 400).json(result);
@@ -210,7 +212,8 @@ router.get(
       const result = await AnnouncementService.getAnnouncementsByType(
         courseId,
         announcementType as any,
-        parseInt(limit as string)
+        parseInt(limit as string),
+        (req as any).user
       );
 
       return res.status(result.success ? 200 : 400).json(result);
@@ -439,7 +442,7 @@ router.get(
       const { courseId } = req.params;
 
       const result =
-        await AnnouncementService.getUpcomingAnnouncements(courseId);
+        await AnnouncementService.getUpcomingAnnouncements(courseId, 10, (req as any).user);
 
       return res.status(result.success ? 200 : 400).json(result);
     } catch (error: any) {

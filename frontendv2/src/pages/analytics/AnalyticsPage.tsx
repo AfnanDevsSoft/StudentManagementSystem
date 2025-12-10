@@ -3,8 +3,8 @@ import { useQuery } from '@tanstack/react-query';
 import { MainLayout } from '../../components/layout/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { analyticsService } from '../../services/analytics.service';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
-import { Users, GraduationCap, DollarSign, TrendingUp, Activity } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
+import { Users, GraduationCap, DollarSign, Activity } from 'lucide-react';
 
 export const AnalyticsPage: React.FC = () => {
     const { data: dashboardData, isLoading } = useQuery({
@@ -181,7 +181,7 @@ export const AnalyticsPage: React.FC = () => {
                                             fill="#8884d8"
                                             dataKey="count"
                                         >
-                                            {gradeData.map((entry: any, index: number) => (
+                                            {gradeData.map((_: any, index: number) => (
                                                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                             ))}
                                         </Pie>

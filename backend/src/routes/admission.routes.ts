@@ -31,7 +31,7 @@ router.get(
   authMiddleware,
   async (req: Request, res: Response) => {
     const branchId = req.query.branchId as string;
-    const result = await AdmissionService.getAdmissionStats(branchId);
+    const result = await AdmissionService.getAdmissionStats(branchId, (req as any).user);
     sendResponse(
       res,
       result.success ? 200 : 400,
@@ -52,7 +52,8 @@ router.get("/", authMiddleware, async (req: Request, res: Response) => {
     branchId,
     status,
     limit,
-    offset
+    offset,
+    (req as any).user
   );
   sendResponse(
     res,

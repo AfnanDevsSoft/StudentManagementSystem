@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { MainLayout } from '../../components/layout/MainLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+import { Card, CardContent } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
@@ -16,13 +16,12 @@ import { bookSchema, issueBookSchema } from '../../schemas/library.schema';
 import type { BookFormData, IssueBookFormData } from '../../schemas/library.schema';
 import { studentService } from '../../services/student.service';
 import { useToast } from '../../hooks/use-toast';
-import { Plus, Search, Edit, Trash2, BookOpen, Clock, CheckCircle, RotateCcw } from 'lucide-react';
+import { Plus, Edit, Trash2, BookOpen, Clock, CheckCircle, RotateCcw } from 'lucide-react';
 
 export const LibraryPage: React.FC = () => {
     const queryClient = useQueryClient();
     const { toast } = useToast();
     const [activeTab, setActiveTab] = useState<'books' | 'issued'>('books');
-    const [searchQuery, setSearchQuery] = useState('');
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingItem, setEditingItem] = useState<any>(null);
     const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -293,7 +292,10 @@ export const LibraryPage: React.FC = () => {
 
                 <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
                     <AlertDialogContent>
-                        <AlertDialogHeader><DialogTitle>Are you sure?</DialogTitle></AlertDialogHeader>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                            <AlertDialogDescription>This action cannot be undone.</AlertDialogDescription>
+                        </AlertDialogHeader>
                         <AlertDialogFooter>
                             <AlertDialogCancel>Cancel</AlertDialogCancel>
                             <AlertDialogAction onClick={() => deleteId && deleteMutation.mutate(deleteId)}>Delete</AlertDialogAction>

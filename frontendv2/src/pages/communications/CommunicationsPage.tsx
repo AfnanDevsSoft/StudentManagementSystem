@@ -16,13 +16,12 @@ import { messageSchema, announcementSchema } from '../../schemas/communication.s
 import type { MessageFormData, AnnouncementFormData } from '../../schemas/communication.schema';
 import { userService } from '../../services/user.service';
 import { useToast } from '../../hooks/use-toast';
-import { Plus, Search, Edit, Trash2, Mail, Bell, Send, User } from 'lucide-react';
+import { Plus, Edit, Trash2, Mail, Bell } from 'lucide-react';
 
 export const CommunicationsPage: React.FC = () => {
     const queryClient = useQueryClient();
     const { toast } = useToast();
     const [activeTab, setActiveTab] = useState<'messages' | 'announcements'>('messages');
-    const [searchQuery, setSearchQuery] = useState('');
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingItem, setEditingItem] = useState<any>(null);
     const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -275,7 +274,10 @@ export const CommunicationsPage: React.FC = () => {
 
                 <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
                     <AlertDialogContent>
-                        <AlertDialogHeader><DialogTitle>Are you sure?</DialogTitle></AlertDialogHeader>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                            <AlertDialogDescription>This action cannot be undone.</AlertDialogDescription>
+                        </AlertDialogHeader>
                         <AlertDialogFooter>
                             <AlertDialogCancel>Cancel</AlertDialogCancel>
                             <AlertDialogAction onClick={() => deleteId && deleteMutation.mutate(deleteId)}>Delete</AlertDialogAction>

@@ -10,12 +10,19 @@ export class UserService {
   static async getAllUsers(
     page: number = 1,
     limit: number = 20,
-    search?: string
+    search?: string,
+    userContext?: any
   ) {
     try {
       const skip = (page - 1) * limit;
 
       const where: any = {};
+
+      // Data Scoping
+      if (userContext && userContext.role?.name !== 'SuperAdmin') {
+        where.branch_id = userContext.branch_id;
+      }
+
       if (search) {
         where.OR = [
           { username: { contains: search, mode: "insensitive" } },

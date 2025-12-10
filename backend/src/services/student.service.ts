@@ -14,11 +14,18 @@ class StudentService {
     page: number = 1,
     limit: number = 10,
     search: string = "",
-    branchId: string = ""
+    branchId: string = "",
+    userContext?: any
   ): Promise<ApiResponse> {
     try {
       const skip = (page - 1) * limit;
       const where: any = {};
+
+      // Data Scoping
+      if (userContext && userContext.role?.name !== 'SuperAdmin') {
+        // Enforce branch_id from user context, ignoring frontend request if different
+        branchId = userContext.branch_id;
+      }
 
       if (search) {
         where.OR = [

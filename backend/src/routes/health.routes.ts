@@ -1,4 +1,6 @@
 import express, { Router, Request, Response } from "express";
+// Placeholder - no update to health.routes.ts yet
+
 
 const router: Router = express.Router();
 

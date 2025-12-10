@@ -16,7 +16,7 @@ import type { Event } from '../../services/event.service';
 import { eventSchema } from '../../schemas/event.schema';
 import type { EventFormData } from '../../schemas/event.schema';
 import { useToast } from '../../hooks/use-toast';
-import { Plus, Search, Edit, Trash2, Calendar, MapPin, Users, Tag } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Calendar, MapPin } from 'lucide-react';
 
 export const EventsPage: React.FC = () => {
     const queryClient = useQueryClient();

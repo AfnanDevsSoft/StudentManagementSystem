@@ -15,9 +15,15 @@ class EventsService {
      */
     static async getEvents(
         branchId: string,
-        filters?: any
+        filters?: any,
+        userContext?: any
     ): Promise<ApiResponse> {
         try {
+            // Data Scoping
+            if (userContext && userContext.role?.name !== 'SuperAdmin') {
+                branchId = userContext.branch_id;
+            }
+
             const where: any = { branch_id: branchId, is_active: true };
 
             if (filters?.eventType) {
@@ -56,8 +62,12 @@ class EventsService {
     /**
      * Get upcoming events (next 30 days)
      */
-    static async getUpcomingEvents(branchId: string): Promise<ApiResponse> {
+    static async getUpcomingEvents(branchId: string, userContext?: any): Promise<ApiResponse> {
         try {
+            // Data Scoping
+            if (userContext && userContext.role?.name !== 'SuperAdmin') {
+                branchId = userContext.branch_id;
+            }
             const now = new Date();
             const thirtyDaysLater = new Date();
             thirtyDaysLater.setDate(now.getDate() + 30);
@@ -91,8 +101,12 @@ class EventsService {
     /**
      * Create an event
      */
-    static async createEvent(data: any): Promise<ApiResponse> {
+    static async createEvent(data: any, userContext?: any): Promise<ApiResponse> {
         try {
+            // Data Scoping
+            if (userContext && userContext.role?.name !== 'SuperAdmin') {
+                data.branch_id = userContext.branch_id;
+            }
             const event = await prisma.event.create({
                 data: {
                     branch_id: data.branch_id,
@@ -179,9 +193,14 @@ class EventsService {
     static async getMonthlyCalendar(
         branchId: string,
         year: number,
-        month: number
+        month: number,
+        userContext?: any
     ): Promise<ApiResponse> {
         try {
+            // Data Scoping
+            if (userContext && userContext.role?.name !== 'SuperAdmin') {
+                branchId = userContext.branch_id;
+            }
             const startDate = new Date(year, month - 1, 1);
             const endDate = new Date(year, month, 0);
 

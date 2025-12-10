@@ -12,7 +12,7 @@ router.get(
     const branchId = req.query.branchId as string;
     const limit = parseInt(req.query.limit as string) || 20;
     const offset = parseInt(req.query.offset as string) || 0;
-    const result = await FeeService.getFeeStructure(branchId, limit, offset);
+    const result = await FeeService.getFeeStructure(branchId, limit, offset, (req as any).user);
     sendResponse(
       res,
       result.success ? 200 : 400,
@@ -83,7 +83,8 @@ router.get("/records", authMiddleware, async (req: Request, res: Response) => {
     studentId,
     status,
     limit,
-    offset
+    offset,
+    (req as any).user
   );
   sendResponse(
     res,
@@ -116,7 +117,7 @@ router.get(
   authMiddleware,
   async (req: Request, res: Response) => {
     const branchId = req.query.branchId as string;
-    const result = await FeeService.getFeeStatistics(branchId);
+    const result = await FeeService.getFeeStatistics(branchId, (req as any).user);
     sendResponse(
       res,
       result.success ? 200 : 400,

@@ -71,7 +71,8 @@ router.get(
       page,
       limit,
       search,
-      branchId
+      branchId,
+      (req as any).user
     );
     sendResponse(
       res,

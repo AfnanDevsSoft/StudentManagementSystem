@@ -14,10 +14,17 @@ class HealthService {
     /**
      * Get health record for a student
      */
-    static async getHealthRecord(studentId: string): Promise<ApiResponse> {
+    static async getHealthRecord(studentId: string, userContext?: any): Promise<ApiResponse> {
         try {
+            const where: any = { student_id: studentId };
+
+            // Data Scoping
+            if (userContext && userContext.role?.name !== 'SuperAdmin') {
+                where.student = { branch_id: userContext.branch_id };
+            }
+
             const healthRecord = await prisma.healthRecord.findUnique({
-                where: { student_id: studentId },
+                where,
                 include: {
                     medical_checkups: {
                         orderBy: { checkup_date: "desc" },
@@ -57,9 +64,20 @@ class HealthService {
      */
     static async upsertHealthRecord(
         studentId: string,
-        data: any
+        data: any,
+        userContext?: any
     ): Promise<ApiResponse> {
         try {
+            // Data Scoping: Ensure student belongs to user's branch
+            if (userContext && userContext.role?.name !== 'SuperAdmin') {
+                const student = await prisma.student.findUnique({
+                    where: { id: studentId, branch_id: userContext.branch_id }
+                });
+                if (!student) {
+                    throw new Error("Student not found or access denied");
+                }
+            }
+
             const healthRecord = await prisma.healthRecord.upsert({
                 where: { student_id: studentId },
                 create: {
@@ -121,11 +139,17 @@ class HealthService {
     /**
      * Get medical checkups for a student
      */
-    static async getMedicalCheckups(studentId: string): Promise<ApiResponse> {
+    static async getMedicalCheckups(studentId: string, userContext?: any): Promise<ApiResponse> {
         try {
+            const where: any = { student_id: studentId };
+            // Data Scoping
+            if (userContext && userContext.role?.name !== 'SuperAdmin') {
+                where.student = { branch_id: userContext.branch_id };
+            }
+
             // First get health record
             const healthRecord = await prisma.healthRecord.findUnique({
-                where: { student_id: studentId },
+                where,
                 select: { id: true },
             });
 
@@ -159,12 +183,19 @@ class HealthService {
      */
     static async addMedicalCheckup(
         studentId: string,
-        data: any
+        data: any,
+        userContext?: any
     ): Promise<ApiResponse> {
         try {
+            const where: any = { student_id: studentId };
+            // Data Scoping
+            if (userContext && userContext.role?.name !== 'SuperAdmin') {
+                where.student = { branch_id: userContext.branch_id };
+            }
+
             // Get or create health record
             let healthRecord = await prisma.healthRecord.findUnique({
-                where: { student_id: studentId },
+                where,
             });
 
             if (!healthRecord) {
@@ -503,12 +534,18 @@ class HealthService {
     /**
      * Get health summary report for a student
      */
-    static async getHealthSummary(studentId: string): Promise<ApiResponse> {
+    static async getHealthSummary(studentId: string, userContext?: any): Promise<ApiResponse> {
         try {
+            const where: any = { student_id: studentId };
+            // Data Scoping
+            if (userContext && userContext.role?.name !== 'SuperAdmin') {
+                where.student = { branch_id: userContext.branch_id };
+            }
+
             const [healthRecord, recentCheckups, vaccinations, incidents] =
                 await Promise.all([
                     prisma.healthRecord.findUnique({
-                        where: { student_id: studentId },
+                        where,
                         include: {
                             student: {
                                 select: {

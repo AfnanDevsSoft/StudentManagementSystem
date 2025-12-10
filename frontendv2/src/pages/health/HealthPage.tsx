@@ -17,7 +17,7 @@ import { healthSchema } from '../../schemas/health.schema';
 import type { HealthFormData } from '../../schemas/health.schema';
 import { studentService } from '../../services/student.service';
 import { useToast } from '../../hooks/use-toast';
-import { Plus, Search, Edit, Trash2, HeartPulse, Activity, UserPlus, FileHeart } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, HeartPulse, Activity, FileHeart } from 'lucide-react';
 
 export const HealthPage: React.FC = () => {
     const queryClient = useQueryClient();

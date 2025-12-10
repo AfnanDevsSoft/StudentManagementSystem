@@ -16,7 +16,7 @@ router.get(
             category,
             author,
             title,
-        });
+        }, (req as any).user);
         sendResponse(res, result.success ? 200 : 404, result.success, result.message, result.data);
     }
 );
@@ -26,7 +26,7 @@ router.post(
     "/books",
     authMiddleware,
     async (req: Request, res: Response): Promise<void> => {
-        const result = await LibraryService.createBook(req.body);
+        const result = await LibraryService.createBook(req.body, (req as any).user);
         sendResponse(res, result.success ? 201 : 400, result.success, result.message, result.data);
     }
 );
@@ -106,7 +106,7 @@ router.get(
     authMiddleware,
     async (req: Request, res: Response): Promise<void> => {
         const { branch_id } = req.query;
-        const result = await LibraryService.getAllOverdueLoans(branch_id as string);
+        const result = await LibraryService.getAllOverdueLoans(branch_id as string, (req as any).user);
         sendResponse(res, result.success ? 200 : 404, result.success, result.message, result.data);
     }
 );

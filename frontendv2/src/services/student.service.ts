@@ -72,14 +72,18 @@ export const studentService = {
         // If still no branch_id, fetch from API
         if (!branch_id) {
             try {
-                const branchesResponse = await api.get('/branches');
+                const branchesResponse = await api.get(endpoints.branches.list);
                 const branches = branchesResponse.data?.data || branchesResponse.data;
                 if (branches && branches.length > 0) {
-                    branch_id = branches[0].id;
+                    branch_id = branches[0].id; // Use first available branch
                 }
             } catch (e) {
                 console.error('Error fetching branches:', e);
             }
+        }
+
+        if (!branch_id) {
+            throw new Error('Branch ID is missing. Please ensure you are logged in or a branch is created.');
         }
 
         // Transform frontend data to backend format

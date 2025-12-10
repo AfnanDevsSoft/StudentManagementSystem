@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../..
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
+import { Switch } from '../../components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
 import { useToast } from '../../hooks/use-toast';
 import { useAuth } from '../../contexts/AuthContext';
@@ -31,6 +32,19 @@ const passwordSchema = z.object({
 export const SettingsPage: React.FC = () => {
     const { user } = useAuth();
     const { toast } = useToast();
+    const [notifications, setNotifications] = React.useState({
+        email: localStorage.getItem('notify_email') !== 'false',
+        push: localStorage.getItem('notify_push') === 'true',
+    });
+
+    const handleNotificationChange = (type: 'email' | 'push', value: boolean) => {
+        setNotifications(prev => ({ ...prev, [type]: value }));
+        localStorage.setItem(`notify_${type}`, String(value));
+        toast({
+            title: 'Settings updated',
+            description: `${type === 'email' ? 'Email' : 'Push'} notifications turned ${value ? 'on' : 'off'}.`,
+        });
+    };
 
     const profileForm = useForm({
         resolver: zodResolver(profileSchema),
@@ -180,12 +194,20 @@ export const SettingsPage: React.FC = () => {
                                                 <Label>Email Notifications</Label>
                                                 <p className="text-sm text-muted-foreground">Receive emails about your activity.</p>
                                             </div>
+                                            <Switch
+                                                checked={notifications.email}
+                                                onCheckedChange={(checked) => handleNotificationChange('email', checked)}
+                                            />
                                         </div>
                                         <div className="flex items-center justify-between">
                                             <div className="space-y-0.5">
                                                 <Label>Push Notifications</Label>
                                                 <p className="text-sm text-muted-foreground">Receive push notifications on your device.</p>
                                             </div>
+                                            <Switch
+                                                checked={notifications.push}
+                                                onCheckedChange={(checked) => handleNotificationChange('push', checked)}
+                                            />
                                         </div>
                                     </CardContent>
                                 </Card>

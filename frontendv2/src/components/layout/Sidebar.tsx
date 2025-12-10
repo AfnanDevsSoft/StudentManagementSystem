@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 import {
     LayoutDashboard,
     Users,
     GraduationCap,
     BookOpen,
-    Calendar,
     ClipboardCheck,
     Award,
     FileText,
@@ -47,8 +47,18 @@ const navigation = [
 ];
 
 export const Sidebar: React.FC = () => {
+    const { user } = useAuth();
     const [collapsed, setCollapsed] = useState(false);
     const location = useLocation();
+
+    // Filter navigation based on user role
+    const filteredNavigation = navigation.filter(item => {
+        // Only SuperAdmin can see Branches and Roles
+        if (item.name === 'Branches' || item.name === 'Roles & Permissions') {
+            return user?.role?.name === 'SuperAdmin';
+        }
+        return true;
+    });
 
     return (
         <div
@@ -83,7 +93,7 @@ export const Sidebar: React.FC = () => {
 
             {/* Navigation */}
             <nav className="p-2 space-y-1 overflow-y-auto h-[calc(100vh-4rem)]">
-                {navigation.map((item) => {
+                {filteredNavigation.map((item) => {
                     const isActive = location.pathname.startsWith(item.href);
                     return (
                         <Link

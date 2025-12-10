@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 import { Bell, Search, User, LogOut, Settings, Moon, Sun, Building2 } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { branchService } from '../../services/branch.service';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
 import { useAuth } from '../../contexts/AuthContext';
 import { getInitials } from '../../lib/utils';
 
@@ -7,6 +10,14 @@ export const Header: React.FC = () => {
     const { user, logout } = useAuth();
     const [darkMode, setDarkMode] = useState(false);
     const [showUserMenu, setShowUserMenu] = useState(false);
+
+    const { data: branchesData } = useQuery({
+        queryKey: ['branches'],
+        queryFn: branchService.getAll,
+        // Only fetch if user has permission or just try fetching
+        retry: false
+    });
+    const branches = branchesData?.data || [];
 
     const toggleDarkMode = () => {
         setDarkMode(!darkMode);
@@ -31,9 +42,31 @@ export const Header: React.FC = () => {
                 {/* Right Section */}
                 <div className="flex items-center space-x-4">
                     {/* Branch Selector */}
-                    <div className="flex items-center space-x-2 px-3 py-2 bg-muted rounded-lg">
-                        <Building2 className="w-4 h-4 text-muted-foreground" />
-                        <span className="text-sm font-medium">{user?.branch?.name || 'Main Branch'}</span>
+                    <div className="flex items-center space-x-2 min-w-[200px]">
+                        <Select
+                            value={user?.branch?.id || "main"}
+                            onValueChange={(value) => {
+                                const selectedBranch = branches?.find((b: any) => b.id === value);
+                                if (selectedBranch) {
+                                    localStorage.setItem('current_branch', JSON.stringify(selectedBranch));
+                                    window.location.reload();
+                                }
+                            }}
+                        >
+                            <SelectTrigger className="w-full h-9 bg-muted border-none focus:ring-0">
+                                <div className="flex items-center gap-2">
+                                    <Building2 className="w-4 h-4 text-muted-foreground" />
+                                    <SelectValue placeholder="Select Branch" />
+                                </div>
+                            </SelectTrigger>
+                            <SelectContent>
+                                {branches?.map((branch: any) => (
+                                    <SelectItem key={branch.id} value={branch.id}>
+                                        {branch.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     </div>
 
                     {/* Dark Mode Toggle */}
@@ -61,10 +94,10 @@ export const Header: React.FC = () => {
                             className="flex items-center space-x-3 p-2 rounded-lg hover:bg-muted transition-colors"
                         >
                             <div className="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center text-white text-sm font-medium">
-                                {getInitials(`${user?.firstName} ${user?.lastName}`)}
+                                {getInitials(`${user?.first_name} ${user?.last_name}`)}
                             </div>
                             <div className="text-left hidden md:block">
-                                <div className="text-sm font-medium">{user?.firstName} {user?.lastName}</div>
+                                <div className="text-sm font-medium">{user?.first_name} {user?.last_name}</div>
                                 <div className="text-xs text-muted-foreground">{user?.role?.name}</div>
                             </div>
                         </button>

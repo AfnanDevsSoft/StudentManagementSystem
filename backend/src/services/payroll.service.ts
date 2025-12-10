@@ -12,7 +12,8 @@ export class PayrollService {
     month?: number,
     year?: number,
     limit: number = 20,
-    offset: number = 0
+    offset: number = 0,
+    userContext?: any
   ) {
     try {
       const currentMonth = month || new Date().getMonth() + 1;
@@ -22,6 +23,11 @@ export class PayrollService {
         month: currentMonth,
         year: currentYear,
       };
+
+      // Data Scoping
+      if (userContext && userContext.role?.name !== 'SuperAdmin') {
+        branchId = userContext.branch_id;
+      }
 
       if (branchId) {
         whereClause.branch_id = branchId;
@@ -144,9 +150,14 @@ export class PayrollService {
     year: number,
     baseSalary: number,
     daysWorked?: number,
-    leaveDays?: number
+    leaveDays?: number,
+    userContext?: any
   ) {
     try {
+      // Data Scoping
+      if (userContext && userContext.role?.name !== 'SuperAdmin') {
+        branchId = userContext.branch_id;
+      }
       // Check if already processed
       const existing = await prisma.payrollRecord.findUnique({
         where: {
@@ -219,10 +230,16 @@ export class PayrollService {
     teacherId?: string,
     status?: string,
     limit: number = 20,
-    offset: number = 0
+    offset: number = 0,
+    userContext?: any
   ) {
     try {
       const whereClause: any = {};
+
+      // Data Scoping
+      if (userContext && userContext.role?.name !== 'SuperAdmin') {
+        branchId = userContext.branch_id;
+      }
 
       if (branchId) {
         whereClause.branch_id = branchId;

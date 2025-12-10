@@ -9,13 +9,20 @@ export class BranchService {
   static async getAllBranches(
     page: number = 1,
     limit: number = 20,
-    search?: string
+    search?: string,
+    userContext?: any
   ) {
     try {
       const skip = (page - 1) * limit;
 
-      // Build where clause - don't filter by is_active, show all branches
+      // Build where clause
       const where: any = {};
+
+      // Data Scoping
+      if (userContext && userContext.role?.name !== 'SuperAdmin') {
+        where.id = userContext.branch_id;
+      }
+
       if (search) {
         where.OR = [
           { name: { contains: search, mode: "insensitive" } },

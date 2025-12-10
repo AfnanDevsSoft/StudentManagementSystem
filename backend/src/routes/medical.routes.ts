@@ -12,7 +12,7 @@ router.get(
     authMiddleware,
     async (req: Request, res: Response): Promise<void> => {
         const { studentId } = req.params;
-        const result = await HealthService.getHealthRecord(studentId);
+        const result = await HealthService.getHealthRecord(studentId, (req as any).user);
         sendResponse(
             res,
             result.success ? 200 : 404,
@@ -29,7 +29,7 @@ router.post(
     authMiddleware,
     async (req: Request, res: Response): Promise<void> => {
         const { studentId } = req.params;
-        const result = await HealthService.upsertHealthRecord(studentId, req.body);
+        const result = await HealthService.upsertHealthRecord(studentId, req.body, (req as any).user);
         sendResponse(
             res,
             result.success ? 200 : 400,
@@ -48,7 +48,7 @@ router.get(
     authMiddleware,
     async (req: Request, res: Response): Promise<void> => {
         const { studentId } = req.params;
-        const result = await HealthService.getMedicalCheckups(studentId);
+        const result = await HealthService.getMedicalCheckups(studentId, (req as any).user);
         sendResponse(
             res,
             result.success ? 200 : 404,
@@ -65,7 +65,7 @@ router.post(
     authMiddleware,
     async (req: Request, res: Response): Promise<void> => {
         const { studentId } = req.params;
-        const result = await HealthService.addMedicalCheckup(studentId, req.body);
+        const result = await HealthService.addMedicalCheckup(studentId, req.body, (req as any).user);
         sendResponse(
             res,
             result.success ? 201 : 400,
@@ -254,7 +254,7 @@ router.get(
     authMiddleware,
     async (req: Request, res: Response): Promise<void> => {
         const { studentId } = req.params;
-        const result = await HealthService.getHealthSummary(studentId);
+        const result = await HealthService.getHealthSummary(studentId, (req as any).user);
         sendResponse(
             res,
             result.success ? 200 : 404,

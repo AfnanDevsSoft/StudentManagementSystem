@@ -1,4 +1,8 @@
 import { Request, Response, NextFunction } from "express";
+import { PrismaClient } from "@prisma/client";
+import jwt from "jsonwebtoken";
+
+const prisma = new PrismaClient();
 
 interface ApiError extends Error {
   code?: string;
@@ -40,7 +44,7 @@ export class ApiException extends Error {
 }
 
 // ✅ Authentication Middleware
-export const authMiddleware = (
+export const authMiddleware = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -56,10 +60,39 @@ export const authMiddleware = (
     return;
   }
 
-  // Attach user information to request (for now, use token as user ID placeholder)
-  (req as any).user = { id: token };
+  try {
+    const decoded: any = jwt.verify(
+      token,
+      process.env.JWT_SECRET || "your-secret-key"
+    );
 
-  next();
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.userId },
+      include: {
+        role: true,
+        branch: true,
+      },
+    });
+
+    if (!user || !user.is_active) {
+      res.status(401).json({
+        success: false,
+        message: "User not found or inactive",
+        code: "UNAUTHORIZED",
+      });
+      return;
+    }
+
+    // Attach user information to request
+    (req as any).user = user;
+    next();
+  } catch (error) {
+    res.status(401).json({
+      success: false,
+      message: "Invalid or expired token",
+      code: "UNAUTHORIZED",
+    });
+  }
 };
 
 // ✅ Standardized Response Wrapper

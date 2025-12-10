@@ -7,9 +7,19 @@ export class FeeService {
   /**
    * Get fee structures
    */
-  static async getFeeStructure(branchId?: string, limit: number = 20, offset: number = 0) {
+  static async getFeeStructure(
+    branchId?: string,
+    limit: number = 20,
+    offset: number = 0,
+    userContext?: any
+  ) {
     try {
       const whereClause: any = {};
+
+      // Data Scoping
+      if (userContext && userContext.role?.name !== 'SuperAdmin') {
+        branchId = userContext.branch_id;
+      }
 
       if (branchId) {
         whereClause.branch_id = branchId;
@@ -184,10 +194,16 @@ export class FeeService {
     studentId?: string,
     status?: string,
     limit: number = 20,
-    offset: number = 0
+    offset: number = 0,
+    userContext?: any
   ) {
     try {
       const whereClause: any = {};
+
+      // Data Scoping: If not SuperAdmin, restrict to students in their branch
+      if (userContext && userContext.role?.name !== 'SuperAdmin') {
+        whereClause.student = { branch_id: userContext.branch_id };
+      }
 
       if (studentId) {
         whereClause.student_id = studentId;
@@ -314,9 +330,14 @@ export class FeeService {
   /**
    * Get fee statistics
    */
-  static async getFeeStatistics(branchId?: string) {
+  static async getFeeStatistics(branchId?: string, userContext?: any) {
     try {
       const whereClause: any = {};
+
+      // Data Scoping
+      if (userContext && userContext.role?.name !== 'SuperAdmin') {
+        branchId = userContext.branch_id;
+      }
 
       if (branchId) {
         whereClause.branch_id = branchId;

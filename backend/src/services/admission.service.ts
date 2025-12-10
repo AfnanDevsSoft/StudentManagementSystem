@@ -119,9 +119,15 @@ export class AdmissionService {
     branchId?: string,
     status?: string,
     limit: number = 20,
-    offset: number = 0
+    offset: number = 0,
+    userContext?: any
   ) {
     try {
+      // Data Scoping
+      if (userContext && userContext.role?.name !== 'SuperAdmin') {
+        branchId = userContext.branch_id;
+      }
+
       const whereClause: any = {};
 
       if (branchId) {
@@ -195,8 +201,12 @@ export class AdmissionService {
   /**
    * Get admission statistics
    */
-  static async getAdmissionStats(branchId?: string) {
+  static async getAdmissionStats(branchId?: string, userContext?: any) {
     try {
+      // Data Scoping
+      if (userContext && userContext.role?.name !== 'SuperAdmin') {
+        branchId = userContext.branch_id;
+      }
       const whereClause: any = {};
 
       if (branchId) {

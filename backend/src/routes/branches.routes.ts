@@ -13,7 +13,7 @@ router.get(
     const limit = parseInt(req.query.limit as string) || 10;
     const search = (req.query.search as string) || "";
 
-    const result = await BranchService.getAllBranches(page, limit, search);
+    const result = await BranchService.getAllBranches(page, limit, search, (req as any).user);
     sendResponse(
       res,
       200,

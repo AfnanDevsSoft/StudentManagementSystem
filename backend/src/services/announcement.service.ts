@@ -51,9 +51,26 @@ export class AnnouncementService {
   static async getAnnouncements(
     courseId: string,
     limit: number = 20,
-    offset: number = 0
+    offset: number = 0,
+    userContext?: any
   ) {
     try {
+      // Data Scoping
+      if (userContext && userContext.role?.name !== 'SuperAdmin') {
+        const course = await prisma.course.findUnique({
+          where: { id: courseId, branch_id: userContext.branch_id }
+        });
+        if (!course) {
+          // If course not found in user's branch, deny access or return empty
+          // Returning empty is safer/less error prone for frontend
+          return {
+            success: false, // Or true with empty data? False implies "error/access denied" which is better here.
+            message: "Access denied or course not found in your branch",
+            data: [], // Returning empty list might be better UX? No, explicit error is better for security.
+          };
+        }
+      }
+
       const [announcements, total] = await Promise.all([
         prisma.classAnnouncement.findMany({
           where: {
@@ -98,9 +115,19 @@ export class AnnouncementService {
   static async getAnnouncementsByPriority(
     courseId: string,
     priority: "low" | "normal" | "high" | "urgent",
-    limit: number = 20
+    limit: number = 20,
+    userContext?: any
   ) {
     try {
+      // Data Scoping
+      if (userContext && userContext.role?.name !== 'SuperAdmin') {
+        const course = await prisma.course.findUnique({
+          where: { id: courseId, branch_id: userContext.branch_id }
+        });
+        if (!course) {
+          return { success: false, message: "Access denied or course not found" };
+        }
+      }
       const announcements = await prisma.classAnnouncement.findMany({
         where: {
           course_id: courseId,
@@ -127,9 +154,19 @@ export class AnnouncementService {
   static async getAnnouncementsByType(
     courseId: string,
     announcementType: "general" | "assignment" | "exam" | "holiday",
-    limit: number = 20
+    limit: number = 20,
+    userContext?: any
   ) {
     try {
+      // Data Scoping
+      if (userContext && userContext.role?.name !== 'SuperAdmin') {
+        const course = await prisma.course.findUnique({
+          where: { id: courseId, branch_id: userContext.branch_id }
+        });
+        if (!course) {
+          return { success: false, message: "Access denied or course not found" };
+        }
+      }
       const announcements = await prisma.classAnnouncement.findMany({
         where: {
           course_id: courseId,
@@ -273,8 +310,17 @@ export class AnnouncementService {
   /**
    * Get upcoming announcements
    */
-  static async getUpcomingAnnouncements(courseId: string, limit: number = 10) {
+  static async getUpcomingAnnouncements(courseId: string, limit: number = 10, userContext?: any) {
     try {
+      // Data Scoping
+      if (userContext && userContext.role?.name !== 'SuperAdmin') {
+        const course = await prisma.course.findUnique({
+          where: { id: courseId, branch_id: userContext.branch_id }
+        });
+        if (!course) {
+          return { success: false, message: "Access denied or course not found" };
+        }
+      }
       const announcements = await prisma.classAnnouncement.findMany({
         where: {
           course_id: courseId,

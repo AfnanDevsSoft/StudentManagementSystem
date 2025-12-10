@@ -18,7 +18,8 @@ router.get("/salaries", authMiddleware, async (req: Request, res: Response) => {
     month,
     year,
     limit,
-    offset
+    offset,
+    (req as any).user
   );
   sendResponse(
     res,
@@ -78,7 +79,8 @@ router.post("/process", authMiddleware, async (req: Request, res: Response) => {
     year,
     baseSalary,
     daysWorked,
-    leaveDays
+    leaveDays,
+    (req as any).user
   );
   sendResponse(
     res,
@@ -101,7 +103,8 @@ router.get("/records", authMiddleware, async (req: Request, res: Response) => {
     teacherId,
     status,
     limit,
-    offset
+    offset,
+    (req as any).user
   );
   sendResponse(
     res,

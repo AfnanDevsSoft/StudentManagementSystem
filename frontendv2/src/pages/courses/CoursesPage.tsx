@@ -87,7 +87,7 @@ export const CoursesPage: React.FC = () => {
     });
 
     const updateMutation = useMutation({
-        mutationFn: ({ id, data }: { id: string; data: Partial<CourseFormData> }) =>
+        mutationFn: ({ id, data }: { id: string; data: any }) =>
             courseService.update(id, data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['courses'] });
@@ -128,10 +128,14 @@ export const CoursesPage: React.FC = () => {
     });
 
     const onSubmit = (data: CourseFormData) => {
+        const pData = {
+            ...data,
+            max_students: data.max_students === '' ? undefined : Number(data.max_students),
+        };
         if (editingCourse) {
-            updateMutation.mutate({ id: editingCourse.id, data });
+            updateMutation.mutate({ id: editingCourse.id, data: pData });
         } else {
-            createMutation.mutate(data);
+            createMutation.mutate(pData);
         }
     };
 

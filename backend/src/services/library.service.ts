@@ -14,8 +14,13 @@ class LibraryService {
     /**
      * Get all books
      */
-    static async getBooks(branchId: string, filters?: any): Promise<ApiResponse> {
+    static async getBooks(branchId: string, filters?: any, userContext?: any): Promise<ApiResponse> {
         try {
+            // Data Scoping
+            if (userContext && userContext.role?.name !== 'SuperAdmin') {
+                branchId = userContext.branch_id;
+            }
+
             const where: any = { branch_id: branchId, is_active: true };
 
             if (filters?.category) where.category = filters.category;
@@ -43,8 +48,13 @@ class LibraryService {
     /**
      * Create a book
      */
-    static async createBook(data: any): Promise<ApiResponse> {
+    static async createBook(data: any, userContext?: any): Promise<ApiResponse> {
         try {
+            // Data Scoping
+            if (userContext && userContext.role?.name !== 'SuperAdmin') {
+                data.branch_id = userContext.branch_id;
+            }
+
             const book = await prisma.book.create({
                 data: {
                     branch_id: data.branch_id,
@@ -356,13 +366,25 @@ class LibraryService {
      */
     private static async getOverdueLoans(
         borrowerId?: string,
-        borrowerType?: string
+        borrowerType?: string,
+        branchId?: string,
+        userContext?: any
     ): Promise<ApiResponse> {
         try {
+            // Data Scoping
+            if (userContext && userContext.role?.name !== 'SuperAdmin') {
+                branchId = userContext.branch_id;
+            }
+
             const where: any = {
                 status: "active",
                 due_date: { lt: new Date() },
             };
+
+            // If branchId is specified, we need to filter loans where the book belongs to the branch
+            if (branchId) {
+                where.book = { branch_id: branchId };
+            }
 
             if (borrowerId && borrowerType) {
                 where.borrower_type = borrowerType;
@@ -398,8 +420,16 @@ class LibraryService {
     /**
      * Get all overdue loans (for librarian)
      */
-    static async getAllOverdueLoans(branchId: string): Promise<ApiResponse> {
-        return this.getOverdueLoans();
+    static async getAllOverdueLoans(branchId: string, userContext?: any): Promise<ApiResponse> {
+        // Data Scoping logic is a bit complex here because getOverdueLoans doesn't inherently filter by branch unless filtering by student/teacher
+        // But we can filter by including the borrower relation and checking their branch
+        // For now, let's defer to getOverdueLoans with additional logic or just accept that getOverdueLoans needs an update too.
+        // Actually, getOverdueLoans takes borrowerId/Type. 
+        // If we want ALL overdue loans for a branch, we need a new query.
+
+        // Let's implement branch filtering directly here if needed, or update getOverdueLoans.
+        // Changing strategy: Update getOverdueLoans to support branchId filter.
+        return this.getOverdueLoans(undefined, undefined, branchId, userContext);
     }
 
     // ==================== FINES ====================

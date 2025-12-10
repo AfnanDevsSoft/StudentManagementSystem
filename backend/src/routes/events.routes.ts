@@ -15,7 +15,7 @@ router.get(
             startDate: start_date,
             endDate: end_date,
             isHoliday: is_holiday === "true",
-        });
+        }, (req as any).user);
         sendResponse(res, result.success ? 200 : 404, result.success, result.message, result.data);
     }
 );
@@ -26,7 +26,7 @@ router.get(
     authMiddleware,
     async (req: Request, res: Response): Promise<void> => {
         const { branch_id } = req.query;
-        const result = await EventsService.getUpcomingEvents(branch_id as string);
+        const result = await EventsService.getUpcomingEvents(branch_id as string, (req as any).user);
         sendResponse(res, result.success ? 200 : 404, result.success, result.message, result.data);
     }
 );
@@ -41,7 +41,8 @@ router.get(
         const result = await EventsService.getMonthlyCalendar(
             branch_id as string,
             parseInt(year),
-            parseInt(month)
+            parseInt(month),
+            (req as any).user
         );
         sendResponse(res, result.success ? 200 : 404, result.success, result.message, result.data);
     }
@@ -52,7 +53,7 @@ router.post(
     "/",
     authMiddleware,
     async (req: Request, res: Response): Promise<void> => {
-        const result = await EventsService.createEvent(req.body);
+        const result = await EventsService.createEvent(req.body, (req as any).user);
         sendResponse(res, result.success ? 201 : 400, result.success, result.message, result.data);
     }
 );

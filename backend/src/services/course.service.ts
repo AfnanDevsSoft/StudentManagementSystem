@@ -6,11 +6,17 @@ export class CourseService {
   static async getAllCourses(
     page: number = 1,
     limit: number = 20,
-    search?: string
+    search?: string,
+    userContext?: any
   ) {
     try {
       const skip = (page - 1) * limit;
       const where: any = { is_active: true };
+
+      // Data Scoping
+      if (userContext && userContext.role?.name !== 'SuperAdmin') {
+        where.branch_id = userContext.branch_id;
+      }
 
       if (search) {
         where.OR = [
