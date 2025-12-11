@@ -91,6 +91,35 @@ router.post("/process", authMiddleware, async (req: Request, res: Response) => {
   );
 });
 
+// Get payroll records for a specific teacher
+router.get(
+  "/teacher/:teacherId",
+  authMiddleware,
+  async (req: Request, res: Response) => {
+    const { teacherId } = req.params;
+    const status = req.query.status as string;
+    const limit = parseInt(req.query.limit as string) || 20;
+    const offset = parseInt(req.query.offset as string) || 0;
+
+    // Get payroll records for this teacher
+    const result = await PayrollService.getPayrollRecords(
+      undefined, // branchId not required when filtering by teacherId
+      teacherId,
+      status,
+      limit,
+      offset,
+      (req as any).user
+    );
+    sendResponse(
+      res,
+      result.success ? 200 : 400,
+      result.success,
+      result.message,
+      result.data
+    );
+  }
+);
+
 // Get payroll records
 router.get("/records", authMiddleware, async (req: Request, res: Response) => {
   const branchId = req.query.branchId as string;

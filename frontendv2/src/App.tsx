@@ -28,6 +28,16 @@ import { EventsPage } from './pages/events/EventsPage';
 import { CommunicationsPage } from './pages/communications/CommunicationsPage';
 import { AnalyticsPage } from './pages/analytics/AnalyticsPage';
 import { SettingsPage } from './pages/settings/SettingsPage';
+
+// Student Pages
+import { StudentCoursesPage } from './pages/student/StudentCoursesPage';
+import { StudentGradesPage } from './pages/student/StudentGradesPage';
+import { StudentAttendancePage } from './pages/student/StudentAttendancePage';
+import { StudentFeesPage } from './pages/student/StudentFeesPage';
+
+// Teacher Pages
+import { TeacherClassesPage } from './pages/teacher/TeacherClassesPage';
+
 import { Toaster } from './components/ui/toaster';
 
 // Create a client
@@ -61,6 +71,7 @@ function App() {
               }
             />
 
+            {/* Admin Routes */}
             <Route
               path="/branches"
               element={
@@ -187,7 +198,7 @@ function App() {
               }
             />
 
-            {/* Consolidate Messages and Announcements into Communications */}
+            {/* Communications */}
             <Route
               path="/communications"
               element={
@@ -196,7 +207,6 @@ function App() {
                 </ProtectedRoute>
               }
             />
-            {/* Redirect old routes for backward compatibility if sidebar links them */}
             <Route path="/messages" element={<Navigate to="/communications" replace />} />
             <Route path="/announcements" element={<Navigate to="/communications" replace />} />
 
@@ -214,6 +224,134 @@ function App() {
               element={
                 <ProtectedRoute>
                   <SettingsPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* ========== STUDENT ROUTES ========== */}
+            <Route
+              path="/student/courses"
+              element={
+                <ProtectedRoute>
+                  <StudentCoursesPage />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/student/grades"
+              element={
+                <ProtectedRoute>
+                  <StudentGradesPage />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/student/attendance"
+              element={
+                <ProtectedRoute>
+                  <StudentAttendancePage />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/student/fees"
+              element={
+                <ProtectedRoute>
+                  <StudentFeesPage />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/student/materials"
+              element={
+                <ProtectedRoute>
+                  <StudentCoursesPage /> {/* Placeholder - reuse courses page for now */}
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/student/assignments"
+              element={
+                <ProtectedRoute>
+                  <StudentCoursesPage /> {/* Placeholder - reuse courses page for now */}
+                </ProtectedRoute>
+              }
+            />
+
+            {/* ========== TEACHER ROUTES ========== */}
+            <Route
+              path="/teacher/classes"
+              element={
+                <ProtectedRoute>
+                  <TeacherClassesPage />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/teacher/students"
+              element={
+                <ProtectedRoute>
+                  <TeacherClassesPage /> {/* Placeholder */}
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/teacher/attendance"
+              element={
+                <ProtectedRoute>
+                  <AttendancePage /> {/* Reuse admin attendance page */}
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/teacher/grades"
+              element={
+                <ProtectedRoute>
+                  <GradesPage /> {/* Reuse admin grades page */}
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/teacher/content"
+              element={
+                <ProtectedRoute>
+                  <TeacherClassesPage /> {/* Placeholder */}
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/teacher/assignments"
+              element={
+                <ProtectedRoute>
+                  <TeacherClassesPage /> {/* Placeholder */}
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/teacher/leave"
+              element={
+                <ProtectedRoute>
+                  <TeacherClassesPage /> {/* Placeholder */}
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/teacher/payroll"
+              element={
+                <ProtectedRoute>
+                  <PayrollPage /> {/* Reuse payroll page */}
                 </ProtectedRoute>
               }
             />

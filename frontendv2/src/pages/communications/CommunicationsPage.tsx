@@ -16,19 +16,28 @@ import { messageSchema, announcementSchema } from '../../schemas/communication.s
 import type { MessageFormData, AnnouncementFormData } from '../../schemas/communication.schema';
 import { userService } from '../../services/user.service';
 import { useToast } from '../../hooks/use-toast';
+import { useAuth } from '../../contexts/AuthContext';
 import { Plus, Edit, Trash2, Mail, Bell } from 'lucide-react';
 
 export const CommunicationsPage: React.FC = () => {
     const queryClient = useQueryClient();
     const { toast } = useToast();
+    const { user } = useAuth(); // Get current user
     const [activeTab, setActiveTab] = useState<'messages' | 'announcements'>('messages');
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingItem, setEditingItem] = useState<any>(null);
     const [deleteId, setDeleteId] = useState<string | null>(null);
 
-    // Fetch data
-    const { data: messagesData } = useQuery({ queryKey: ['messages'], queryFn: communicationService.messages.getAll });
-    const { data: announcementsData } = useQuery({ queryKey: ['announcements'], queryFn: communicationService.announcements.getAll });
+    // Fetch data - pass userId to avoid 400 errors
+    const { data: messagesData } = useQuery({
+        queryKey: ['messages', user?.id],
+        queryFn: () => communicationService.messages.getAll(user?.id),
+        enabled: !!user?.id // Only fetch if user is logged in
+    });
+    const { data: announcementsData } = useQuery({
+        queryKey: ['announcements'],
+        queryFn: () => communicationService.announcements.getAll()
+    });
     const { data: usersData } = useQuery({ queryKey: ['users'], queryFn: userService.getAll });
 
     const messages = messagesData?.data || [];

@@ -55,6 +55,31 @@ router.delete(
 
 // ==================== BOOK LOANS ====================
 
+// GET all loans (general query)
+router.get(
+    "/loans",
+    authMiddleware,
+    async (req: Request, res: Response): Promise<void> => {
+        const { borrowerId, borrower_type, branch_id } = req.query;
+
+        // If borrowerId provided, get borrower-specific loans
+        if (borrowerId) {
+            const result = await LibraryService.getBorrowerLoans(
+                borrowerId as string,
+                borrower_type as string
+            );
+            return sendResponse(res, result.success ? 200 : 404, result.success, result.message, result.data);
+        }
+
+        // Otherwise get overdue loans for the branch
+        const result = await LibraryService.getAllOverdueLoans(
+            branch_id as string,
+            (req as any).user
+        );
+        sendResponse(res, result.success ? 200 : 404, result.success, result.message, result.data);
+    }
+);
+
 // POST issue a book
 router.post(
     "/loans/issue",

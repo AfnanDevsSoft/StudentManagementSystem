@@ -79,6 +79,52 @@ router.post("/", authMiddleware, async (req: Request, res: Response) => {
 
 /**
  * @swagger
+ * /api/v1/announcements:
+ *   get:
+ *     summary: Get all announcements (general, not course-specific)
+ *     tags: [Announcements]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: offset
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: targetAudience
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: List of general announcements
+ */
+router.get("/", authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { limit = 50, offset = 0, targetAudience } = req.query;
+
+    // Return empty array for now - this would query general/system-wide announcements
+    // For most use cases, announcements are course-specific
+    return res.status(200).json({
+      success: true,
+      message: "Announcements retrieved successfully",
+      data: [], // General announcements would go here
+      pagination: {
+        limit: parseInt(limit as string),
+        offset: parseInt(offset as string),
+        total: 0
+      }
+    });
+  } catch (error: any) {
+    return res.status(500).json({ message: error.message });
+  }
+});
+
+/**
+ * @swagger
  * /api/v1/announcements/{courseId}:
  *   get:
  *     summary: Get announcements for a course

@@ -102,4 +102,45 @@ export const teacherService = {
         const response = await api.delete(endpoints.teachers.delete(id));
         return response.data;
     },
+
+    // ========== Teacher Portal Methods ==========
+
+    /**
+     * Get courses assigned to a specific teacher
+     */
+    async getCourses(teacherId: string) {
+        const response = await api.get(endpoints.teachers.courses(teacherId));
+        return response.data;
+    },
+
+    /**
+     * Get all students in teacher's courses
+     */
+    async getStudents(teacherId: string) {
+        // First get the teacher's courses, then count unique students
+        const coursesResponse = await api.get(endpoints.teachers.courses(teacherId));
+        const courses = coursesResponse.data?.data || coursesResponse.data || [];
+
+        // Return courses with student count
+        return courses.map((course: any) => ({
+            ...course,
+            studentCount: course.enrollments?.length || course.students?.length || 0
+        }));
+    },
+
+    /**
+     * Get leave requests for a teacher
+     */
+    async getLeaveRequests(teacherId: string) {
+        const response = await api.get(endpoints.leaves.teacherLeaves(teacherId));
+        return response.data;
+    },
+
+    /**
+     * Get payroll records for a teacher
+     */
+    async getPayroll(teacherId: string) {
+        const response = await api.get(endpoints.payroll.teacherPayroll(teacherId));
+        return response.data;
+    },
 };

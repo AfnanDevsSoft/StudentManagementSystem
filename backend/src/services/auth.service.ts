@@ -138,6 +138,24 @@ export class AuthService {
         data: { last_login: new Date() },
       });
 
+      // Get entity ID based on role (student_id or teacher_id)
+      let entityId: string | null = null;
+      const roleName = user.role.name.toLowerCase();
+
+      if (roleName === 'student') {
+        const student = await prisma.student.findUnique({
+          where: { user_id: user.id },
+          select: { id: true }
+        });
+        entityId = student?.id || null;
+      } else if (roleName === 'teacher') {
+        const teacher = await prisma.teacher.findUnique({
+          where: { user_id: user.id },
+          select: { id: true }
+        });
+        entityId = teacher?.id || null;
+      }
+
       return {
         success: true,
         message: "Login successful",
@@ -154,6 +172,9 @@ export class AuthService {
               id: user.role.id,
               name: user.role.name,
             },
+            // Include entity ID for role-specific data fetching
+            studentId: roleName === 'student' ? entityId : undefined,
+            teacherId: roleName === 'teacher' ? entityId : undefined,
           },
         },
       };

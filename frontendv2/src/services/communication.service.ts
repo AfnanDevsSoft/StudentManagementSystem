@@ -47,17 +47,27 @@ export interface CreateAnnouncementDto {
 
 export const communicationService = {
     messages: {
-        // Backwards-compatible getAll - fetches inbox messages
-        async getAll() {
-            const response = await api.get(endpoints.messages.inbox);
+        // Get inbox messages - requires userId
+        async getAll(userId?: string) {
+            if (!userId) {
+                // Return empty array if no userId provided instead of making request
+                return { data: [], success: false, message: 'User ID required for messages' };
+            }
+            const response = await api.get(endpoints.messages.inbox, { params: { userId } });
             return response.data;
         },
-        async getInbox() {
-            const response = await api.get(endpoints.messages.inbox);
+        async getInbox(userId?: string) {
+            if (!userId) {
+                return { data: [], success: false, message: 'User ID required for inbox' };
+            }
+            const response = await api.get(endpoints.messages.inbox, { params: { userId } });
             return response.data;
         },
-        async getSent() {
-            const response = await api.get(endpoints.messages.sent);
+        async getSent(userId?: string) {
+            if (!userId) {
+                return { data: [], success: false, message: 'User ID required for sent messages' };
+            }
+            const response = await api.get(endpoints.messages.sent, { params: { userId } });
             return response.data;
         },
         async getById(id: string) {
@@ -84,13 +94,23 @@ export const communicationService = {
     },
 
     announcements: {
-        async getAll() {
-            const response = await api.get(endpoints.announcements.list);
-            return response.data;
+        async getAll(params?: { limit?: number; offset?: number; targetAudience?: string }) {
+            // Announcements might not be available - catch errors gracefully
+            try {
+                const response = await api.get(endpoints.announcements.list, { params });
+                return response.data;
+            } catch (error) {
+                // Return empty array if announcements endpoint not available
+                return { data: [], success: false, message: 'Announcements not available' };
+            }
         },
         async getGeneral() {
-            const response = await api.get(endpoints.announcements.general);
-            return response.data;
+            try {
+                const response = await api.get(endpoints.announcements.general);
+                return response.data;
+            } catch (error) {
+                return { data: [], success: false, message: 'General announcements not available' };
+            }
         },
         async getByCourse(courseId: string) {
             const response = await api.get(endpoints.announcements.byCourse(courseId));

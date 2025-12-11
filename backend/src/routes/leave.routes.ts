@@ -103,6 +103,32 @@ router.post(
   }
 );
 
+// Get all leaves for a teacher (alias for history)
+router.get(
+  "/teacher/:teacherId",
+  authMiddleware,
+  async (req: Request, res: Response) => {
+    const limit = parseInt(req.query.limit as string) || 20;
+    const offset = parseInt(req.query.offset as string) || 0;
+    const status = req.query.status as string;
+
+    // This is the same as history - returns all leave records for a teacher
+    const result = await LeaveService.getLeaveHistory(
+      req.params.teacherId,
+      limit,
+      offset,
+      status
+    );
+    sendResponse(
+      res,
+      result.success ? 200 : 400,
+      result.success,
+      result.message,
+      result.data
+    );
+  }
+);
+
 // Get leave balance
 router.get(
   "/:teacherId/balance",

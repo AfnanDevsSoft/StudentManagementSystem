@@ -111,6 +111,34 @@ router.get(
   }
 );
 
+// Get payment history for student
+router.get(
+  "/:studentId/payment-history",
+  authMiddleware,
+  async (req: Request, res: Response) => {
+    const { studentId } = req.params;
+    const limit = parseInt(req.query.limit as string) || 50;
+    const offset = parseInt(req.query.offset as string) || 0;
+
+    // Get fee records which includes payment history
+    const result = await FeeService.getFeeRecords(
+      studentId,
+      undefined, // all statuses
+      limit,
+      offset,
+      (req as any).user
+    );
+
+    sendResponse(
+      res,
+      result.success ? 200 : 404,
+      result.success,
+      result.message,
+      result.data
+    );
+  }
+);
+
 // Get fee statistics
 router.get(
   "/statistics",

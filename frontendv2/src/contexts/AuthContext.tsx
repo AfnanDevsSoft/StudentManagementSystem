@@ -17,6 +17,9 @@ interface User {
         id: string;
         name: string;
     };
+    // Entity IDs for role-specific data fetching
+    studentId?: string;
+    teacherId?: string;
 }
 
 interface AuthContextType {
@@ -55,13 +58,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const login = async (username: string, password: string) => {
         try {
             const response = await api.post(endpoints.auth.login, { username, password });
-            const { token, refresh_token, user: userData } = response.data;
-            localStorage.setItem('access_token', token);
-            if (refresh_token) {
-                localStorage.setItem('refresh_token', refresh_token);
+
+            // Handle both possible response formats
+            const data = response.data?.data || response.data;
+            const token = data.access_token || data.token;
+            const refreshToken = data.refresh_token;
+            const userData = data.user;
+
+            if (!token) {
+                throw new Error('No token received from server');
             }
-            localStorage.setItem('user', JSON.stringify(userData));
-            setUser(userData);
+
+            // Store tokens
+            localStorage.setItem('access_token', token);
+            if (refreshToken) {
+                localStorage.setItem('refresh_token', refreshToken);
+            }
+
+            // Transform user data to match our interface
+            const user = {
+                id: userData.id,
+                username: userData.username,
+                email: userData.email,
+                first_name: userData.firstName || userData.first_name,
+                last_name: userData.lastName || userData.last_name,
+                role: userData.role,
+                // Include entity IDs for role-specific data fetching
+                studentId: userData.studentId,
+                teacherId: userData.teacherId,
+            };
+
+            localStorage.setItem('user', JSON.stringify(user));
+            setUser(user as User);
         } catch (error) {
             throw error;
         }

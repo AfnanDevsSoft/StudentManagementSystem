@@ -31,6 +31,8 @@ import timetableRoutes from "./routes/timetable.routes";
 import medicalRoutes from "./routes/medical.routes";
 import eventsRoutes from "./routes/events.routes";
 import libraryRoutes from "./routes/library.routes";
+import attendanceRoutes from "./routes/attendance.routes";
+import gradesRoutes from "./routes/grades.routes";
 import { errorHandler } from "./middleware/error.middleware";
 
 const app: Express = express();
@@ -92,6 +94,12 @@ apiV1.use("/teachers", teachersRoutes);
 
 // Course Routes
 apiV1.use("/courses", coursesRoutes);
+
+// Attendance Routes (general queries)
+apiV1.use("/attendance", attendanceRoutes);
+
+// Grades Routes (general queries)
+apiV1.use("/grades", gradesRoutes);
 
 // Phase 1 Routes - Leave Management
 apiV1.use("/leaves", leaveRoutes);

@@ -222,10 +222,14 @@ export const endpoints = {
     },
     // Analytics - Backend uses /analytics/*
     analytics: {
-        overview: '/analytics/overview',
+        overview: '/analytics/dashboard', // Backend uses /dashboard not /overview
+        dashboard: '/analytics/dashboard',
         enrollment: '/analytics/enrollment',
-        revenue: '/analytics/revenue',
+        revenue: '/analytics/fees', // Backend uses /fees for revenue/fee metrics
         attendance: '/analytics/attendance',
+        fees: '/analytics/fees',
+        teachers: '/analytics/teachers',
+        trends: (metricType: string) => `/analytics/trends/${metricType}`,
     },
     // Leave Management - Backend uses /leaves/*
     leaves: {

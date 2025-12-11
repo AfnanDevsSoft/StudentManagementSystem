@@ -130,4 +130,46 @@ export const studentService = {
         const response = await api.delete(endpoints.students.delete(id));
         return response.data;
     },
+
+    // ========== Student Portal Methods ==========
+
+    /**
+     * Get grades for a specific student
+     */
+    async getGrades(studentId: string) {
+        const response = await api.get(endpoints.students.grades(studentId));
+        return response.data;
+    },
+
+    /**
+     * Get attendance records for a specific student
+     */
+    async getAttendance(studentId: string) {
+        const response = await api.get(endpoints.students.attendance(studentId));
+        return response.data;
+    },
+
+    /**
+     * Get course enrollments for a specific student
+     */
+    async getEnrollments(studentId: string) {
+        const response = await api.get(endpoints.students.enrollment(studentId));
+        return response.data;
+    },
+
+    /**
+     * Get fee status for a specific student
+     */
+    async getFees(studentId: string) {
+        const response = await api.get(endpoints.finance.studentOutstanding(studentId));
+        return response.data;
+    },
+
+    /**
+     * Get payment history for a specific student
+     */
+    async getPaymentHistory(studentId: string) {
+        const response = await api.get(endpoints.finance.studentPaymentHistory(studentId));
+        return response.data;
+    },
 };
