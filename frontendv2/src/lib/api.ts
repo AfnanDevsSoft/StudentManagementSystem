@@ -80,7 +80,7 @@ api.interceptors.response.use(
     }
 );
 
-// API Endpoints
+// API Endpoints - Aligned with backend routes
 export const endpoints = {
     // Auth
     auth: {
@@ -105,7 +105,7 @@ export const endpoints = {
         update: (id: string) => `/users/${id}`,
         delete: (id: string) => `/users/${id}`,
     },
-    // Roles
+    // Roles - Backend uses /rbac/*
     roles: {
         list: '/rbac/roles',
         create: '/rbac/roles',
@@ -123,6 +123,7 @@ export const endpoints = {
         delete: (id: string) => `/students/${id}`,
         attendance: (id: string) => `/students/${id}/attendance`,
         grades: (id: string) => `/students/${id}/grades`,
+        enrollment: (id: string) => `/students/${id}/enrollment`,
     },
     // Teachers
     teachers: {
@@ -131,8 +132,7 @@ export const endpoints = {
         get: (id: string) => `/teachers/${id}`,
         update: (id: string) => `/teachers/${id}`,
         delete: (id: string) => `/teachers/${id}`,
-        attendance: (id: string) => `/teachers/${id}/attendance`,
-        payroll: (id: string) => `/teachers/${id}/payroll`,
+        courses: (id: string) => `/teachers/${id}/courses`,
     },
     // Courses
     courses: {
@@ -142,82 +142,113 @@ export const endpoints = {
         update: (id: string) => `/courses/${id}`,
         delete: (id: string) => `/courses/${id}`,
         enrollments: (id: string) => `/courses/${id}/enrollments`,
+        students: (id: string) => `/courses/${id}/students`,
+        enroll: (id: string) => `/courses/${id}/enroll`,
     },
-    // Admissions
+    // Admissions - Backend uses /admission (singular)
     admissions: {
-        list: '/admissions',
-        create: '/admissions',
-        get: (id: string) => `/admissions/${id}`,
-        update: (id: string) => `/admissions/${id}`,
-        delete: (id: string) => `/admissions/${id}`,
+        list: '/admission',
+        create: '/admission/apply',
+        get: (id: string) => `/admission/${id}`,
+        update: (id: string) => `/admission/${id}`,
+        delete: (id: string) => `/admission/${id}`,
+        approve: (id: string) => `/admission/${id}/approve`,
+        reject: (id: string) => `/admission/${id}/reject`,
+        statistics: '/admission/statistics',
     },
-    // Attendance
-    attendance: {
-        list: '/attendance',
-        mark: '/attendance',
-        reports: '/attendance/reports',
-    },
-    // Grades
-    grades: {
-        list: '/grades',
-        create: '/grades',
-        reports: '/grades/reports',
-    },
-    // Payroll
+    // Payroll - Backend uses /payroll/*
     payroll: {
-        list: '/payroll',
-        create: '/payroll',
+        list: '/payroll/salaries',
+        process: '/payroll/process',
         get: (id: string) => `/payroll/${id}`,
         update: (id: string) => `/payroll/${id}`,
         approve: (id: string) => `/payroll/${id}/approve`,
+        teacherPayroll: (teacherId: string) => `/payroll/teacher/${teacherId}`,
     },
-    // Finance
+    // Finance/Fees - Backend uses /fees/*
     finance: {
-        fees: '/fees',
-        payments: '/fee-payments',
-        scholarships: '/scholarships',
+        structures: '/fees/structures',
+        records: '/fees/records',
+        payment: '/fees/payment',
+        studentOutstanding: (studentId: string) => `/fees/${studentId}/outstanding`,
+        studentPaymentHistory: (studentId: string) => `/fees/${studentId}/payment-history`,
     },
-    // Library
+    // Library - Backend uses /library/*
     library: {
         books: '/library/books',
-        loans: '/library/loans',
+        bookById: (id: string) => `/library/books/${id}`,
+        loansOverdue: '/library/loans/overdue',
+        loansByBorrower: (borrowerId: string) => `/library/loans/borrower/${borrowerId}`,
         issue: '/library/loans/issue',
-        return: '/library/loans/return',
+        return: (loanId: string) => `/library/loans/${loanId}/return`,
+        renew: (loanId: string) => `/library/loans/${loanId}/renew`,
+        fines: '/library/fines',
+        waiveFine: (fineId: string) => `/library/fines/${fineId}/waive`,
     },
-    // Health
+    // Health/Medical - Backend uses /medical/*
     health: {
-        records: '/health/records',
-        checkups: '/health/checkups',
-        vaccinations: '/health/vaccinations',
-        incidents: '/health/incidents',
+        studentRecord: (studentId: string) => `/medical/student/${studentId}`,
+        summary: (studentId: string) => `/medical/summary/${studentId}`,
+        checkups: (studentId: string) => `/medical/checkups/${studentId}`,
+        vaccinations: (studentId: string) => `/medical/vaccinations/${studentId}`,
+        incidents: (studentId: string) => `/medical/incidents/${studentId}`,
     },
-    // Events
+    // Events - Backend uses /events
     events: {
         list: '/events',
         create: '/events',
         get: (id: string) => `/events/${id}`,
         update: (id: string) => `/events/${id}`,
         delete: (id: string) => `/events/${id}`,
+        monthly: (branchId: string, year: number, month: number) => `/events/calendar/${branchId}/${year}/${month}`,
     },
-    // Messages
+    // Messages - Backend uses /messages/*
     messages: {
-        list: '/messages',
-        send: '/messages',
+        inbox: '/messages/inbox',
+        sent: '/messages/sent',
+        send: '/messages/send',
         get: (id: string) => `/messages/${id}`,
+        markRead: (id: string) => `/messages/${id}/read`,
     },
-    // Announcements
+    // Announcements - Backend uses /announcements/*
     announcements: {
         list: '/announcements',
         create: '/announcements',
         get: (id: string) => `/announcements/${id}`,
         update: (id: string) => `/announcements/${id}`,
         delete: (id: string) => `/announcements/${id}`,
+        byCourse: (courseId: string) => `/announcements/course/${courseId}`,
+        general: '/announcements/general',
     },
-    // Analytics
+    // Analytics - Backend uses /analytics/*
     analytics: {
-        dashboard: '/analytics/dashboard',
-        reports: '/analytics/reports',
-        metrics: '/analytics/metrics',
+        overview: '/analytics/overview',
+        enrollment: '/analytics/enrollment',
+        revenue: '/analytics/revenue',
+        attendance: '/analytics/attendance',
+    },
+    // Leave Management - Backend uses /leaves/*
+    leaves: {
+        request: '/leaves/request',
+        list: '/leaves',
+        pending: '/leaves/pending',
+        approve: (id: string) => `/leaves/${id}/approve`,
+        reject: (id: string) => `/leaves/${id}/reject`,
+        teacherLeaves: (teacherId: string) => `/leaves/teacher/${teacherId}`,
+    },
+    // Course Content - Backend uses /course-content/*
+    courseContent: {
+        list: (courseId: string) => `/course-content/course/${courseId}`,
+        create: (courseId: string) => `/course-content/course/${courseId}`,
+        get: (id: string) => `/course-content/${id}`,
+        update: (id: string) => `/course-content/${id}`,
+        delete: (id: string) => `/course-content/${id}`,
+    },
+    // Notifications - Backend uses /notifications/*
+    notifications: {
+        list: '/notifications',
+        markRead: (id: string) => `/notifications/${id}/read`,
+        markAllRead: '/notifications/mark-all-read',
     },
 };
 

@@ -39,10 +39,6 @@ export interface Scholarship {
     start_date: string;
     end_date: string;
     conditions?: string;
-    student?: {
-        first_name: string;
-        last_name: string;
-    };
 }
 
 // DTOs
@@ -55,6 +51,16 @@ export interface CreateFeeDto {
 }
 
 export interface CreatePaymentDto {
+    studentId: string;
+    feeId: string;
+    amountPaid: number;
+    paymentMethod: string;
+    recordedBy: string;
+    transactionId?: string;
+}
+
+// Backwards-compatible payment DTO
+export interface LegacyPaymentDto {
     student_id: string;
     fee_id: string;
     amount_paid: number;
@@ -74,60 +80,105 @@ export interface CreateScholarshipDto {
 }
 
 export const financeService = {
+    // Backwards-compatible 'fees' alias for feeStructures
     fees: {
         async getAll() {
-            const response = await api.get(endpoints.finance.fees);
+            const response = await api.get(endpoints.finance.structures);
             return response.data;
         },
         async create(data: CreateFeeDto) {
-            const response = await api.post(endpoints.finance.fees, data);
+            const response = await api.post(endpoints.finance.structures, data);
             return response.data;
         },
         async update(id: string, data: Partial<CreateFeeDto>) {
-            const response = await api.put(`${endpoints.finance.fees}/${id}`, data);
+            const response = await api.put(`/fees/structures/${id}`, data);
             return response.data;
         },
         async delete(id: string) {
-            const response = await api.delete(`${endpoints.finance.fees}/${id}`);
+            const response = await api.delete(`/fees/structures/${id}`);
             return response.data;
         },
     },
 
+    // Fee Structures (same as fees)
+    feeStructures: {
+        async getAll() {
+            const response = await api.get(endpoints.finance.structures);
+            return response.data;
+        },
+        async create(data: CreateFeeDto) {
+            const response = await api.post(endpoints.finance.structures, data);
+            return response.data;
+        },
+    },
+
+    // Fee Records/Payment History
+    feeRecords: {
+        async getAll(params?: { studentId?: string }) {
+            const response = await api.get(endpoints.finance.records, { params });
+            return response.data;
+        },
+    },
+
+    // Payments with full CRUD for backwards compatibility
     payments: {
         async getAll() {
-            const response = await api.get(endpoints.finance.payments);
+            const response = await api.get(endpoints.finance.records);
             return response.data;
         },
-        async create(data: CreatePaymentDto) {
-            const response = await api.post(endpoints.finance.payments, data);
+        async process(data: CreatePaymentDto) {
+            const response = await api.post(endpoints.finance.payment, data);
             return response.data;
         },
-        async update(id: string, data: Partial<CreatePaymentDto>) {
-            const response = await api.put(`${endpoints.finance.payments}/${id}`, data);
+        async create(data: LegacyPaymentDto | CreatePaymentDto | any) {
+            const response = await api.post(endpoints.finance.payment, data);
+            return response.data;
+        },
+        async update(id: string, data: any) {
+            const response = await api.put(`/fees/payment/${id}`, data);
             return response.data;
         },
         async delete(id: string) {
-            const response = await api.delete(`${endpoints.finance.payments}/${id}`);
+            const response = await api.delete(`/fees/payment/${id}`);
             return response.data;
         },
     },
 
+    // Scholarships (placeholder - backend may not have this)
     scholarships: {
         async getAll() {
-            const response = await api.get(endpoints.finance.scholarships);
-            return response.data;
+            // Return empty array if no scholarships endpoint exists
+            try {
+                const response = await api.get('/scholarships');
+                return response.data;
+            } catch {
+                return { data: [] };
+            }
         },
         async create(data: CreateScholarshipDto) {
-            const response = await api.post(endpoints.finance.scholarships, data);
+            const response = await api.post('/scholarships', data);
             return response.data;
         },
         async update(id: string, data: Partial<CreateScholarshipDto>) {
-            const response = await api.put(`${endpoints.finance.scholarships}/${id}`, data);
+            const response = await api.put(`/scholarships/${id}`, data);
             return response.data;
         },
         async delete(id: string) {
-            const response = await api.delete(`${endpoints.finance.scholarships}/${id}`);
+            const response = await api.delete(`/scholarships/${id}`);
+            return response.data;
+        },
+    },
+
+    // Student-specific fees
+    studentFees: {
+        async getOutstanding(studentId: string) {
+            const response = await api.get(endpoints.finance.studentOutstanding(studentId));
+            return response.data;
+        },
+        async getPaymentHistory(studentId: string) {
+            const response = await api.get(endpoints.finance.studentPaymentHistory(studentId));
             return response.data;
         },
     },
 };
+

@@ -32,9 +32,9 @@ export interface Announcement {
 }
 
 export interface CreateMessageDto {
+    recipientId: string;
     subject: string;
-    content: string;
-    receiver_id: string;
+    messageBody: string;
 }
 
 export interface CreateAnnouncementDto {
@@ -42,35 +42,45 @@ export interface CreateAnnouncementDto {
     content: string;
     target_audience: string;
     priority: string;
+    courseId?: string;
 }
 
 export const communicationService = {
     messages: {
+        // Backwards-compatible getAll - fetches inbox messages
         async getAll() {
-            // Endpoints might be endpoints.messages.list or such.
-            // Using raw string based on `announcements` existence in `api.ts` snippet logic inference.
-            // Actually `api.ts` snippet didn't show `messages` block, but `announcements` was likely there?
-            // I'll check `api.ts` again or just assume standard REST if not found.
-            // Let's assume `/messages` and `/announcements`.
-            const response = await api.get('/messages');
+            const response = await api.get(endpoints.messages.inbox);
             return response.data;
         },
         async getInbox() {
-            const response = await api.get('/messages/inbox'); // If specific endpoint exists
+            const response = await api.get(endpoints.messages.inbox);
             return response.data;
         },
-        async create(data: CreateMessageDto) {
-            const response = await api.post('/messages', data);
+        async getSent() {
+            const response = await api.get(endpoints.messages.sent);
+            return response.data;
+        },
+        async getById(id: string) {
+            const response = await api.get(endpoints.messages.get(id));
+            return response.data;
+        },
+        async send(data: CreateMessageDto) {
+            const response = await api.post(endpoints.messages.send, data);
+            return response.data;
+        },
+        // Backwards-compatible create - alias for send
+        async create(data: CreateMessageDto | any) {
+            const response = await api.post(endpoints.messages.send, data);
             return response.data;
         },
         async markRead(id: string) {
-            const response = await api.put(`/messages/${id}/read`, {});
+            const response = await api.put(endpoints.messages.markRead(id), {});
             return response.data;
         },
         async delete(id: string) {
             const response = await api.delete(`/messages/${id}`);
             return response.data;
-        }
+        },
     },
 
     announcements: {
@@ -78,17 +88,30 @@ export const communicationService = {
             const response = await api.get(endpoints.announcements.list);
             return response.data;
         },
+        async getGeneral() {
+            const response = await api.get(endpoints.announcements.general);
+            return response.data;
+        },
+        async getByCourse(courseId: string) {
+            const response = await api.get(endpoints.announcements.byCourse(courseId));
+            return response.data;
+        },
+        async getById(id: string) {
+            const response = await api.get(endpoints.announcements.get(id));
+            return response.data;
+        },
         async create(data: CreateAnnouncementDto) {
             const response = await api.post(endpoints.announcements.create, data);
             return response.data;
         },
         async update(id: string, data: Partial<CreateAnnouncementDto>) {
-            const response = await api.put(`${endpoints.announcements.list}/${id}`, data);
+            const response = await api.put(endpoints.announcements.update(id), data);
             return response.data;
         },
         async delete(id: string) {
-            const response = await api.delete(`${endpoints.announcements.list}/${id}`);
+            const response = await api.delete(endpoints.announcements.delete(id));
             return response.data;
         }
     }
 };
+

@@ -27,13 +27,13 @@ export const LibraryPage: React.FC = () => {
     const [deleteId, setDeleteId] = useState<string | null>(null);
 
     // Fetch data
-    const { data: booksData } = useQuery({ queryKey: ['books'], queryFn: libraryService.books.getAll });
-    const { data: issuedData } = useQuery({ queryKey: ['issued_books'], queryFn: libraryService.issued.getAll });
-    const { data: studentsData } = useQuery({ queryKey: ['students'], queryFn: studentService.getAll });
+    const { data: booksData } = useQuery({ queryKey: ['books'], queryFn: () => libraryService.books.getAll() });
+    const { data: issuedData } = useQuery({ queryKey: ['issued_books'], queryFn: () => libraryService.issued.getAll() });
+    const { data: studentsData } = useQuery({ queryKey: ['students'], queryFn: () => studentService.getAll() });
 
-    const books = booksData?.data || [];
-    const issuedBooks = issuedData?.data || [];
-    const students = studentsData?.data || [];
+    const books = (booksData as any)?.data || booksData || [];
+    const issuedBooks = (issuedData as any)?.data || issuedData || [];
+    const students = (studentsData as any)?.data || studentsData || [];
 
     // Forms
     const bookForm = useForm<BookFormData>({
