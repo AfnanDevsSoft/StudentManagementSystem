@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/ta
 import { useToast } from '../../hooks/use-toast';
 import { useAuth } from '../../contexts/AuthContext';
 import { userService } from '../../services/user.service';
+import { SchoolConfigTab } from './tabs/SchoolConfigTab';
 
 const profileSchema = z.object({
     first_name: z.string().min(1, 'First name is required'),
@@ -115,6 +116,9 @@ export const SettingsPage: React.FC = () => {
                                 <TabsTrigger value="profile">Profile</TabsTrigger>
                                 <TabsTrigger value="security">Security</TabsTrigger>
                                 <TabsTrigger value="notifications">Notifications</TabsTrigger>
+                                {(user?.role?.name === 'SuperAdmin' || user?.role?.name === 'BranchAdmin') && (
+                                    <TabsTrigger value="school-config">School Config</TabsTrigger>
+                                )}
                             </TabsList>
 
                             <TabsContent value="profile">
@@ -212,6 +216,12 @@ export const SettingsPage: React.FC = () => {
                                     </CardContent>
                                 </Card>
                             </TabsContent>
+
+                            {(user?.role?.name === 'SuperAdmin' || user?.role?.name === 'BranchAdmin') && (
+                                <TabsContent value="school-config">
+                                    <SchoolConfigTab />
+                                </TabsContent>
+                            )}
                         </Tabs>
                     </div>
                 </div>

@@ -1,5 +1,6 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { TeacherProfileError } from '../../components/teacher/TeacherProfileError';
 import { MainLayout } from '../../components/layout/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
@@ -17,7 +18,10 @@ import {
     AlertCircle,
 } from 'lucide-react';
 
+import { useNavigate } from 'react-router-dom';
+
 export const TeacherClassesPage: React.FC = () => {
+    const navigate = useNavigate();
     const { user } = useAuth();
     const teacherId = user?.teacherId;
 
@@ -37,19 +41,7 @@ export const TeacherClassesPage: React.FC = () => {
         : 0;
 
     if (!teacherId) {
-        return (
-            <MainLayout>
-                <div className="space-y-6">
-                    <div className="text-center py-12">
-                        <AlertCircle className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-                        <h2 className="text-xl font-semibold">Teacher Profile Not Found</h2>
-                        <p className="text-muted-foreground mt-2">
-                            Your user account is not linked to a teacher record. Please contact the administrator.
-                        </p>
-                    </div>
-                </div>
-            </MainLayout>
-        );
+        return <TeacherProfileError />;
     }
 
     return (
@@ -185,17 +177,24 @@ export const TeacherClassesPage: React.FC = () => {
                                             )}
 
                                             <div className="flex gap-2 pt-2">
-                                                <Button size="sm" className="flex-1">
+                                                <Button
+                                                    size="sm"
+                                                    className="flex-1"
+                                                    onClick={() => navigate(`/teacher/attendance?courseId=${course.id}`)}
+                                                >
                                                     <ClipboardCheck className="w-4 h-4 mr-1" />
                                                     Attendance
                                                 </Button>
-                                                <Button size="sm" variant="outline" className="flex-1">
+                                                <Button
+                                                    size="sm"
+                                                    variant="outline"
+                                                    className="flex-1"
+                                                    onClick={() => navigate(`/teacher/grades?courseId=${course.id}`)}
+                                                >
                                                     <FileText className="w-4 h-4 mr-1" />
                                                     Grades
                                                 </Button>
-                                                <Button size="sm" variant="outline">
-                                                    <ChevronRight className="w-4 h-4" />
-                                                </Button>
+
                                             </div>
                                         </CardContent>
                                     </Card>

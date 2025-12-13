@@ -4,6 +4,7 @@ import { MainLayout } from '../../components/layout/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { useAuth } from '../../contexts/AuthContext';
+import { StudentProfileError } from '../../components/student/StudentProfileError';
 import { studentService } from '../../services/student.service';
 import {
     BookOpen,
@@ -29,19 +30,7 @@ export const StudentCoursesPage: React.FC = () => {
     const enrollments = enrollmentsData?.data || enrollmentsData || [];
 
     if (!studentId) {
-        return (
-            <MainLayout>
-                <div className="space-y-6">
-                    <div className="text-center py-12">
-                        <AlertCircle className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-                        <h2 className="text-xl font-semibold">Student Profile Not Found</h2>
-                        <p className="text-muted-foreground mt-2">
-                            Your user account is not linked to a student record. Please contact the administrator.
-                        </p>
-                    </div>
-                </div>
-            </MainLayout>
-        );
+        return <StudentProfileError />;
     }
 
     return (
@@ -105,8 +94,8 @@ export const StudentCoursesPage: React.FC = () => {
                                                 {course.code || course.course_code || 'COURSE'}
                                             </span>
                                             <span className={`text-xs px-2 py-1 rounded ${enrollment.status === 'active' || enrollment.status === 'enrolled'
-                                                    ? 'bg-green-100 text-green-600 dark:bg-green-900/30'
-                                                    : 'bg-gray-100 text-gray-600 dark:bg-gray-900/30'
+                                                ? 'bg-green-100 text-green-600 dark:bg-green-900/30'
+                                                : 'bg-gray-100 text-gray-600 dark:bg-gray-900/30'
                                                 }`}>
                                                 {enrollment.status || 'Enrolled'}
                                             </span>

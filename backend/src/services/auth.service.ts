@@ -30,6 +30,8 @@ export interface AuthResponse {
         id: string;
         name: string;
       };
+      studentId?: string | null;
+      teacherId?: string | null;
     };
   };
 }
@@ -172,7 +174,6 @@ export class AuthService {
               id: user.role.id,
               name: user.role.name,
             },
-            // Include entity ID for role-specific data fetching
             studentId: roleName === 'student' ? entityId : undefined,
             teacherId: roleName === 'teacher' ? entityId : undefined,
           },

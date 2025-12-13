@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/ca
 import { Button } from '../../components/ui/button';
 import { useAuth } from '../../contexts/AuthContext';
 import { teacherService } from '../../services/teacher.service';
+import { leaveService } from '../../services/leave.service';
 import {
     BookOpen,
     Users,
@@ -15,6 +16,7 @@ import {
     AlertCircle,
     Loader2,
 } from 'lucide-react';
+import { TeacherProfileError } from '../../components/teacher/TeacherProfileError';
 
 export const TeacherDashboard: React.FC = () => {
     const { user } = useAuth();
@@ -30,7 +32,7 @@ export const TeacherDashboard: React.FC = () => {
     // Fetch teacher's leave requests
     const { data: leaveData, isLoading: loadingLeave } = useQuery({
         queryKey: ['teacher-leaves', teacherId],
-        queryFn: () => teacherService.getLeaveRequests(teacherId!),
+        queryFn: () => leaveService.getTeacherLeaves(teacherId!),
         enabled: !!teacherId,
     });
 
@@ -56,18 +58,11 @@ export const TeacherDashboard: React.FC = () => {
         { name: 'Active Courses', value: totalClasses, icon: Clock, color: 'text-purple-500', bg: 'bg-purple-100 dark:bg-purple-900/30' },
     ];
 
+
+
+    // ... inside component ...
     if (!teacherId) {
-        return (
-            <div className="space-y-6">
-                <div className="text-center py-12">
-                    <AlertCircle className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-                    <h2 className="text-xl font-semibold">Teacher Profile Not Found</h2>
-                    <p className="text-muted-foreground mt-2">
-                        Your user account is not linked to a teacher record. Please contact the administrator.
-                    </p>
-                </div>
-            </div>
-        );
+        return <TeacherProfileError />;
     }
 
     return (

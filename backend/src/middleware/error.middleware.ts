@@ -71,6 +71,8 @@ export const authMiddleware = async (
       include: {
         role: true,
         branch: true,
+        teacher: true,
+        student: true,
       },
     });
 

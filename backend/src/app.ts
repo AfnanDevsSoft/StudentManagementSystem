@@ -33,6 +33,10 @@ import eventsRoutes from "./routes/events.routes";
 import libraryRoutes from "./routes/library.routes";
 import attendanceRoutes from "./routes/attendance.routes";
 import gradesRoutes from "./routes/grades.routes";
+import academicYearRoutes from "./routes/academic-years.routes";
+import gradeLevelRoutes from "./routes/grade-levels.routes";
+import subjectRoutes from "./routes/subjects.routes";
+import assignmentsRoutes from "./routes/assignments.routes";
 import { errorHandler } from "./middleware/error.middleware";
 
 const app: Express = express();
@@ -150,6 +154,15 @@ apiV1.use("/events", eventsRoutes);
 
 // Phase 4 Routes - Library Management
 apiV1.use("/library", libraryRoutes);
+
+// Helper Routes for Dropdowns
+// Helper Routes for Dropdowns
+apiV1.use("/academic-years", academicYearRoutes);
+apiV1.use("/grade-levels", gradeLevelRoutes);
+apiV1.use("/subjects", subjectRoutes);
+
+// Assignment Routes
+apiV1.use("/assignments", assignmentsRoutes);
 
 // Mount v1 routes
 app.use("/api/v1", apiV1);

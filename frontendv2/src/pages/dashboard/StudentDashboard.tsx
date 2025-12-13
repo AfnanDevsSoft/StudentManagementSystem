@@ -16,6 +16,7 @@ import {
     AlertCircle,
     Loader2,
 } from 'lucide-react';
+import { StudentProfileError } from '../../components/student/StudentProfileError';
 
 export const StudentDashboard: React.FC = () => {
     const { user } = useAuth();
@@ -89,17 +90,7 @@ export const StudentDashboard: React.FC = () => {
     const notifications: any[] = [];
 
     if (!studentId) {
-        return (
-            <div className="space-y-6">
-                <div className="text-center py-12">
-                    <AlertCircle className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-                    <h2 className="text-xl font-semibold">Student Profile Not Found</h2>
-                    <p className="text-muted-foreground mt-2">
-                        Your user account is not linked to a student record. Please contact the administrator.
-                    </p>
-                </div>
-            </div>
-        );
+        return <StudentProfileError />;
     }
 
     return (

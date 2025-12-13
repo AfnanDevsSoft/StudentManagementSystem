@@ -273,6 +273,24 @@ router.get("/me", async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
+    // Get entity ID based on role
+    let entityId: string | null = null;
+    const roleName = user.role.name.toLowerCase();
+
+    if (roleName === 'student') {
+      const student = await prisma.student.findUnique({
+        where: { user_id: user.id },
+        select: { id: true }
+      });
+      entityId = student?.id || null;
+    } else if (roleName === 'teacher') {
+      const teacher = await prisma.teacher.findUnique({
+        where: { user_id: user.id },
+        select: { id: true }
+      });
+      entityId = teacher?.id || null;
+    }
+
     // Flatten response for tests
     res.status(200).json({
       success: true,
@@ -284,6 +302,9 @@ router.get("/me", async (req: Request, res: Response): Promise<void> => {
         first_name: user.first_name,
         last_name: user.last_name,
         role: user.role,
+        branch_id: user.branch_id,
+        studentId: roleName === 'student' ? entityId : undefined,
+        teacherId: roleName === 'teacher' ? entityId : undefined,
       }
     });
   } catch (error: any) {

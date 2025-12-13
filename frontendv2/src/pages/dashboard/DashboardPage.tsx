@@ -14,6 +14,7 @@ export const DashboardPage: React.FC = () => {
         switch (roleName) {
             case 'superadmin':
             case 'admin':
+            case 'branchadmin':
                 return <AdminDashboard />;
             case 'teacher':
                 return <TeacherDashboard />;

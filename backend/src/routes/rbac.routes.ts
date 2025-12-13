@@ -5,6 +5,25 @@ import { authMiddleware, sendResponse } from "../middleware/error.middleware";
 const router: Router = Router();
 
 /**
+ * GET /api/v1/rbac/roles
+ * Get all roles (optionally filtered by branchId via query)
+ */
+router.get(
+  "/roles",
+  authMiddleware,
+  async (req: Request, res: Response): Promise<void> => {
+    const { branchId, limit = 20, offset = 0 } = req.query;
+
+    const result = await RBACService.getRoles(
+      branchId as string,
+      parseInt(limit as string) || 20,
+      parseInt(offset as string) || 0
+    );
+    sendResponse(res, 200, result.success, result.message, result.data);
+  }
+);
+
+/**
  * GET /api/v1/rbac/roles/:branchId
  * Get all roles for branch
  */

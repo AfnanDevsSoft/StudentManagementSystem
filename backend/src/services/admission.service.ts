@@ -149,10 +149,20 @@ export class AdmissionService {
         where: whereClause,
       });
 
+      const flattenedApplications = applications.map((app: typeof applications[number]) => {
+        const applicantData: any = (app as any).applicant_data || {};
+        return {
+          ...applicantData, // Spread JSON first
+          ...app,           // Spread DB record second (overwrites JSON)
+          email: (app as any).applicant_email,
+          phone: (app as any).applicant_phone,
+        };
+      });
+
       return {
         success: true,
         message: "Applications retrieved",
-        data: applications,
+        data: flattenedApplications,
         pagination: {
           limit,
           offset,
@@ -183,10 +193,18 @@ export class AdmissionService {
         return { success: false, message: "Application not found" };
       }
 
+      const applicantData: any = application.applicant_data || {};
+      const flattenedApplication = {
+        ...applicantData, // Spread JSON first
+        ...application,   // Spread DB record second (overwrites JSON)
+        email: application.applicant_email,
+        phone: application.applicant_phone,
+      };
+
       return {
         success: true,
         message: "Application details retrieved",
-        data: application,
+        data: flattenedApplication,
       };
     } catch (error) {
       console.error("Error getting application details:", error);
@@ -264,7 +282,9 @@ export class AdmissionService {
   ) {
     try {
       const application = await prisma.admissionApplication.update({
-        where: { id: applicationId },
+        where: {
+          id: applicationId
+        },
         data: { payment_status: paymentStatus },
       });
 
@@ -278,6 +298,60 @@ export class AdmissionService {
       return {
         success: false,
         message: "Failed to update payment status",
+        error: error instanceof Error ? error.message : "Unknown error",
+      };
+    }
+  }
+
+  /**
+   * Update admission application
+   */
+  static async updateApplication(
+    applicationId: string,
+    data: any
+  ) {
+    try {
+      const { branchId, applicantEmail, applicantPhone, applicantData, status, ...rest } = data;
+
+      // Prepare update data
+      const updateData: any = {};
+
+      if (branchId) updateData.branch_id = branchId;
+      if (applicantEmail) updateData.applicant_email = applicantEmail;
+      if (applicantPhone) updateData.applicant_phone = applicantPhone;
+      if (status) updateData.status = status;
+      if (applicantData) updateData.applicant_data = applicantData;
+
+      // If we have flat fields that belong in applicant_data (from frontend flat structure)
+      // we need to merge them into applicant_data
+      if (Object.keys(rest).length > 0) {
+        // Fetch existing application to get current applicant_data
+        const existingApp = await prisma.admissionApplication.findUnique({
+          where: { id: applicationId }
+        });
+
+        if (existingApp) {
+          const currentApplicantData: any = existingApp.applicant_data || {};
+          const newApplicantData = { ...currentApplicantData, ...rest };
+          updateData.applicant_data = newApplicantData;
+        }
+      }
+
+      const application = await prisma.admissionApplication.update({
+        where: { id: applicationId },
+        data: updateData,
+      });
+
+      return {
+        success: true,
+        message: "Admission application updated successfully",
+        data: application,
+      };
+    } catch (error) {
+      console.error("Error updating application:", error);
+      return {
+        success: false,
+        message: "Failed to update application",
         error: error instanceof Error ? error.message : "Unknown error",
       };
     }

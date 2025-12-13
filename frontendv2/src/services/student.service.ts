@@ -30,11 +30,13 @@ export interface CreateStudentDto {
     nationality?: string;
     admission_date: string;
     current_grade_level_id?: string;
+    username?: string;
+    password?: string;
 }
 
 export const studentService = {
-    async getAll() {
-        const response = await api.get(endpoints.students.list);
+    async getAll(params?: { page?: number; limit?: number; search?: string; branch_id?: string }) {
+        const response = await api.get(endpoints.students.list, { params });
         return response.data;
     },
 
@@ -101,6 +103,8 @@ export const studentService = {
             // Auto-generate student code (backend will validate uniqueness)
             student_code: `STU${Date.now().toString().slice(-8)}`,
             branch_id: branch_id,
+            username: data.username,
+            password: data.password,
         };
 
         const response = await api.post(endpoints.students.create, backendData);

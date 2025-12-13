@@ -11,6 +11,8 @@ export const teacherSchema = z.object({
     designation: z.string().optional(),
     qualification: z.string().optional(),
     years_experience: z.number().min(0).optional().or(z.literal('')),
+    username: z.string().min(3, 'Username must be at least 3 characters').optional(),
+    password: z.string().min(6, 'Password must be at least 6 characters').optional(),
 });
 
 export type TeacherFormData = z.infer<typeof teacherSchema>;

@@ -98,4 +98,14 @@ export const courseService = {
         const response = await api.delete(endpoints.courses.delete(id));
         return response.data;
     },
+
+    async getStudents(id: string) {
+        const response = await api.get(endpoints.courses.students(id));
+        return response.data;
+    },
+
+    async enrollStudent(courseId: string, studentId: string) {
+        const response = await api.post(endpoints.courses.enroll(courseId), { student_id: studentId });
+        return response.data;
+    },
 };

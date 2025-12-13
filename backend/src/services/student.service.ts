@@ -217,8 +217,9 @@ class StudentService {
         personal_email,
         admission_date,
         admission_status,
-        user_id, // Link to user account for login credentials
         current_grade_level_id,
+        username,
+        password,
       } = data;
 
       // Validation
@@ -241,6 +242,44 @@ class StudentService {
         };
       }
 
+      let userId = data.user_id;
+
+      // If username and password provided, create user account
+      if (username && password) {
+        // Check if username exists
+        const existingUser = await prisma.user.findUnique({ where: { username } });
+        if (existingUser) {
+          return { success: false, message: "Username already exists" };
+        }
+
+        // Get Student Role
+        const studentRole = await prisma.role.findFirst({
+          where: { name: 'Student' } // Global student role
+        });
+
+        if (!studentRole) {
+          return { success: false, message: "Student role configuration error" };
+        }
+
+        const bcryptjs = require("bcryptjs");
+        const hashedPassword = await bcryptjs.hash(password, 10);
+
+        const newUser = await prisma.user.create({
+          data: {
+            username,
+            password_hash: hashedPassword,
+            email: personal_email || `${username}@koolhub.edu`,
+            first_name,
+            last_name,
+            phone: personal_phone,
+            role_id: studentRole.id,
+            branch_id: branch_id,
+            is_active: true
+          }
+        });
+        userId = newUser.id;
+      }
+
       // Create student
       const student = await prisma.student.create({
         data: {
@@ -248,7 +287,7 @@ class StudentService {
           last_name,
           student_code,
           branch_id,
-          user_id: user_id || null, // Link to user account
+          user_id: userId || null, // Link to user account
           current_grade_level_id: current_grade_level_id || null,
           date_of_birth: new Date(date_of_birth),
           admission_date: new Date(admission_date),

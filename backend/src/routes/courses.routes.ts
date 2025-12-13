@@ -72,7 +72,55 @@ router.delete(
   }
 );
 
-// GET all courses with pagination and search
+// GET course attendance
+router.get(
+  "/:id/attendance",
+  authMiddleware,
+  async (req: Request, res: Response): Promise<void> => {
+    const { id } = req.params;
+    const { date } = req.query;
+
+    // Import dynamically if needed or assume available
+    const AttendanceService = require("../services/attendance.service").default;
+    const result = await AttendanceService.getByCourse(id, date as string);
+
+    sendResponse(
+      res,
+      result.success ? 200 : 400,
+      result.success,
+      result.message,
+      result.data
+    );
+  }
+);
+
+// POST bulk mark attendance
+router.post(
+  "/:id/attendance/bulk",
+  authMiddleware,
+  async (req: Request, res: Response): Promise<void> => {
+    const { id } = req.params;
+    const { date, records } = req.body;
+    const user = (req as any).user;
+
+    const AttendanceService = require("../services/attendance.service").default;
+    const result = await AttendanceService.bulkMark({
+      courseId: id,
+      date,
+      records,
+      recordedBy: user.id,
+      branchId: user.branch_id
+    });
+
+    sendResponse(
+      res,
+      result.success ? 200 : 400,
+      result.success,
+      result.message,
+      result.data
+    );
+  }
+);
 router.get(
   "/",
   authMiddleware,
@@ -118,6 +166,51 @@ router.post(
     const result = await CourseService.createCourse(req.body);
     const statusCode = result.success ? 201 : 400;
     sendResponse(res, statusCode, result.success, result.message, result.data);
+  }
+);
+
+// GET course grades
+router.get(
+  "/:id/grades",
+  authMiddleware,
+  async (req: Request, res: Response): Promise<void> => {
+    const { id } = req.params;
+
+    const GradeService = require("../services/grade.service").default;
+    const result = await GradeService.getByCourse(id);
+
+    sendResponse(
+      res,
+      result.success ? 200 : 400,
+      result.success,
+      result.message,
+      result.data
+    );
+  }
+);
+
+// POST bulk grades
+router.post(
+  "/:id/grades/bulk",
+  authMiddleware,
+  async (req: Request, res: Response): Promise<void> => {
+    const { id } = req.params;
+    const user = (req as any).user;
+
+    const GradeService = require("../services/grade.service").default;
+    const result = await GradeService.bulkCreate({
+      ...req.body,
+      courseId: id,
+      userId: user.id
+    });
+
+    sendResponse(
+      res,
+      result.success ? 200 : 400,
+      result.success,
+      result.message,
+      result.data
+    );
   }
 );
 

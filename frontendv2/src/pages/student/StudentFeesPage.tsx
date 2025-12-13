@@ -4,6 +4,7 @@ import { MainLayout } from '../../components/layout/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { useAuth } from '../../contexts/AuthContext';
+import { StudentProfileError } from '../../components/student/StudentProfileError';
 import { studentService } from '../../services/student.service';
 import {
     DollarSign,
@@ -50,19 +51,7 @@ export const StudentFeesPage: React.FC = () => {
     const payments = Array.isArray(paymentHistory) ? paymentHistory : [];
 
     if (!studentId) {
-        return (
-            <MainLayout>
-                <div className="space-y-6">
-                    <div className="text-center py-12">
-                        <AlertCircle className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-                        <h2 className="text-xl font-semibold">Student Profile Not Found</h2>
-                        <p className="text-muted-foreground mt-2">
-                            Your user account is not linked to a student record. Please contact the administrator.
-                        </p>
-                    </div>
-                </div>
-            </MainLayout>
-        );
+        return <StudentProfileError />;
     }
 
     return (
@@ -221,8 +210,8 @@ export const StudentFeesPage: React.FC = () => {
                                                     <div className="flex items-center gap-3">
                                                         <span className="font-bold">${(fee.amount || 0).toLocaleString()}</span>
                                                         <span className={`text-xs px-2 py-1 rounded-full ${fee.status === 'paid'
-                                                                ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-                                                                : 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400'
+                                                            ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                                                            : 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400'
                                                             }`}>
                                                             {fee.status === 'paid' ? 'Paid' : 'Pending'}
                                                         </span>

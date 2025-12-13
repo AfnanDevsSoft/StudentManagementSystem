@@ -10,6 +10,7 @@ export const courseSchema = z.object({
     max_students: z.number().min(1).max(100).optional().or(z.literal('')),
     room_number: z.string().optional(),
     building: z.string().optional(),
+    branch_id: z.string().optional(),
 });
 
 export type CourseFormData = z.infer<typeof courseSchema>;

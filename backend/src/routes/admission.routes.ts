@@ -64,6 +64,18 @@ router.get("/", authMiddleware, async (req: Request, res: Response) => {
   );
 });
 
+// Update application
+router.put("/:id", authMiddleware, async (req: Request, res: Response) => {
+  const result = await AdmissionService.updateApplication(req.params.id, req.body);
+  sendResponse(
+    res,
+    result.success ? 200 : 400,
+    result.success,
+    result.message,
+    result.data
+  );
+});
+
 // Get application details
 router.get("/:id", authMiddleware, async (req: Request, res: Response) => {
   const result = await AdmissionService.getApplicationDetails(req.params.id);

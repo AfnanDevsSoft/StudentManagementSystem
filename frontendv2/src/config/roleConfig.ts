@@ -57,8 +57,7 @@ export const adminNavigation: NavigationItem[] = [
     { name: 'Payroll', href: '/payroll', icon: Receipt, group: 'Finance' },
     { name: 'Library', href: '/library', icon: Library, group: 'Operations' },
     { name: 'Health Records', href: '/health', icon: Heart, group: 'Operations' },
-    { name: 'Events', href: '/events', icon: CalendarDays, group: 'Operations' },
-    { name: 'Communications', href: '/communications', icon: MessageSquare, group: 'Communication' },
+
     { name: 'Analytics', href: '/analytics', icon: BarChart3 },
     { name: 'Settings', href: '/settings', icon: Settings },
 ];
@@ -70,12 +69,11 @@ export const teacherNavigation: NavigationItem[] = [
     { name: 'My Students', href: '/teacher/students', icon: GraduationCap, group: 'Teaching' },
     { name: 'Attendance', href: '/teacher/attendance', icon: ClipboardCheck, group: 'Teaching' },
     { name: 'Grades', href: '/teacher/grades', icon: Award, group: 'Teaching' },
-    { name: 'Course Content', href: '/teacher/content', icon: Upload, group: 'Content' },
+
     { name: 'Assignments', href: '/teacher/assignments', icon: FileText, group: 'Content' },
     { name: 'Leave Requests', href: '/teacher/leave', icon: Calendar, group: 'HR' },
     { name: 'My Payroll', href: '/teacher/payroll', icon: DollarSign, group: 'HR' },
-    { name: 'Events', href: '/events', icon: CalendarDays },
-    { name: 'Communications', href: '/communications', icon: MessageSquare },
+
     { name: 'Settings', href: '/settings', icon: Settings },
 ];
 
@@ -83,14 +81,33 @@ export const teacherNavigation: NavigationItem[] = [
 export const studentNavigation: NavigationItem[] = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'My Courses', href: '/student/courses', icon: BookOpen, group: 'Learning' },
-    { name: 'Course Materials', href: '/student/materials', icon: FolderOpen, group: 'Learning' },
+
     { name: 'Assignments', href: '/student/assignments', icon: FileText, group: 'Learning' },
     { name: 'My Grades', href: '/student/grades', icon: Award, group: 'Performance' },
     { name: 'My Attendance', href: '/student/attendance', icon: ClipboardCheck, group: 'Performance' },
     { name: 'Fee Status', href: '/student/fees', icon: DollarSign, group: 'Finance' },
     { name: 'Library', href: '/library', icon: Library, group: 'Resources' },
-    { name: 'Events', href: '/events', icon: CalendarDays, group: 'Resources' },
-    { name: 'Communications', href: '/communications', icon: MessageSquare },
+
+    { name: 'Settings', href: '/settings', icon: Settings },
+];
+
+// Branch Admin Navigation - Assigned branch management
+export const branchAdminNavigation: NavigationItem[] = [
+    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+    // Branch Admin does not manage Branches or Roles globally
+    { name: 'Users', href: '/users', icon: Users, group: 'Management' },
+    { name: 'Students', href: '/students', icon: GraduationCap, group: 'Management' },
+    { name: 'Teachers', href: '/teachers', icon: Users, group: 'Management' },
+    { name: 'Courses', href: '/courses', icon: BookOpen, group: 'Academic' },
+    { name: 'Admissions', href: '/admissions', icon: FileText, group: 'Academic' },
+    { name: 'Attendance', href: '/attendance', icon: ClipboardCheck, group: 'Academic' },
+    { name: 'Grades', href: '/grades', icon: Award, group: 'Academic' },
+    { name: 'Finance', href: '/finance', icon: DollarSign, group: 'Finance' },
+    { name: 'Payroll', href: '/payroll', icon: Receipt, group: 'Finance' },
+    { name: 'Library', href: '/library', icon: Library, group: 'Operations' },
+    { name: 'Health Records', href: '/health', icon: Heart, group: 'Operations' },
+
+    { name: 'Analytics', href: '/analytics', icon: BarChart3 },
     { name: 'Settings', href: '/settings', icon: Settings },
 ];
 
@@ -102,8 +119,10 @@ export function getNavigationByRole(role: string): NavigationItem[] {
 
     switch (normalizedRole) {
         case 'superadmin':
+            return adminNavigation; // Super Admin gets full access
         case 'admin':
-            return adminNavigation;
+        case 'branchadmin':
+            return branchAdminNavigation; // Branch Admin gets restricted access
         case 'teacher':
             return teacherNavigation;
         case 'student':
@@ -208,6 +227,7 @@ export function getRolePermissions(role: string): Record<string, boolean> {
     switch (normalizedRole) {
         case 'superadmin':
         case 'admin':
+        case 'branchadmin':
             return rolePermissions.admin;
         case 'teacher':
             return rolePermissions.teacher;

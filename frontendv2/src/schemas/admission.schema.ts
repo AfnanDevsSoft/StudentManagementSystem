@@ -15,6 +15,7 @@ export const admissionSchema = z.object({
     application_date: z.string().min(1, 'Application date is required'),
     status: z.enum(['Pending', 'Reviewing', 'Accepted', 'Rejected', 'Waitlisted']),
     notes: z.string().optional(),
+    branch_id: z.string().min(1, 'Branch is required'),
 });
 
 export type AdmissionFormData = z.infer<typeof admissionSchema>;

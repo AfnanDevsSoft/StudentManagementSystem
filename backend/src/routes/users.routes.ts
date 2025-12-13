@@ -36,6 +36,34 @@ const router: Router = express.Router();
  *             schema:
  *               $ref: '#/components/schemas/PaginatedResponse'
  */
+/**
+ * @swagger
+ * /users/roles:
+ *   get:
+ *     tags:
+ *       - Users
+ *     summary: Get all roles
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of roles
+ */
+router.get(
+  "/roles",
+  authMiddleware,
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      // Need PrismaClient here or import usage from service
+      // Better to add method to UserService
+      const result = await UserService.getRoles();
+      sendResponse(res, 200, result.success, result.message, result.data);
+    } catch (error: any) {
+      sendResponse(res, 500, false, error.message);
+    }
+  }
+);
+
 router.get(
   "/",
   authMiddleware,
@@ -119,7 +147,7 @@ router.post(
   "/",
   authMiddleware,
   async (req: Request, res: Response): Promise<void> => {
-    const result = await UserService.createUser(req.body);
+    const result = await UserService.createUser(req.body, (req as any).user);
     const statusCode = result.success ? 201 : 400;
     sendResponse(res, statusCode, result.success, result.message, result.data);
   }

@@ -11,6 +11,8 @@ export const studentSchema = z.object({
     nationality: z.string().optional(),
     admission_date: z.string().min(1, 'Admission date is required'),
     current_grade_level_id: z.string().optional(),
+    username: z.string().min(3, 'Username must be at least 3 characters').optional(),
+    password: z.string().min(6, 'Password must be at least 6 characters').optional(),
 });
 
 export type StudentFormData = z.infer<typeof studentSchema>;

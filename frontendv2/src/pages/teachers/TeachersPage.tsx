@@ -426,6 +426,36 @@ export const TeachersPage: React.FC = () => {
                                 </div>
                             </div>
 
+                            {!editingTeacher && (
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <Label htmlFor="username">Username</Label>
+                                        <Input
+                                            id="username"
+                                            {...register('username')}
+                                            className={errors.username ? 'border-destructive' : ''}
+                                            placeholder="For login access"
+                                        />
+                                        {errors.username && (
+                                            <p className="text-sm text-destructive mt-1">{errors.username.message}</p>
+                                        )}
+                                    </div>
+                                    <div>
+                                        <Label htmlFor="password">Password</Label>
+                                        <Input
+                                            id="password"
+                                            type="password"
+                                            {...register('password')}
+                                            className={errors.password ? 'border-destructive' : ''}
+                                            placeholder="Min. 6 characters"
+                                        />
+                                        {errors.password && (
+                                            <p className="text-sm text-destructive mt-1">{errors.password.message}</p>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <Label htmlFor="department">Department</Label>

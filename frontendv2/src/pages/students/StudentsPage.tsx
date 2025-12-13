@@ -29,10 +29,10 @@ export const StudentsPage: React.FC = () => {
     // Fetch students
     const { data: studentsData, isLoading } = useQuery({
         queryKey: ['students'],
-        queryFn: studentService.getAll,
+        queryFn: () => studentService.getAll(),
     });
 
-    const students = studentsData?.data || [];
+    const students = (studentsData as any)?.data || [];
 
     // Form with validation
     const {
@@ -448,6 +448,36 @@ export const StudentsPage: React.FC = () => {
                                     <Input id="nationality" {...register('nationality')} />
                                 </div>
                             </div>
+
+                            {!editingStudent && (
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <Label htmlFor="username">Username</Label>
+                                        <Input
+                                            id="username"
+                                            {...register('username')}
+                                            className={errors.username ? 'border-destructive' : ''}
+                                            placeholder="For login access"
+                                        />
+                                        {errors.username && (
+                                            <p className="text-sm text-destructive mt-1">{errors.username.message}</p>
+                                        )}
+                                    </div>
+                                    <div>
+                                        <Label htmlFor="password">Password</Label>
+                                        <Input
+                                            id="password"
+                                            type="password"
+                                            {...register('password')}
+                                            className={errors.password ? 'border-destructive' : ''}
+                                            placeholder="Min. 6 characters"
+                                        />
+                                        {errors.password && (
+                                            <p className="text-sm text-destructive mt-1">{errors.password.message}</p>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
 
                             <div>
                                 <Label htmlFor="admission_date">

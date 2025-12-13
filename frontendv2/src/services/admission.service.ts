@@ -64,17 +64,21 @@ export const admissionService = {
             }
         }
 
-        const backendData = {
-            ...data,
-            branch_id,
+        const payload = {
+            branchId: branch_id,
+            applicantEmail: data.email,
+            applicantPhone: data.phone,
+            applicantData: data,
         };
 
-        const response = await api.post(endpoints.admissions.create, backendData);
+        const response = await api.post(endpoints.admissions.create, payload);
         return response.data;
     },
 
     async update(id: string, data: Partial<CreateAdmissionDto>) {
+        console.log("Service: calling update API for", id, data);
         const response = await api.put(endpoints.admissions.update(id), data);
+        console.log("Service: API response:", response.data);
         return response.data;
     },
 

@@ -4,10 +4,11 @@ import { useAuth } from '../contexts/AuthContext';
 
 interface ProtectedRouteProps {
     children: React.ReactNode;
+    allowedRoles?: string[]; // Array of allowed roles (e.g., ['admin', 'teacher'])
 }
 
-export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-    const { isAuthenticated, loading } = useAuth();
+export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles }) => {
+    const { user, isAuthenticated, loading } = useAuth();
 
     if (loading) {
         return (
@@ -19,6 +20,17 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 
     if (!isAuthenticated) {
         return <Navigate to="/login" replace />;
+    }
+
+    // Role-based access control
+    if (allowedRoles && user?.role) {
+        const userRole = user.role.name.toLowerCase();
+        // Handle SuperAdmin having access to everything usually, or handle specific checks
+        const hasAccess = allowedRoles.some(role => role.toLowerCase() === userRole) || userRole === 'superadmin';
+
+        if (!hasAccess) {
+            return <Navigate to="/unauthorized" replace />;
+        }
     }
 
     return <>{children}</>;

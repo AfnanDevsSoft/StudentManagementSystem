@@ -155,23 +155,51 @@ export class AnalyticsService {
   /**
    * Get dashboard summary
    */
-  static async getDashboardData(branchId: string) {
+  /**
+   * Get dashboard summary
+   */
+  static async getDashboardData(branchId?: string) {
     try {
+      const whereClause = branchId ? { branch_id: branchId } : {};
+
       const [totalStudents, totalTeachers, totalCourses] = await Promise.all([
-        prisma.student.count({ where: { branch_id: branchId } }),
-        prisma.teacher.count({ where: { branch_id: branchId } }),
-        prisma.course.count({ where: { branch_id: branchId } }),
+        prisma.student.count({ where: whereClause }),
+        prisma.teacher.count({ where: whereClause }),
+        prisma.course.count({ where: whereClause }),
       ]);
 
       return {
         success: true,
         message: "Dashboard data retrieved",
         data: {
-          summary: {
-            totalStudents,
-            totalTeachers,
-            totalCourses,
-          },
+          totalStudents,
+          totalTeachers,
+          totalCourses,
+          monthlyRevenue: 25000, // Mock data
+          attendanceRate: 92, // Mock data
+          avgGrade: 85, // Mock data
+          attendanceHistory: [
+            { name: 'Mon', present: 110, absent: 10 },
+            { name: 'Tue', present: 115, absent: 5 },
+            { name: 'Wed', present: 108, absent: 12 },
+            { name: 'Thu', present: 112, absent: 8 },
+            { name: 'Fri', present: 105, absent: 15 },
+          ],
+          revenueHistory: [
+            { name: 'Jan', income: 4000, expense: 2400 },
+            { name: 'Feb', income: 3000, expense: 1398 },
+            { name: 'Mar', income: 2000, expense: 9800 },
+            { name: 'Apr', income: 2780, expense: 3908 },
+            { name: 'May', income: 1890, expense: 4800 },
+            { name: 'Jun', income: 2390, expense: 3800 },
+          ],
+          gradeDistribution: [
+            { name: 'A', count: 30 },
+            { name: 'B', count: 45 },
+            { name: 'C', count: 25 },
+            { name: 'D', count: 15 },
+            { name: 'F', count: 5 },
+          ]
         },
       };
     } catch (error: any) {

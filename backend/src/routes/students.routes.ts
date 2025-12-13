@@ -108,7 +108,19 @@ router.post(
   "/",
   authMiddleware,
   async (req: Request, res: Response): Promise<void> => {
-    const result = await StudentService.createStudent(req.body);
+    const user = (req as any).user;
+    const payload = { ...req.body };
+
+    // Enforce branch isolation for non-SuperAdmins
+    if (user.role.name !== 'SuperAdmin') {
+      if (!user.branch_id) {
+        sendResponse(res, 400, false, "User has no branch assigned");
+        return;
+      }
+      payload.branch_id = user.branch_id;
+    }
+
+    const result = await StudentService.createStudent(payload);
     if (!result.success) {
       // Return 409 for duplicates, 400 for validation errors
       const statusCode = result.message.includes('already exists') ? 409 : 400;

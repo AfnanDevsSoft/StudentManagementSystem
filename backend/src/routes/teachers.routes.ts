@@ -83,7 +83,19 @@ router.post(
   "/",
   authMiddleware,
   async (req: Request, res: Response): Promise<void> => {
-    const result = await TeacherService.createTeacher(req.body);
+    const user = (req as any).user;
+    const payload = { ...req.body };
+
+    // Enforce branch isolation for non-SuperAdmins
+    if (user.role.name !== 'SuperAdmin') {
+      if (!user.branch_id) {
+        sendResponse(res, 400, false, "User has no branch assigned");
+        return;
+      }
+      payload.branch_id = user.branch_id;
+    }
+
+    const result = await TeacherService.createTeacher(payload);
     const statusCode = result.success ? 201 : 400;
     sendResponse(res, statusCode, result.success, result.message, result.data);
   }

@@ -67,7 +67,7 @@ export const Sidebar: React.FC = () => {
                 <div className="px-4 py-2 border-b border-border">
                     <div className={cn(
                         "inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium",
-                        roleName.toLowerCase() === 'admin' || roleName.toLowerCase() === 'superadmin'
+                        roleName.toLowerCase() === 'admin' || roleName.toLowerCase() === 'branchadmin' || roleName.toLowerCase() === 'superadmin'
                             ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
                             : roleName.toLowerCase() === 'teacher'
                                 ? "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400"

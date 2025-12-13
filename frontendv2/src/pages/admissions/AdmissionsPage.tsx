@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../componen
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '../../components/ui/alert-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
 import { admissionService } from '../../services/admission.service';
+import { branchService } from '../../services/branch.service';
 import type { Admission } from '../../services/admission.service';
 import { admissionSchema } from '../../schemas/admission.schema';
 import type { AdmissionFormData } from '../../schemas/admission.schema';
@@ -33,6 +34,13 @@ export const AdmissionsPage: React.FC = () => {
     });
 
     const admissions = admissionsData?.data || [];
+
+    const { data: branchesData } = useQuery({
+        queryKey: ['branches'],
+        queryFn: branchService.getAll,
+    });
+
+    const branches = branchesData?.data || [];
 
     const {
         register,
@@ -58,6 +66,7 @@ export const AdmissionsPage: React.FC = () => {
             application_date: new Date().toISOString().split('T')[0],
             status: 'Pending',
             notes: '',
+            branch_id: '',
         },
     });
 
@@ -85,9 +94,12 @@ export const AdmissionsPage: React.FC = () => {
     });
 
     const updateMutation = useMutation({
-        mutationFn: ({ id, data }: { id: string; data: Partial<AdmissionFormData> }) =>
-            admissionService.update(id, data),
-        onSuccess: () => {
+        mutationFn: ({ id, data }: { id: string; data: Partial<AdmissionFormData> }) => {
+            console.log("Mutating update:", id, data);
+            return admissionService.update(id, data);
+        },
+        onSuccess: (data) => {
+            console.log("Update success, invalidating queries. Response:", data);
             queryClient.invalidateQueries({ queryKey: ['admissions'] });
             toast({
                 title: 'Success',
@@ -98,6 +110,7 @@ export const AdmissionsPage: React.FC = () => {
             reset();
         },
         onError: (error: any) => {
+            console.error("Update error:", error);
             toast({
                 title: 'Error',
                 description: error.response?.data?.message || 'Failed to update application',
@@ -126,7 +139,9 @@ export const AdmissionsPage: React.FC = () => {
     });
 
     const onSubmit = (data: AdmissionFormData) => {
+        console.log("Form submitted:", data);
         if (editingAdmission) {
+            console.log("Editing admission:", editingAdmission.id);
             updateMutation.mutate({ id: editingAdmission.id, data });
         } else {
             createMutation.mutate(data);
@@ -149,6 +164,7 @@ export const AdmissionsPage: React.FC = () => {
         setValue('application_date', admission.application_date.split('T')[0]);
         setValue('status', admission.status);
         setValue('notes', admission.notes || '');
+        setValue('branch_id', admission.branch_id);
         setIsDialogOpen(true);
     };
 
@@ -172,9 +188,10 @@ export const AdmissionsPage: React.FC = () => {
 
     const stats = {
         total: admissions.length,
-        pending: admissions.filter((a: Admission) => a.status === 'Pending').length,
-        accepted: admissions.filter((a: Admission) => a.status === 'Accepted').length,
-        rejected: admissions.filter((a: Admission) => a.status === 'Rejected').length,
+        pending: admissions.filter((a: Admission) => a.status?.toLowerCase() === 'pending').length,
+        reviewing: admissions.filter((a: Admission) => a.status?.toLowerCase() === 'reviewing').length,
+        accepted: admissions.filter((a: Admission) => a.status?.toLowerCase() === 'accepted').length,
+        rejected: admissions.filter((a: Admission) => a.status?.toLowerCase() === 'rejected').length,
     };
 
     if (isLoading) {
@@ -204,7 +221,7 @@ export const AdmissionsPage: React.FC = () => {
                     </Button>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                     <Card>
                         <CardContent className="p-6">
                             <div className="flex items-center justify-between">
@@ -224,6 +241,17 @@ export const AdmissionsPage: React.FC = () => {
                                     <h3 className="text-2xl font-bold mt-1 text-orange-600">{stats.pending}</h3>
                                 </div>
                                 <Clock className="w-8 h-8 text-orange-500" />
+                            </div>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardContent className="p-6">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm text-muted-foreground">Reviewing</p>
+                                    <h3 className="text-2xl font-bold mt-1 text-blue-600">{stats.reviewing}</h3>
+                                </div>
+                                <FileText className="w-8 h-8 text-blue-500" />
                             </div>
                         </CardContent>
                     </Card>
@@ -383,6 +411,30 @@ export const AdmissionsPage: React.FC = () => {
                                 </div>
                             </div>
 
+
+
+                            <div>
+                                <Label htmlFor="branch">Branch <span className="text-destructive">*</span></Label>
+                                <Select
+                                    value={watch('branch_id')}
+                                    onValueChange={(value) => setValue('branch_id', value)}
+                                >
+                                    <SelectTrigger className={errors.branch_id ? 'border-destructive' : ''}>
+                                        <SelectValue placeholder="Select Branch" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {branches.map((branch: any) => (
+                                            <SelectItem key={branch.id} value={branch.id}>
+                                                {branch.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                {errors.branch_id && (
+                                    <p className="text-sm text-destructive mt-1">{errors.branch_id.message}</p>
+                                )}
+                            </div>
+
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <Label htmlFor="date_of_birth">
@@ -526,6 +578,6 @@ export const AdmissionsPage: React.FC = () => {
                     </AlertDialogContent>
                 </AlertDialog>
             </div>
-        </MainLayout>
+        </MainLayout >
     );
 };

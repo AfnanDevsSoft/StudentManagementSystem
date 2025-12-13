@@ -27,11 +27,12 @@ export const UsersPage: React.FC = () => {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingUser, setEditingUser] = useState<User | null>(null);
     const [deleteId, setDeleteId] = useState<string | null>(null);
+    const [page, setPage] = useState(1);
 
     // Fetch users
     const { data: usersData, isLoading: isLoadingUsers } = useQuery({
-        queryKey: ['users'],
-        queryFn: userService.getAll,
+        queryKey: ['users', page, searchQuery],
+        queryFn: () => userService.getAll({ page, limit: 20, search: searchQuery }),
     });
 
     // Fetch branches
@@ -348,6 +349,29 @@ export const UsersPage: React.FC = () => {
                                 </div>
                             )}
                         </div>
+                        <div className="flex items-center justify-between px-4 py-4 border-t">
+                            <div className="text-sm text-muted-foreground">
+                                Showing {((page - 1) * 20) + 1} to {Math.min(page * 20, usersData?.pagination?.total || 0)} of {usersData?.pagination?.total || 0} results
+                            </div>
+                            <div className="flex gap-2">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                                    disabled={page === 1}
+                                >
+                                    Previous
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setPage(p => p + 1)}
+                                    disabled={page >= (usersData?.pagination?.pages || 1)}
+                                >
+                                    Next
+                                </Button>
+                            </div>
+                        </div>
                     </CardContent>
                 </Card>
 
@@ -451,11 +475,13 @@ export const UsersPage: React.FC = () => {
                                             <SelectValue placeholder="Select role" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {roles.map((role: any) => (
-                                                <SelectItem key={role.id} value={role.id}>
-                                                    {role.name}
-                                                </SelectItem>
-                                            ))}
+                                            {roles
+                                                .filter((role: any) => !selectedBranch || role.branch_id === selectedBranch || role.is_system || !role.branch_id)
+                                                .map((role: any) => (
+                                                    <SelectItem key={role.id} value={role.id}>
+                                                        {role.name}
+                                                    </SelectItem>
+                                                ))}
                                         </SelectContent>
                                     </Select>
                                     {errors.role_id && (

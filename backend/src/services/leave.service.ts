@@ -238,10 +238,22 @@ export class LeaveService {
   /**
    * Get pending leave requests for admin/principal
    */
-  static async getPendingLeaves(limit: number = 20, offset: number = 0) {
+  static async getPendingLeaves(
+    limit: number = 20,
+    offset: number = 0,
+    branchId?: string
+  ) {
     try {
+      const where: any = { status: "pending" };
+
+      if (branchId) {
+        where.teacher = {
+          branch_id: branchId,
+        };
+      }
+
       const leaves = await prisma.leaveRequest.findMany({
-        where: { status: "pending" },
+        where,
         include: {
           teacher: {
             select: {
@@ -258,7 +270,7 @@ export class LeaveService {
       });
 
       const total = await prisma.leaveRequest.count({
-        where: { status: "pending" },
+        where,
       });
 
       return {

@@ -76,6 +76,25 @@ export class CourseService {
         return { success: false, message: "Course code and name are required" };
       }
 
+      console.log("DEBUG: Creating course with data:", {
+        ...courseData,
+        branch_id: courseData.branch_id,
+        academic_year_id: courseData.academic_year_id,
+        subject_id: courseData.subject_id,
+        grade_level_id: courseData.grade_level_id,
+        teacher_id: courseData.teacher_id,
+      });
+
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      const uuidFields = ['branch_id', 'academic_year_id', 'subject_id', 'grade_level_id', 'teacher_id'];
+
+      for (const field of uuidFields) {
+        if (courseData[field] && !uuidRegex.test(courseData[field])) {
+          console.error(`Invalid UUID for field ${field}: ${courseData[field]}`);
+          return { success: false, message: `Invalid UUID for field ${field}: ${courseData[field]}` };
+        }
+      }
+
       const course = await prisma.course.create({
         data: {
           branch_id: courseData.branch_id,

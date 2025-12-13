@@ -13,7 +13,9 @@ import {
     ClipboardCheck,
     AlertCircle,
     Building2,
+    Clock
 } from 'lucide-react';
+import { PendingLeavesWidget } from '../../components/dashboard/PendingLeavesWidget';
 
 export const AdminDashboard: React.FC = () => {
     // Fetch analytics data
@@ -162,6 +164,11 @@ export const AdminDashboard: React.FC = () => {
                         )}
                     </CardContent>
                 </Card>
+
+                {/* Pending Leaves */}
+                <div className="lg:col-span-2">
+                    <PendingLeavesWidget />
+                </div>
 
                 {/* Quick Actions */}
                 <Card>

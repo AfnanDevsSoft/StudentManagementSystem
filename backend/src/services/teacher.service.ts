@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import bcryptjs from "bcryptjs";
 
 const prisma = new PrismaClient();
 
@@ -78,10 +79,61 @@ export class TeacherService {
         };
       }
 
+      let userId = teacherData.user_id;
+
+      // If username and password provided, create user account
+      if (teacherData.username && teacherData.password) {
+        // Check if username exists
+        console.log("DEBUG: Checking existing user...");
+        const existingUser = await prisma.user.findUnique({ where: { username: teacherData.username } });
+        if (existingUser) {
+          return { success: false, message: "Username already exists" };
+        }
+
+        // Check if email exists
+        const existingEmail = await prisma.user.findUnique({ where: { email: teacherData.email } });
+        if (existingEmail) {
+          return { success: false, message: "Email already exists" };
+        }
+
+        // Get Teacher Role
+        console.log("DEBUG: Finding Teacher role...");
+        const teacherRole = await prisma.role.findFirst({
+          where: { name: { equals: 'Teacher', mode: 'insensitive' } } // Case insensitive check
+        });
+
+        if (!teacherRole) {
+          console.error("DEBUG: Teacher role not found");
+          return { success: false, message: "Teacher role configuration error" };
+        }
+        console.log("DEBUG: Teacher role found:", teacherRole.id);
+
+        console.log("DEBUG: Hashing password...");
+        const hashedPassword = await bcryptjs.hash(teacherData.password, 10);
+        console.log("DEBUG: Password hashed");
+
+        console.log("DEBUG: Creating user...");
+        const newUser = await prisma.user.create({
+          data: {
+            username: teacherData.username,
+            password_hash: hashedPassword,
+            email: teacherData.email || `${teacherData.username}@koolhub.edu`,
+            first_name: teacherData.first_name,
+            last_name: teacherData.last_name,
+            phone: teacherData.phone,
+            role_id: teacherRole.id,
+            branch_id: teacherData.branch_id,
+            is_active: true
+          }
+        });
+        userId = newUser.id;
+        console.log("DEBUG: User created", userId);
+      }
+
       const teacher = await prisma.teacher.create({
         data: {
           branch_id: teacherData.branch_id,
-          user_id: teacherData.user_id || null, // Link to user account for login
+          user_id: userId || null, // Link to user account for login
           employee_code: teacherData.employee_code,
           first_name: teacherData.first_name,
           last_name: teacherData.last_name,
@@ -152,7 +204,11 @@ export class TeacherService {
     try {
       const courses = await prisma.course.findMany({
         where: { teacher_id: teacherId },
-        include: { subject: true, grade_level: true },
+        include: {
+          subject: true,
+          grade_level: true,
+          enrollments: true
+        },
       });
 
       return { success: true, data: courses };

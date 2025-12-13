@@ -19,7 +19,7 @@ export class UserService {
       const where: any = {};
 
       // Data Scoping
-      if (userContext && userContext.role?.name !== 'SuperAdmin') {
+      if (userContext && userContext.role?.name?.toLowerCase() !== 'superadmin') {
         where.branch_id = userContext.branch_id;
       }
 
@@ -70,6 +70,21 @@ export class UserService {
   }
 
   /**
+   * Get all system roles (Legacy Role table)
+   * This is needed because Users table links to legacy Role, while RBAC links to new RBACRole
+   */
+  static async getRoles() {
+    try {
+      const roles = await prisma.role.findMany({
+        orderBy: { name: 'asc' }
+      });
+      return { success: true, data: roles };
+    } catch (error: any) {
+      return { success: false, message: error.message };
+    }
+  }
+
+  /**
    * Get user by ID
    */
   static async getUserById(userId: string) {
@@ -104,20 +119,63 @@ export class UserService {
   /**
    * Create new user
    */
-  static async createUser(userData: any) {
+  /**
+   * Create new user
+   */
+  static async createUser(userData: any, userContext?: any) {
     try {
+      // 1. Security Check: Branch Admin Scoping
+      if (userContext && userContext.role?.name?.toLowerCase() !== 'superadmin') {
+        // Force the branch_id to be the admin's branch
+        if (userData.branch_id && userData.branch_id !== userContext.branch_id) {
+          return { success: false, message: "Unauthorized: Cannot create user in another branch" };
+        }
+        userData.branch_id = userContext.branch_id;
+      }
+
+      // 2. Auto-Generate ID if not provided
+      let finalUsername = userData.username;
+
+      if (!finalUsername) {
+        if (!userData.branch_id || !userData.role_id) {
+          return { success: false, message: "Branch ID and Role ID are required for ID generation" };
+        }
+
+        // Fetch Role Name for ID generation
+        const role = await prisma.role.findUnique({
+          where: { id: userData.role_id }
+        });
+
+        if (!role) {
+          return { success: false, message: "Invalid Role ID" };
+        }
+
+        // Import dynamically to avoid circular dependencies if any (though utils should be fine)
+        const { generateSystemId } = require("../utils/id-generator");
+        finalUsername = await generateSystemId(userData.branch_id, role.name);
+      }
+
+      // 3. Auto-Generate Password if not provided
+      let finalPassword = userData.password;
+      let isTempPassword = false;
+
+      if (!finalPassword) {
+        finalPassword = Math.random().toString(36).slice(-8); // Simple random password
+        isTempPassword = true;
+      }
+
       // Validate required fields
-      if (!userData.username || !userData.email || !userData.password) {
+      if (!userData.email) {
         return {
           success: false,
-          message: "Username, email, and password are required",
+          message: "Email is required",
         };
       }
 
       // Check if user already exists
       const existing = await prisma.user.findFirst({
         where: {
-          OR: [{ username: userData.username }, { email: userData.email }],
+          OR: [{ username: finalUsername }, { email: userData.email }],
         },
       });
 
@@ -126,11 +184,11 @@ export class UserService {
       }
 
       // Hash password
-      const password_hash = await bcrypt.hash(userData.password, 10);
+      const password_hash = await bcrypt.hash(finalPassword, 10);
 
       const user = await prisma.user.create({
         data: {
-          username: userData.username,
+          username: finalUsername,
           email: userData.email,
           password_hash,
           first_name: userData.first_name || "",
@@ -144,7 +202,7 @@ export class UserService {
 
       return {
         success: true,
-        data: user,
+        data: { ...user, tempPassword: isTempPassword ? finalPassword : null },
         message: "User created successfully",
       };
     } catch (error: any) {

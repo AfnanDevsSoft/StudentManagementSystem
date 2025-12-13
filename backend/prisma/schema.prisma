@@ -150,6 +150,7 @@ model Student {
   branch                 Branch              @relation(fields: [branch_id], references: [id])
   user                   User?               @relation(fields: [user_id], references: [id])
   parents                ParentGuardian[]    @relation("StudentParents")
+  submissions            Submission[]
 
   @@unique([branch_id, student_code])
   @@index([student_code])
@@ -209,6 +210,7 @@ model Teacher {
   grades_created    Grade[]
   leave_requests    LeaveRequest[]
   payroll_records   PayrollRecord[]
+  assignments       Assignment[]
   attendance        TeacherAttendance[]
   branch            Branch              @relation(fields: [branch_id], references: [id])
   user              User?               @relation(fields: [user_id], references: [id])
@@ -283,6 +285,7 @@ model Course {
   attendance        Attendance[]
   announcements     ClassAnnouncement[]
   course_contents   CourseContent[]
+  assignments       Assignment[]
   academic_year     AcademicYear        @relation(fields: [academic_year_id], references: [id])
   branch            Branch              @relation(fields: [branch_id], references: [id])
   grade_level       GradeLevel          @relation(fields: [grade_level_id], references: [id])
@@ -1003,7 +1006,42 @@ model MedicalCheckup {
 
   @@index([health_record_id])
   @@index([checkup_date])
-  @@map("medical_checkups")
+  @@map("medical_records")
+}
+
+model Assignment {
+  id          String   @id @default(uuid()) @db.Uuid
+  course_id   String   @db.Uuid
+  teacher_id  String   @db.Uuid
+  title       String
+  description String?
+  due_date    DateTime
+  max_score   Float    @default(100)
+  status      String   @default("active") // active, closed, draft
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  course      Course        @relation(fields: [course_id], references: [id])
+  teacher     Teacher       @relation(fields: [teacher_id], references: [id])
+  submissions Submission[]
+
+  @@map("assignments")
+}
+
+model Submission {
+  id            String   @id @default(uuid()) @db.Uuid
+  assignment_id String   @db.Uuid
+  student_id    String   @db.Uuid
+  content_url   String?
+  submitted_at  DateTime @default(now())
+  grade         Float?
+  feedback      String?
+  status        String   @default("submitted") // submitted, graded, late
+
+  assignment    Assignment @relation(fields: [assignment_id], references: [id], onDelete: Cascade)
+  student       Student    @relation(fields: [student_id], references: [id])
+
+  @@map("submissions")
 }
 
 model Vaccination {

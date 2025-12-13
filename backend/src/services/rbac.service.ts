@@ -78,16 +78,17 @@ export class RBACService {
     }
   }
 
-  static async getRoles(branchId: string, limit = 20, offset = 0) {
+  static async getRoles(branchId?: string, limit = 20, offset = 0) {
     try {
+      const where = branchId ? { branch_id: branchId } : {};
       const roles = await prisma.rBACRole.findMany({
-        where: { branch_id: branchId },
+        where,
         include: { permissions: true },
         take: limit,
         skip: offset,
       });
       const total = await prisma.rBACRole.count({
-        where: { branch_id: branchId },
+        where,
       });
       return { success: true, data: roles, total, limit, offset };
     } catch (error: any) {

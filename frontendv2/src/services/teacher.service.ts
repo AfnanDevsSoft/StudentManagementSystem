@@ -29,6 +29,8 @@ export interface CreateTeacherDto {
     designation?: string;
     qualification?: string;
     years_experience?: number;
+    username?: string;
+    password?: string;
 }
 
 export const teacherService = {
@@ -85,8 +87,11 @@ export const teacherService = {
         const backendData = {
             ...data,
             // Auto-generate employee code (backend will validate uniqueness)
+            // Auto-generate employee code (backend will validate uniqueness)
             employee_code: `EMP${Date.now().toString().slice(-8)}`,
             branch_id: branch_id,
+            username: data.username,
+            password: data.password,
         };
 
         const response = await api.post(endpoints.teachers.create, backendData);
@@ -126,21 +131,5 @@ export const teacherService = {
             ...course,
             studentCount: course.enrollments?.length || course.students?.length || 0
         }));
-    },
-
-    /**
-     * Get leave requests for a teacher
-     */
-    async getLeaveRequests(teacherId: string) {
-        const response = await api.get(endpoints.leaves.teacherLeaves(teacherId));
-        return response.data;
-    },
-
-    /**
-     * Get payroll records for a teacher
-     */
-    async getPayroll(teacherId: string) {
-        const response = await api.get(endpoints.payroll.teacherPayroll(teacherId));
-        return response.data;
     },
 };

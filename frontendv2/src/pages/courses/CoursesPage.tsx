@@ -16,10 +16,15 @@ import type { Course } from '../../services/course.service';
 import { courseSchema } from '../../schemas/course.schema';
 import type { CourseFormData } from '../../schemas/course.schema';
 import { teacherService } from '../../services/teacher.service';
+import { branchService } from '../../services/branch.service';
+import { academicYearService } from '../../services/academic-year.service';
+import { gradeLevelService } from '../../services/grade-level.service';
+import { subjectService } from '../../services/subject.service';
 import { useToast } from '../../hooks/use-toast';
 import { Plus, Search, Edit, Trash2, BookOpen, Users, Building, GraduationCap } from 'lucide-react';
 
 export const CoursesPage: React.FC = () => {
+    // ... existing hooks
     const queryClient = useQueryClient();
     const { toast } = useToast();
     const [searchQuery, setSearchQuery] = useState('');
@@ -39,8 +44,36 @@ export const CoursesPage: React.FC = () => {
         queryFn: teacherService.getAll,
     });
 
+    // Fetch branches for dropdown
+    const { data: branchesData } = useQuery({
+        queryKey: ['branches'],
+        queryFn: branchService.getAll,
+    });
+
+    // Fetch academic years
+    const { data: academicYearsData } = useQuery({
+        queryKey: ['academic-years'],
+        queryFn: academicYearService.getAll,
+    });
+
+    // Fetch grade levels
+    const { data: gradeLevelsData } = useQuery({
+        queryKey: ['grade-levels'],
+        queryFn: gradeLevelService.getAll,
+    });
+
+    // Fetch subjects
+    const { data: subjectsData } = useQuery({
+        queryKey: ['subjects'],
+        queryFn: subjectService.getAll,
+    });
+
     const courses = coursesData?.data || [];
     const teachers = teachersData?.data || [];
+    const branches = branchesData?.data || [];
+    const academicYears = academicYearsData?.data || [];
+    const gradeLevels = gradeLevelsData?.data || [];
+    const subjects = subjectsData?.data || [];
 
     const {
         register,
@@ -150,6 +183,7 @@ export const CoursesPage: React.FC = () => {
         setValue('max_students', course.max_students || 30);
         setValue('room_number', course.room_number || '');
         setValue('building', course.building || '');
+        setValue('branch_id', course.branch_id || '');
         setIsDialogOpen(true);
     };
 
@@ -351,28 +385,46 @@ export const CoursesPage: React.FC = () => {
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <Label htmlFor="subject_id">
-                                        Subject ID <span className="text-destructive">*</span>
+                                        Subject <span className="text-destructive">*</span>
                                     </Label>
-                                    <Input
-                                        id="subject_id"
-                                        {...register('subject_id')}
-                                        className={errors.subject_id ? 'border-destructive' : ''}
-                                        placeholder="UUID"
-                                    />
+                                    <Select
+                                        value={watch('subject_id')}
+                                        onValueChange={(value) => setValue('subject_id', value)}
+                                    >
+                                        <SelectTrigger className={errors.subject_id ? 'border-destructive' : ''}>
+                                            <SelectValue placeholder="Select subject" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {subjects?.map((subject: any) => (
+                                                <SelectItem key={subject.id} value={subject.id}>
+                                                    {subject.name} ({subject.code})
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                     {errors.subject_id && (
                                         <p className="text-sm text-destructive mt-1">{errors.subject_id.message}</p>
                                     )}
                                 </div>
                                 <div>
                                     <Label htmlFor="grade_level_id">
-                                        Grade Level ID <span className="text-destructive">*</span>
+                                        Grade Level <span className="text-destructive">*</span>
                                     </Label>
-                                    <Input
-                                        id="grade_level_id"
-                                        {...register('grade_level_id')}
-                                        className={errors.grade_level_id ? 'border-destructive' : ''}
-                                        placeholder="UUID"
-                                    />
+                                    <Select
+                                        value={watch('grade_level_id')}
+                                        onValueChange={(value) => setValue('grade_level_id', value)}
+                                    >
+                                        <SelectTrigger className={errors.grade_level_id ? 'border-destructive' : ''}>
+                                            <SelectValue placeholder="Select grade level" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {gradeLevels?.map((level: any) => (
+                                                <SelectItem key={level.id} value={level.id}>
+                                                    {level.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                     {errors.grade_level_id && (
                                         <p className="text-sm text-destructive mt-1">{errors.grade_level_id.message}</p>
                                     )}
@@ -405,21 +457,30 @@ export const CoursesPage: React.FC = () => {
                                 </div>
                                 <div>
                                     <Label htmlFor="academic_year_id">
-                                        Academic Year ID <span className="text-destructive">*</span>
+                                        Academic Year <span className="text-destructive">*</span>
                                     </Label>
-                                    <Input
-                                        id="academic_year_id"
-                                        {...register('academic_year_id')}
-                                        className={errors.academic_year_id ? 'border-destructive' : ''}
-                                        placeholder="UUID"
-                                    />
+                                    <Select
+                                        value={watch('academic_year_id')}
+                                        onValueChange={(value) => setValue('academic_year_id', value)}
+                                    >
+                                        <SelectTrigger className={errors.academic_year_id ? 'border-destructive' : ''}>
+                                            <SelectValue placeholder="Select year" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {academicYears?.map((year: any) => (
+                                                <SelectItem key={year.id} value={year.id}>
+                                                    {year.year}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                     {errors.academic_year_id && (
                                         <p className="text-sm text-destructive mt-1">{errors.academic_year_id.message}</p>
                                     )}
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-3 gap-4">
+                            <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <Label htmlFor="max_students">Max Students</Label>
                                     <Input
@@ -431,6 +492,27 @@ export const CoursesPage: React.FC = () => {
                                         <p className="text-sm text-destructive mt-1">{errors.max_students.message}</p>
                                     )}
                                 </div>
+                                <div>
+                                    <Label htmlFor="branch_id">Branch</Label>
+                                    <Select
+                                        value={watch('branch_id')}
+                                        onValueChange={(value) => setValue('branch_id', value)}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select branch" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {branches?.map((branch: any) => (
+                                                <SelectItem key={branch.id} value={branch.id}>
+                                                    {branch.name} ({branch.code})
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <Label htmlFor="building">Building</Label>
                                     <Input
@@ -487,6 +569,6 @@ export const CoursesPage: React.FC = () => {
                     </AlertDialogContent>
                 </AlertDialog>
             </div>
-        </MainLayout>
+        </MainLayout >
     );
 };

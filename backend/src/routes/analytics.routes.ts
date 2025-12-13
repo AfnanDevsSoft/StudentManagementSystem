@@ -197,10 +197,6 @@ router.get(
     try {
       const { branchId } = req.query;
 
-      if (!branchId) {
-        return res.status(400).json({ message: "Branch ID is required" });
-      }
-
       const result = await AnalyticsService.getDashboardData(
         branchId as string
       );

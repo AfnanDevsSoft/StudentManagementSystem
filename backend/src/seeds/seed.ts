@@ -6,34 +6,23 @@ const prisma = new PrismaClient();
 async function main() {
   console.log("🌱 Seeding database...");
 
-  // Clear existing data
+  // Clear existing data (Order matters due to foreign keys)
   console.log("🗑️  Clearing existing data...");
-  await prisma.auditLog.deleteMany({});
-  await prisma.communicationLog.deleteMany({});
-  await prisma.notification.deleteMany({});
-  await prisma.admissionApplication.deleteMany({});
-  await prisma.admissionForm.deleteMany({});
-  await prisma.leaveRequest.deleteMany({});
-  await prisma.payrollRecord.deleteMany({});
-  await prisma.grade.deleteMany({});
-  await prisma.teacherAttendance.deleteMany({});
-  await prisma.attendance.deleteMany({});
-  await prisma.studentEnrollment.deleteMany({});
-  await prisma.course.deleteMany({});
-  await prisma.subject.deleteMany({});
-  await prisma.gradeLevel.deleteMany({});
-  await prisma.academicYear.deleteMany({});
-  await prisma.teacher.deleteMany({});
-  await prisma.student.deleteMany({});
-  await prisma.parentGuardian.deleteMany({});
+  const tablenames = await prisma.$queryRaw<
+    Array<{ tablename: string }>
+  >`SELECT tablename FROM pg_tables WHERE schemaname='public'`;
 
-  // Delete direct_messages before users (foreign key constraint)
-  await prisma.$executeRaw`DELETE FROM direct_messages`;
+  const tables = tablenames
+    .map(({ tablename }) => tablename)
+    .filter((name) => name !== "_prisma_migrations")
+    .map((name) => `"public"."${name}"`)
+    .join(", ");
 
-  await prisma.userBranch.deleteMany({});
-  await prisma.user.deleteMany({});
-  await prisma.role.deleteMany({});
-  await prisma.branch.deleteMany({});
+  try {
+    await prisma.$executeRawUnsafe(`TRUNCATE TABLE ${tables} CASCADE;`);
+  } catch (error) {
+    console.log({ error });
+  }
 
   console.log("✅ Data cleared!");
 
@@ -69,17 +58,44 @@ async function main() {
         timezone: "Asia/Karachi",
         currency: "PKR",
       },
+      {
+        name: "East Campus",
+        code: "EAST",
+        address: "789 Sunrise Blvd",
+        city: "Islamabad",
+        state: "Federal",
+        country: "Pakistan",
+        phone: "+92-51-1234567",
+        email: "east@koolhub.edu",
+        principal_name: "Dr. Yasir Shah",
+        principal_email: "principal.east@koolhub.edu",
+        timezone: "Asia/Karachi",
+        currency: "PKR",
+      },
+      {
+        name: "West Campus",
+        code: "WEST",
+        address: "101 Sunset Road",
+        city: "Quetta",
+        state: "Balochistan",
+        country: "Pakistan",
+        phone: "+92-81-7654321",
+        email: "west@koolhub.edu",
+        principal_name: "Ms. Zainab Bibi",
+        principal_email: "principal.west@koolhub.edu",
+        timezone: "Asia/Karachi",
+        currency: "PKR",
+      },
     ],
   });
   console.log(`✅ Created ${branches.count} branches!`);
 
   const allBranches = await prisma.branch.findMany();
-  const mainBranch = allBranches[0];
-  const northBranch = allBranches[1];
+  // We will dynamically access branches instead of hardcoding variables like mainBranch/northBranch
 
   // Create Roles
   console.log("👥 Creating roles...");
-  const roles = await prisma.role.createMany({
+  await prisma.role.createMany({
     data: [
       {
         name: "SuperAdmin",
@@ -119,482 +135,304 @@ async function main() {
       },
     ],
   });
-  console.log(`✅ Created ${roles.count} roles!`);
 
   const allRoles = await prisma.role.findMany();
-  const superAdminRole = allRoles.find((r: any) => r.name === "SuperAdmin")!;
-  const teacherRole = allRoles.find((r: any) => r.name === "Teacher")!;
-  const studentRole = allRoles.find((r: any) => r.name === "Student")!;
+  const superAdminRole = allRoles.find((r) => r.name === "SuperAdmin")!;
+  const teacherRole = allRoles.find((r) => r.name === "Teacher")!;
+  const studentRole = allRoles.find((r) => r.name === "Student")!;
 
   const hashedPassword = await bcryptjs.hash("password123", 10);
 
-  // Create Users
-  console.log("👤 Creating users...");
-  const users = await prisma.user.createMany({
-    data: [
-      {
-        branch_id: mainBranch.id,
-        role_id: superAdminRole.id,
-        username: "admin1",
-        email: "admin1@koolhub.edu",
-        password_hash: hashedPassword,
-        first_name: "System",
-        last_name: "Admin",
-        phone: "+92-300-1111111",
-        is_active: true,
-      },
-      {
-        branch_id: mainBranch.id,
-        role_id: teacherRole.id,
-        username: "teacher1",
-        email: "teacher1@koolhub.edu",
-        password_hash: hashedPassword,
-        first_name: "Muhammad",
-        last_name: "Ahmed",
-        phone: "+92-300-3333333",
-        is_active: true,
-      },
-      {
-        branch_id: mainBranch.id,
-        role_id: teacherRole.id,
-        username: "teacher2",
-        email: "teacher2@koolhub.edu",
-        password_hash: hashedPassword,
-        first_name: "Ayesha",
-        last_name: "Khan",
-        phone: "+92-300-4444444",
-        is_active: true,
-      },
-      {
-        branch_id: mainBranch.id,
-        role_id: teacherRole.id,
-        username: "teacher3",
-        email: "teacher3@koolhub.edu",
-        password_hash: hashedPassword,
-        first_name: "Hassan",
-        last_name: "Ali",
-        phone: "+92-300-5555555",
-        is_active: true,
-      },
-      ...Array.from({ length: 20 }, (_, i) => ({
-        branch_id: mainBranch.id,
-        role_id: studentRole.id,
-        username: `student${i + 1}`,
-        email: `student${i + 1}@koolhub.edu`,
-        password_hash: hashedPassword,
-        first_name: `Student${i + 1}`,
-        last_name: `User`,
-        phone: `+92-300-${String(8000000 + i).padStart(7, "0")}`,
-        is_active: true,
-      })),
-    ],
+  // Users Data Preparation
+  const usersData: any[] = [];
+
+  // 1. Admin (Main Branch)
+  usersData.push({
+    branch_id: allBranches[0].id,
+    role_id: superAdminRole.id,
+    username: "admin1",
+    email: "admin1@koolhub.edu",
+    password_hash: hashedPassword,
+    first_name: "System",
+    last_name: "Admin",
+    phone: "+92-300-1111111",
+    is_active: true,
   });
-  console.log(`✅ Created ${users.count} users!`);
+
+  // 2. Teachers (Assigning 5 per branch dynamically)
+  // Total teachers = branches * 5
+  const teachersPerBranch = 5;
+  const totalTeachers = allBranches.length * teachersPerBranch;
+
+  for (let i = 0; i < totalTeachers; i++) {
+    const branchIndex = i % allBranches.length;
+    const branch = allBranches[branchIndex];
+    const teacherNum = i + 1;
+
+    usersData.push({
+      branch_id: branch.id,
+      role_id: teacherRole.id,
+      username: `teacher${teacherNum}`,
+      email: `teacher${teacherNum}@koolhub.edu`,
+      password_hash: hashedPassword,
+      first_name: `Teacher`,
+      last_name: `${teacherNum} (${branch.code})`,
+      phone: `+92-300-222${String(teacherNum).padStart(5, "0")}`,
+      is_active: true,
+    });
+  }
+
+  // 3. Students (Assigning 40 per branch dynamically)
+  // Total students = branches * 40
+  const studentsPerBranch = 40;
+  const totalStudents = allBranches.length * studentsPerBranch;
+
+  for (let i = 0; i < totalStudents; i++) {
+    const branchIndex = i % allBranches.length;
+    const branch = allBranches[branchIndex];
+    const studentNum = i + 1;
+
+    usersData.push({
+      branch_id: branch.id,
+      role_id: studentRole.id,
+      username: `student${studentNum}`,
+      email: `student${studentNum}@koolhub.edu`,
+      password_hash: hashedPassword,
+      first_name: `Student`,
+      last_name: `${studentNum}`,
+      phone: `+92-300-888${String(studentNum).padStart(4, "0")}`,
+      is_active: true,
+    });
+  }
+
+  console.log(`👤 Preparing to create ${usersData.length} users...`);
+  await prisma.user.createMany({ data: usersData });
+  console.log(`✅ Users created!`);
 
   const allUsers = await prisma.user.findMany();
-  const teacher1 = allUsers.find((u: any) => u.username === "teacher1")!;
-  const teacher2 = allUsers.find((u: any) => u.username === "teacher2")!;
-  const teacher3 = allUsers.find((u: any) => u.username === "teacher3")!;
-  const studentUsers = allUsers.filter((u: any) =>
-    u.username?.startsWith("student")
-  );
+  const teachers = allUsers.filter((u) => u.username.startsWith("teacher"));
+  const students = allUsers.filter((u) => u.username.startsWith("student"));
 
-  // Create Academic Year
+  // Create Academic Year for ALL branches
   console.log("📅 Creating academic years...");
-  const academicYears = await prisma.academicYear.createMany({
-    data: [
-      {
-        branch_id: mainBranch.id,
-        year: "2024-2025",
-        start_date: new Date("2024-09-01"),
-        end_date: new Date("2025-08-31"),
-        is_current: true,
-      },
-    ],
-  });
-  console.log(`✅ Created ${academicYears.count} academic years!`);
+  const academicYearsData = allBranches.map(branch => ({
+    branch_id: branch.id,
+    year: "2024-2025",
+    start_date: new Date("2024-09-01"),
+    end_date: new Date("2025-08-31"),
+    is_current: true,
+  }));
 
-  const currentYear = (await prisma.academicYear.findMany())[0];
+  await prisma.academicYear.createMany({ data: academicYearsData });
+  const academicYears = await prisma.academicYear.findMany();
+
+  const currentYearMain = academicYears.find(
+    (y) => y.branch_id === allBranches[0].id
+  )!;
 
   // Create Grade Levels
   console.log("🎓 Creating grade levels...");
-  const gradeLevels = await prisma.gradeLevel.createMany({
-    data: [
-      { branch_id: mainBranch.id, name: "Grade 9", code: "G9", sort_order: 1 },
-      {
-        branch_id: mainBranch.id,
-        name: "Grade 10",
-        code: "G10",
-        sort_order: 2,
-      },
-      {
-        branch_id: mainBranch.id,
-        name: "Grade 11",
-        code: "G11",
-        sort_order: 3,
-      },
-      {
-        branch_id: mainBranch.id,
-        name: "Grade 12",
-        code: "G12",
-        sort_order: 4,
-      },
-    ],
-  });
-  console.log(`✅ Created ${gradeLevels.count} grade levels!`);
-
+  const gradeLevelData = [];
+  for (const branch of allBranches) {
+    gradeLevelData.push(
+      { branch_id: branch.id, name: "Grade 9", code: "G9", sort_order: 1 },
+      { branch_id: branch.id, name: "Grade 10", code: "G10", sort_order: 2 },
+      { branch_id: branch.id, name: "Grade 11", code: "G11", sort_order: 3 },
+      { branch_id: branch.id, name: "Grade 12", code: "G12", sort_order: 4 }
+    );
+  }
+  await prisma.gradeLevel.createMany({ data: gradeLevelData });
   const allGradeLevels = await prisma.gradeLevel.findMany();
-  const grade9 = allGradeLevels[0];
-  const grade10 = allGradeLevels[1];
 
   // Create Subjects
   console.log("📚 Creating subjects...");
-  const subjects = await prisma.subject.createMany({
-    data: [
+  const subjectData = [];
+  for (const branch of allBranches) {
+    subjectData.push(
       {
-        branch_id: mainBranch.id,
+        branch_id: branch.id,
         name: "Mathematics",
         code: "MATH101",
         credits: 4,
       },
+      { branch_id: branch.id, name: "English", code: "ENG101", credits: 3 },
+      { branch_id: branch.id, name: "Science", code: "SCI101", credits: 4 },
       {
-        branch_id: mainBranch.id,
-        name: "English",
-        code: "ENG101",
-        credits: 3,
-      },
-      {
-        branch_id: mainBranch.id,
-        name: "Science",
-        code: "SCI101",
-        credits: 4,
-      },
-      {
-        branch_id: mainBranch.id,
+        branch_id: branch.id,
         name: "Computer Science",
         code: "CS101",
         credits: 4,
-      },
-    ],
-  });
-  console.log(`✅ Created ${subjects.count} subjects!`);
-
+      }
+    );
+  }
+  await prisma.subject.createMany({ data: subjectData });
   const allSubjects = await prisma.subject.findMany();
-  const mathSubject = allSubjects[0];
-  const engSubject = allSubjects[1];
-  const sciSubject = allSubjects[2];
 
-  // Create Teachers
-  console.log("👨‍🏫 Creating teacher records...");
-  const teacherRecords = await prisma.teacher.createMany({
-    data: [
-      {
-        branch_id: mainBranch.id,
-        user_id: teacher1.id,
-        employee_code: "EMP001",
-        first_name: "Muhammad",
-        last_name: "Ahmed",
-        email: "teacher1@koolhub.edu",
-        phone: "+92-300-3333333",
-        hire_date: new Date("2020-01-15"),
-        employment_type: "full_time",
-        department: "Mathematics",
-        designation: "Senior Teacher",
-        qualification: "M.Sc Mathematics",
-        years_experience: 8,
-      },
-      {
-        branch_id: mainBranch.id,
-        user_id: teacher2.id,
-        employee_code: "EMP002",
-        first_name: "Ayesha",
-        last_name: "Khan",
-        email: "teacher2@koolhub.edu",
-        phone: "+92-300-4444444",
-        hire_date: new Date("2021-06-01"),
-        employment_type: "full_time",
-        department: "English",
-        designation: "Teacher",
-        qualification: "M.A English",
-        years_experience: 5,
-      },
-      {
-        branch_id: mainBranch.id,
-        user_id: teacher3.id,
-        employee_code: "EMP003",
-        first_name: "Hassan",
-        last_name: "Ali",
-        email: "teacher3@koolhub.edu",
-        phone: "+92-300-5555555",
-        hire_date: new Date("2019-08-10"),
-        employment_type: "full_time",
-        department: "Science",
-        designation: "Senior Teacher",
-        qualification: "M.Sc Physics",
-        years_experience: 10,
-      },
-    ],
+  // Create Teacher Metadata Records
+  console.log("👨‍🏫 Creating teacher profile records...");
+  await prisma.teacher.createMany({
+    data: teachers.map((user, i) => ({
+      branch_id: user.branch_id,
+      user_id: user.id,
+      employee_code: `EMP${String(i + 1).padStart(3, "0")}`,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      email: user.email,
+      phone: user.phone,
+      hire_date: new Date("2020-01-15"),
+      employment_type: "full_time",
+      department: ["Mathematics", "English", "Science"][i % 3],
+      designation: "Teacher",
+      qualification: "Masters",
+      years_experience: 5 + (i % 5),
+    })),
   });
-  console.log(`✅ Created ${teacherRecords.count} teacher records!`);
-
   const allTeachers = await prisma.teacher.findMany();
 
   // Create Courses
   console.log("📖 Creating courses...");
-  const courses = await prisma.course.createMany({
-    data: [
-      {
-        branch_id: mainBranch.id,
-        academic_year_id: currentYear.id,
-        subject_id: mathSubject.id,
-        grade_level_id: grade9.id,
-        teacher_id: allTeachers[0].id,
-        course_name: "Mathematics Grade 9",
-        course_code: "MATH9A",
-        max_students: 40,
-        room_number: "Room 101",
-        building: "Building A",
-      },
-      {
-        branch_id: mainBranch.id,
-        academic_year_id: currentYear.id,
-        subject_id: engSubject.id,
-        grade_level_id: grade9.id,
-        teacher_id: allTeachers[1].id,
-        course_name: "English Grade 9",
-        course_code: "ENG9A",
-        max_students: 35,
-        room_number: "Room 102",
-        building: "Building A",
-      },
-      {
-        branch_id: mainBranch.id,
-        academic_year_id: currentYear.id,
-        subject_id: sciSubject.id,
-        grade_level_id: grade9.id,
-        teacher_id: allTeachers[2].id,
-        course_name: "Science Grade 9",
-        course_code: "SCI9A",
-        max_students: 40,
-        room_number: "Lab 201",
-        building: "Building B",
-      },
-    ],
-  });
-  console.log(`✅ Created ${courses.count} courses!`);
+  const courseData = [];
+  for (const branch of allBranches) {
+    const branchTeachers = allTeachers.filter(
+      (t) => t.branch_id === branch.id
+    );
+    const branchSubjects = allSubjects.filter(
+      (s) => s.branch_id === branch.id
+    );
+    const branchGrades = allGradeLevels.filter(
+      (g) => g.branch_id === branch.id
+    );
+    const branchYear = academicYears.find((y) => y.branch_id === branch.id)!;
 
+    // Create a course for each subject for Grade 9 and 10
+    for (let i = 0; i < branchSubjects.length; i++) {
+      const teacher = branchTeachers[i % branchTeachers.length];
+      const grade = branchGrades[i % 2]; // Grade 9 or 10
+      courseData.push({
+        branch_id: branch.id,
+        academic_year_id: branchYear.id,
+        subject_id: branchSubjects[i].id,
+        grade_level_id: grade.id,
+        teacher_id: teacher.id,
+        course_name: `${branchSubjects[i].name} - ${grade.name}`,
+        course_code: `${branchSubjects[i].code}-${grade.code}-${branch.code}`,
+        max_students: 40,
+        room_number: `Room ${100 + i}`,
+        building: "Main Block",
+      });
+    }
+  }
+  await prisma.course.createMany({ data: courseData });
   const allCourses = await prisma.course.findMany();
 
-  // Create Students
-  console.log("🎓 Creating student records...");
-  const studentRecords = await prisma.student.createMany({
-    data: studentUsers.map((user: any, i: number) => ({
-      branch_id: mainBranch.id,
+  // Create Student Metadata Records
+  console.log("🎓 Creating student profile records...");
+
+  const studentRecordsData = students.map((user, i) => {
+    // Determine grade level matching their branch
+    const branchGrades = allGradeLevels.filter(
+      (g) => g.branch_id === user.branch_id
+    );
+    // Assign half to Grade 9, half to Grade 10
+    const gradeLevel = branchGrades[i % 2];
+
+    return {
+      branch_id: user.branch_id,
       user_id: user.id,
       student_code: `STU${String(i + 1).padStart(5, "0")}`,
-      first_name: `Student${i + 1}`,
-      last_name: "User",
-      date_of_birth: new Date(2008 + Math.floor(i / 5), i % 12, i % 28 || 1),
+      first_name: user.first_name,
+      last_name: user.last_name,
+      date_of_birth: new Date("2008-01-01"),
       gender: i % 2 === 0 ? "Male" : "Female",
-      blood_group: ["A+", "B+", "O+", "AB+"][i % 4],
       nationality: "Pakistani",
       admission_date: new Date("2024-09-01"),
       admission_status: "approved",
-      current_grade_level_id: i < 10 ? grade9.id : grade10.id,
+      current_grade_level_id: gradeLevel.id,
       is_active: true,
-    })),
+    };
   });
-  console.log(`✅ Created ${studentRecords.count} student records!`);
 
-  // Create Parents
-  console.log("👨‍👩‍👧 Creating parent records...");
-  const parents = await prisma.parentGuardian.createMany({
-    data: Array.from({ length: 15 }, (_, i) => ({
-      first_name: `Father${i + 1}`,
-      last_name: `Guardian`,
-      relationship: "father",
-      primary_phone: `+92-300-${String(9000000 + i).padStart(7, "0")}`,
-      email: `parent${i + 1}@email.com`,
-      occupation: ["Engineer", "Doctor", "Businessman", "Teacher"][i % 4],
-      cnic: `${String(12345 + i).padStart(5, "0")}-123456-${String(
-        i + 1
-      ).padStart(1, "0")}`,
-    })),
-  });
-  console.log(`✅ Created ${parents.count} parent records!`);
-
-  const allParents = await prisma.parentGuardian.findMany();
+  await prisma.student.createMany({ data: studentRecordsData });
   const allStudents = await prisma.student.findMany();
 
-  // Link students with parents
+  // Create Parents (One parent for every student for verify scale)
+  console.log("👨‍👩‍👧 Creating parent records...");
+  const parentData = allStudents.map((stu, i) => ({
+    first_name: `Parent`,
+    last_name: `Of ${stu.first_name}`,
+    relationship: "Father",
+    primary_phone: "+92-300-9999999",
+    email: `parent${i + 1}@example.com`,
+    is_active: true
+  }));
+  await prisma.parentGuardian.createMany({ data: parentData });
+  const allParents = await prisma.parentGuardian.findMany();
+
+  // Link Parents
   console.log("🔗 Linking students with parents...");
-  for (let i = 0; i < Math.min(allStudents.length, allParents.length); i++) {
+  for (let i = 0; i < allStudents.length; i++) {
     await prisma.student.update({
       where: { id: allStudents[i].id },
-      data: {
-        parents: {
-          connect: { id: allParents[i % allParents.length].id },
-        },
-      },
+      data: { parents: { connect: { id: allParents[i].id } } }
     });
   }
-  console.log("✅ Linked students with parents!");
 
   // Create Enrollments
   console.log("📝 Creating student enrollments...");
-  const enrollments = await prisma.studentEnrollment.createMany({
-    data: allStudents.slice(0, 15).flatMap((student: any, i: number) => [
-      {
+  const enrollmentData = [];
+  for (const student of allStudents) {
+    // Find courses in student's branch
+    const studentCourses = allCourses.filter(c => c.branch_id === student.branch_id);
+    // Enroll in all available courses for their branch (~4 courses)
+    for (const course of studentCourses) {
+      enrollmentData.push({
         student_id: student.id,
-        course_id: allCourses[0].id,
+        course_id: course.id,
         enrollment_date: new Date("2024-09-01"),
-        status: "enrolled",
-      },
-      {
-        student_id: student.id,
-        course_id: allCourses[1].id,
-        enrollment_date: new Date("2024-09-01"),
-        status: "enrolled",
-      },
-      {
-        student_id: student.id,
-        course_id: allCourses[2].id,
-        enrollment_date: new Date("2024-09-01"),
-        status: "enrolled",
-      },
-    ]),
-  });
-  console.log(`✅ Created ${enrollments.count} enrollments!`);
+        status: "enrolled"
+      });
+    }
+  }
+  await prisma.studentEnrollment.createMany({ data: enrollmentData });
 
-  // Create Grades
+  // Create Grades (Randomized)
   console.log("📊 Creating grades...");
-  const grades = await prisma.grade.createMany({
-    data: allStudents.slice(0, 10).flatMap((student: any, i: number) => [
-      {
+  const gradeData = [];
+  for (const student of allStudents) {
+    const studentCourses = allCourses.filter(c => c.branch_id === student.branch_id);
+    const studentYear = academicYears.find(y => y.branch_id === student.branch_id)!;
+
+    for (const course of studentCourses) {
+      gradeData.push({
         student_id: student.id,
-        course_id: allCourses[0].id,
-        academic_year_id: currentYear.id,
-        assessment_type: "quiz",
-        assessment_name: "Quiz 1",
-        score: 75 + Math.random() * 25,
-        max_score: 100,
-        weight: 10,
-        grade_date: new Date(),
-        graded_by: allTeachers[0].id,
-      },
-      {
-        student_id: student.id,
-        course_id: allCourses[1].id,
-        academic_year_id: currentYear.id,
-        assessment_type: "midterm",
+        course_id: course.id,
+        academic_year_id: studentYear.id,
+        assessment_type: "Midterm",
         assessment_name: "Midterm Exam",
-        score: 80 + Math.random() * 20,
+        score: 60 + Math.floor(Math.random() * 40),
         max_score: 100,
-        weight: 30,
         grade_date: new Date(),
-        graded_by: allTeachers[1].id,
-      },
-    ]),
-  });
-  console.log(`✅ Created ${grades.count} grades!`);
+        graded_by: allTeachers.find(t => t.branch_id === student.branch_id)!.id
+      });
+    }
+  }
+  await prisma.grade.createMany({ data: gradeData });
 
-  // Create Attendance
-  console.log("📍 Creating attendance records...");
-  const now = new Date();
-  const attendanceRecords = await prisma.attendance.createMany({
-    data: allStudents.slice(0, 12).flatMap((student: any, i: number) => [
-      {
-        student_id: student.id,
-        course_id: allCourses[0].id,
-        date: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000),
-        status: "present",
-        recorded_by: allTeachers[0].id,
-      },
-      {
-        student_id: student.id,
-        course_id: allCourses[1].id,
-        date: new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000),
-        status: i % 3 === 0 ? "absent" : "present",
-        recorded_by: allTeachers[1].id,
-      },
-    ]),
-  });
-  console.log(`✅ Created ${attendanceRecords.count} attendance records!`);
-
-  // Create Teacher Attendance
-  console.log("📍 Creating teacher attendance...");
-  const teacherAttendance = await prisma.teacherAttendance.createMany({
-    data: allTeachers.flatMap((teacher: any, i: number) => [
-      {
-        teacher_id: teacher.id,
-        date: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000),
-        status: "present",
-      },
-      {
-        teacher_id: teacher.id,
-        date: new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000),
-        status: "present",
-      },
-    ]),
-  });
-  console.log(
-    `✅ Created ${teacherAttendance.count} teacher attendance records!`
-  );
-
-  // Create Payroll
+  // Create Payroll (For verification)
   console.log("💰 Creating payroll records...");
-  const payrollRecords = await prisma.payrollRecord.createMany({
-    data: allTeachers.map((teacher: any, i: number) => ({
-      teacher_id: teacher.id,
-      branch_id: mainBranch.id,
-      month: 11,
-      year: 2024,
-      base_salary: 100000 + i * 5000,
-      allowances: 10000,
-      gross_salary: 110000 + i * 5000,
-      deductions: 5000,
-      net_salary: 105000 + i * 5000,
-      days_worked: 22,
-      status: "approved",
-    })),
-  });
-  console.log(`✅ Created ${payrollRecords.count} payroll records!`);
+  const payrollData = allTeachers.map(t => ({
+    teacher_id: t.id,
+    branch_id: t.branch_id,
+    month: 12,
+    year: 2024,
+    base_salary: 50000,
+    gross_salary: 55000,
+    net_salary: 53000,
+    status: "paid"
+  }));
+  await prisma.payrollRecord.createMany({ data: payrollData });
 
-  // Create Notifications
-  console.log("🔔 Creating notifications...");
-  const notifications = await prisma.notification.createMany({
-    data: studentUsers.slice(0, 15).map((user: any, i: number) => ({
-      user_id: user.id,
-      notification_type: "email",
-      subject: `Notification ${i + 1}`,
-      message: `You have a new notification: Message ${i + 1}`,
-      status: "sent",
-      sent_at: new Date(),
-    })),
-  });
-  console.log(`✅ Created ${notifications.count} notifications!`);
-
-  console.log("✨ Seeding completed successfully!");
-  console.log(`
-    Total Records Created:
-    - 2 Branches
-    - 4 Roles
-    - 24 Users (3 Teachers + 20 Students + 1 Admin)
-    - 3 Teachers
-    - 20 Students
-    - 1 Academic Year
-    - 4 Grade Levels
-    - 4 Subjects
-    - 3 Courses
-    - 45 Student Enrollments
-    - 20 Grades
-    - 24 Attendance Records
-    - 6 Teacher Attendance Records
-    - 3 Payroll Records
-    - 15 Parent/Guardian Records
-    - 15 Notifications
-    TOTAL: 200+ Records
-  `);
+  console.log("✨ Seeding scaled data completed successfully!");
 }
 
 main()

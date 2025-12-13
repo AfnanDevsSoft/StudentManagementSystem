@@ -4,11 +4,20 @@ import { sendResponse, authMiddleware } from "../middleware/error.middleware";
 
 const router = Router();
 
-// Get pending leaves (admin only)
+// Get pending leaves (admin/branch admin)
 router.get("/pending", authMiddleware, async (req: Request, res: Response) => {
   const limit = parseInt(req.query.limit as string) || 20;
   const offset = parseInt(req.query.offset as string) || 0;
-  const result = await LeaveService.getPendingLeaves(limit, offset);
+
+  const user = (req as any).user;
+  let branchId = undefined;
+
+  // If user is BranchAdmin, restrict to their branch
+  if (user.role.name === "BranchAdmin") {
+    branchId = user.branch_id;
+  }
+
+  const result = await LeaveService.getPendingLeaves(limit, offset, branchId);
   sendResponse(
     res,
     result.success ? 200 : 400,
@@ -64,11 +73,8 @@ router.post(
   "/:id/approve",
   authMiddleware,
   async (req: Request, res: Response) => {
-    const { approvedBy } = req.body;
-    if (!approvedBy) {
-      return sendResponse(res, 400, false, "Missing approvedBy field");
-    }
-    const result = await LeaveService.approveLeave(req.params.id, approvedBy);
+    const user = (req as any).user;
+    const result = await LeaveService.approveLeave(req.params.id, user.id);
     sendResponse(
       res,
       result.success ? 200 : 400,
@@ -84,13 +90,12 @@ router.post(
   "/:id/reject",
   authMiddleware,
   async (req: Request, res: Response) => {
-    const { approvedBy, reason } = req.body;
-    if (!approvedBy) {
-      return sendResponse(res, 400, false, "Missing approvedBy field");
-    }
+    const { reason } = req.body;
+    const user = (req as any).user;
+
     const result = await LeaveService.rejectLeave(
       req.params.id,
-      approvedBy,
+      user.id,
       reason
     );
     sendResponse(

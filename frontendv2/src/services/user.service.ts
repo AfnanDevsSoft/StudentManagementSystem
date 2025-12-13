@@ -32,8 +32,8 @@ export interface CreateUserDto {
 }
 
 export const userService = {
-    async getAll() {
-        const response = await api.get(endpoints.users.list);
+    async getAll(params?: { page?: number; limit?: number; search?: string }) {
+        const response = await api.get(endpoints.users.list, { params });
         return response.data;
     },
 

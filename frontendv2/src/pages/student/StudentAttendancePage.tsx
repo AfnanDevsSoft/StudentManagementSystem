@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { MainLayout } from '../../components/layout/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { useAuth } from '../../contexts/AuthContext';
+import { StudentProfileError } from '../../components/student/StudentProfileError';
 import { studentService } from '../../services/student.service';
 import {
     ClipboardCheck,
@@ -95,19 +96,7 @@ export const StudentAttendancePage: React.FC = () => {
     };
 
     if (!studentId) {
-        return (
-            <MainLayout>
-                <div className="space-y-6">
-                    <div className="text-center py-12">
-                        <AlertCircle className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-                        <h2 className="text-xl font-semibold">Student Profile Not Found</h2>
-                        <p className="text-muted-foreground mt-2">
-                            Your user account is not linked to a student record. Please contact the administrator.
-                        </p>
-                    </div>
-                </div>
-            </MainLayout>
-        );
+        return <StudentProfileError />;
     }
 
     return (
@@ -284,8 +273,8 @@ export const StudentAttendancePage: React.FC = () => {
                                                         <div className="flex items-center justify-between text-sm">
                                                             <span className="font-medium truncate">{course}</span>
                                                             <span className={`${percentage >= 90 ? 'text-green-600' :
-                                                                    percentage >= 75 ? 'text-yellow-600' :
-                                                                        'text-red-600'
+                                                                percentage >= 75 ? 'text-yellow-600' :
+                                                                    'text-red-600'
                                                                 }`}>
                                                                 {percentage}%
                                                             </span>
@@ -293,8 +282,8 @@ export const StudentAttendancePage: React.FC = () => {
                                                         <div className="h-2 bg-muted rounded-full overflow-hidden">
                                                             <div
                                                                 className={`h-full rounded-full ${percentage >= 90 ? 'bg-green-500' :
-                                                                        percentage >= 75 ? 'bg-yellow-500' :
-                                                                            'bg-red-500'
+                                                                    percentage >= 75 ? 'bg-yellow-500' :
+                                                                        'bg-red-500'
                                                                     }`}
                                                                 style={{ width: `${percentage}%` }}
                                                             />

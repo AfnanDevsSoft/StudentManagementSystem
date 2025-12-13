@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { MainLayout } from '../../components/layout/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { useAuth } from '../../contexts/AuthContext';
+import { StudentProfileError } from '../../components/student/StudentProfileError';
 import { studentService } from '../../services/student.service';
 import {
     Award,
@@ -62,19 +63,7 @@ export const StudentGradesPage: React.FC = () => {
     };
 
     if (!studentId) {
-        return (
-            <MainLayout>
-                <div className="space-y-6">
-                    <div className="text-center py-12">
-                        <AlertCircle className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-                        <h2 className="text-xl font-semibold">Student Profile Not Found</h2>
-                        <p className="text-muted-foreground mt-2">
-                            Your user account is not linked to a student record. Please contact the administrator.
-                        </p>
-                    </div>
-                </div>
-            </MainLayout>
-        );
+        return <StudentProfileError />;
     }
 
     return (

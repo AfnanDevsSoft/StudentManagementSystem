@@ -105,9 +105,9 @@ export const endpoints = {
         update: (id: string) => `/users/${id}`,
         delete: (id: string) => `/users/${id}`,
     },
-    // Roles - Backend uses /rbac/*
+    // Roles - Backend uses /rbac/* but Users need legacy roles for creation
     roles: {
-        list: '/rbac/roles',
+        list: '/users/roles', // Changed from /rbac/roles to fetch legacy compatible roles
         create: '/rbac/roles',
         get: (id: string) => `/rbac/roles/${id}`,
         update: (id: string) => `/rbac/roles/${id}`,
@@ -247,6 +247,15 @@ export const endpoints = {
         get: (id: string) => `/course-content/${id}`,
         update: (id: string) => `/course-content/${id}`,
         delete: (id: string) => `/course-content/${id}`,
+    },
+    // Assignments
+    assignments: {
+        listByCourse: (courseId: string) => `/assignments/course/${courseId}`,
+        create: '/assignments',
+        get: (id: string) => `/assignments/${id}`,
+        update: (id: string) => `/assignments/${id}`,
+        delete: (id: string) => `/assignments/${id}`,
+        submissions: (id: string) => `/assignments/${id}/submissions`,
     },
     // Notifications - Backend uses /notifications/*
     notifications: {

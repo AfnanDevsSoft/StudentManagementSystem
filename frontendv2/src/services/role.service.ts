@@ -5,6 +5,7 @@ export interface Role {
     name: string;
     description?: string;
     is_system?: boolean;
+    branch_id?: string;
     permissions: string[];
 }
 
