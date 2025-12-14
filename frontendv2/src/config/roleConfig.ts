@@ -12,17 +12,12 @@ import {
     Award,
     FileText,
     DollarSign,
-    Library,
     Heart,
-    CalendarDays,
-    MessageSquare,
     BarChart3,
     Settings,
     Building2,
     Shield,
-    FolderOpen,
     Receipt,
-    Upload,
     Calendar,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
@@ -55,7 +50,7 @@ export const adminNavigation: NavigationItem[] = [
     { name: 'Grades', href: '/grades', icon: Award, group: 'Academic' },
     { name: 'Finance', href: '/finance', icon: DollarSign, group: 'Finance' },
     { name: 'Payroll', href: '/payroll', icon: Receipt, group: 'Finance' },
-    { name: 'Library', href: '/library', icon: Library, group: 'Operations' },
+
     { name: 'Health Records', href: '/health', icon: Heart, group: 'Operations' },
 
     { name: 'Analytics', href: '/analytics', icon: BarChart3 },
@@ -86,7 +81,7 @@ export const studentNavigation: NavigationItem[] = [
     { name: 'My Grades', href: '/student/grades', icon: Award, group: 'Performance' },
     { name: 'My Attendance', href: '/student/attendance', icon: ClipboardCheck, group: 'Performance' },
     { name: 'Fee Status', href: '/student/fees', icon: DollarSign, group: 'Finance' },
-    { name: 'Library', href: '/library', icon: Library, group: 'Resources' },
+
 
     { name: 'Settings', href: '/settings', icon: Settings },
 ];
@@ -104,7 +99,7 @@ export const branchAdminNavigation: NavigationItem[] = [
     { name: 'Grades', href: '/grades', icon: Award, group: 'Academic' },
     { name: 'Finance', href: '/finance', icon: DollarSign, group: 'Finance' },
     { name: 'Payroll', href: '/payroll', icon: Receipt, group: 'Finance' },
-    { name: 'Library', href: '/library', icon: Library, group: 'Operations' },
+
     { name: 'Health Records', href: '/health', icon: Heart, group: 'Operations' },
 
     { name: 'Analytics', href: '/analytics', icon: BarChart3 },

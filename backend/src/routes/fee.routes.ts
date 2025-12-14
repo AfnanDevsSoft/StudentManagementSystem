@@ -9,7 +9,7 @@ router.get(
   "/structures",
   authMiddleware,
   async (req: Request, res: Response) => {
-    const branchId = req.query.branchId as string;
+    const branchId = (req.query.branch_id || req.query.branchId) as string;
     const limit = parseInt(req.query.limit as string) || 20;
     const offset = parseInt(req.query.offset as string) || 0;
     const result = await FeeService.getFeeStructure(branchId, limit, offset, (req as any).user);
@@ -79,11 +79,13 @@ router.get("/records", authMiddleware, async (req: Request, res: Response) => {
   const status = req.query.status as string;
   const limit = parseInt(req.query.limit as string) || 20;
   const offset = parseInt(req.query.offset as string) || 0;
+  const branchId = (req.query.branch_id || req.query.branchId) as string;
   const result = await FeeService.getFeeRecords(
     studentId,
     status,
     limit,
     offset,
+    branchId,
     (req as any).user
   );
   sendResponse(
@@ -126,6 +128,7 @@ router.get(
       undefined, // all statuses
       limit,
       offset,
+      undefined, // branchId not needed for payment history of specific student
       (req as any).user
     );
 
@@ -144,7 +147,7 @@ router.get(
   "/statistics",
   authMiddleware,
   async (req: Request, res: Response) => {
-    const branchId = req.query.branchId as string;
+    const branchId = (req.query.branch_id || req.query.branchId) as string;
     const result = await FeeService.getFeeStatistics(branchId, (req as any).user);
     sendResponse(
       res,

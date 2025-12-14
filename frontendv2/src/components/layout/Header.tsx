@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Bell, Search, User, LogOut, Settings, Moon, Sun, Building2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { branchService } from '../../services/branch.service';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger } from '../../components/ui/select';
 import { useAuth } from '../../contexts/AuthContext';
 import { getInitials } from '../../lib/utils';
 
@@ -18,6 +18,34 @@ export const Header: React.FC = () => {
         retry: false
     });
     const branches = branchesData?.data || [];
+
+    const roleName = user?.role?.name?.toLowerCase();
+    const isSuperAdmin = roleName === 'superadmin';
+
+    // Computed branches list
+    const branchOptions = isSuperAdmin
+        ? [{ id: 'all', name: 'All Branches (Super Admin)' }, ...branches]
+        : (user?.branch ? [user.branch] : branches);
+
+    // Valid branches logic: User's assigned branch -> Stored selection -> First available branch
+    const storedBranch = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('current_branch') || 'null') : null;
+
+    let effectiveBranch: any;
+
+    if (isSuperAdmin) {
+        // For Super Admin: Use stored branch if valid, otherwise default to 'all'
+        effectiveBranch = branchOptions.find((b: any) => b.id === storedBranch?.id) || branchOptions[0];
+    } else {
+        // For others: Enforce assigned branch
+        effectiveBranch = user?.branch || branches[0];
+        // Ensure we don't use stale superadmin selection if we relog as restricted user
+        if (storedBranch && storedBranch.id !== effectiveBranch?.id && typeof window !== 'undefined') {
+            localStorage.removeItem('current_branch');
+        }
+    }
+
+    const selectedBranchName = effectiveBranch?.name || "Select Branch";
+    const selectedBranchId = effectiveBranch?.id || "main";
 
     const toggleDarkMode = () => {
         setDarkMode(!darkMode);
@@ -44,23 +72,27 @@ export const Header: React.FC = () => {
                     {/* Branch Selector */}
                     <div className="flex items-center space-x-2 min-w-[200px]">
                         <Select
-                            value={user?.branch?.id || "main"}
+                            value={selectedBranchId}
                             onValueChange={(value) => {
-                                const selectedBranch = branches?.find((b: any) => b.id === value);
+                                if (!isSuperAdmin) return; // Prevent change for regular users
+                                const selectedBranch = branchOptions?.find((b: any) => b.id === value);
                                 if (selectedBranch) {
                                     localStorage.setItem('current_branch', JSON.stringify(selectedBranch));
                                     window.location.reload();
                                 }
                             }}
+                            disabled={!isSuperAdmin}
                         >
-                            <SelectTrigger className="w-full h-9 bg-muted border-none focus:ring-0">
+                            <SelectTrigger className="w-full h-9 bg-muted/50 border-none focus:ring-0">
                                 <div className="flex items-center gap-2">
-                                    <Building2 className="w-4 h-4 text-muted-foreground" />
-                                    <SelectValue placeholder="Select Branch" />
+                                    <Building2 className="w-4 h-4 text-primary" />
+                                    <span className="font-semibold text-primary">
+                                        {selectedBranchName}
+                                    </span>
                                 </div>
                             </SelectTrigger>
                             <SelectContent>
-                                {branches?.map((branch: any) => (
+                                {branchOptions?.map((branch: any) => (
                                     <SelectItem key={branch.id} value={branch.id}>
                                         {branch.name}
                                     </SelectItem>

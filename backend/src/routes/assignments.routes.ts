@@ -67,6 +67,30 @@ router.get("/course/:courseId", authMiddleware, async (req: Request, res: Respon
     }
 });
 
+// Get Student Assignments by Course (with status)
+router.get("/student-course/:courseId", authMiddleware, async (req: Request, res: Response) => {
+    try {
+        const { courseId } = req.params;
+        const user = (req as any).user;
+
+        if (!user.student?.id) {
+            return sendResponse(res, 403, false, "Not authorized as student");
+        }
+
+        const result = await AssignmentService.getStudentAssignments(courseId, user.student.id);
+
+        sendResponse(
+            res,
+            result.success ? 200 : 400,
+            result.success,
+            result.message,
+            result.data
+        );
+    } catch (error: any) {
+        sendResponse(res, 500, false, error.message);
+    }
+});
+
 // Get Submissions for Assignment
 router.get("/:id/submissions", authMiddleware, async (req: Request, res: Response) => {
     try {

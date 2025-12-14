@@ -195,14 +195,17 @@ export class FeeService {
     status?: string,
     limit: number = 20,
     offset: number = 0,
+    branchId?: string,
     userContext?: any
   ) {
     try {
       const whereClause: any = {};
 
-      // Data Scoping: If not SuperAdmin, restrict to students in their branch
+      // Data Scoping
       if (userContext && userContext.role?.name !== 'SuperAdmin') {
         whereClause.student = { branch_id: userContext.branch_id };
+      } else if (branchId) {
+        whereClause.student = { branch_id: branchId };
       }
 
       if (studentId) {

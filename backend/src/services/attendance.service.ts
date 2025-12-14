@@ -97,6 +97,69 @@ export class AttendanceService {
     }
 
     /**
+     * Get all attendance with pagination and filtering
+     */
+    static async getAllAttendance(
+        branchId?: string,
+        limit: number = 20,
+        page: number = 1,
+        userContext?: any
+    ) {
+        try {
+            const skip = (page - 1) * limit;
+            const whereClause: any = {};
+
+            // Data Scoping
+            if (userContext && userContext.role?.name !== 'SuperAdmin') {
+                branchId = userContext.branch_id;
+            }
+
+            if (branchId) {
+                // Filter by course branch
+                whereClause.course = { branch_id: branchId };
+            }
+
+            const attendance = await prisma.attendance.findMany({
+                where: whereClause,
+                include: {
+                    student: {
+                        select: {
+                            first_name: true,
+                            last_name: true,
+                            student_code: true
+                        }
+                    },
+                    course: {
+                        select: {
+                            course_name: true,
+                            course_code: true
+                        }
+                    }
+                },
+                orderBy: { date: 'desc' },
+                take: limit,
+                skip: skip
+            });
+
+            const total = await prisma.attendance.count({ where: whereClause });
+
+            return {
+                success: true,
+                message: "Attendance records retrieved",
+                data: attendance,
+                pagination: {
+                    page,
+                    limit,
+                    total,
+                    pages: Math.ceil(total / limit)
+                }
+            };
+        } catch (error: any) {
+            return { success: false, message: error.message };
+        }
+    }
+
+    /**
      * Get attendance for a course, optionally filtered by date
      */
     static async getByCourse(courseId: string, date?: string) {

@@ -8,6 +8,7 @@ export class TeacherService {
     page: number = 1,
     limit: number = 20,
     search?: string,
+    branchId?: string,
     userContext?: any
   ) {
     try {
@@ -17,6 +18,8 @@ export class TeacherService {
       // Data Scoping: If user is not SuperAdmin, strictly filter by their branch
       if (userContext && userContext.role?.name !== 'SuperAdmin') {
         where.branch_id = userContext.branch_id;
+      } else if (branchId) {
+        where.branch_id = branchId;
       }
 
       if (search) {

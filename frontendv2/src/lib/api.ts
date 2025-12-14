@@ -22,8 +22,8 @@ api.interceptors.request.use(
         if (currentBranch) {
             try {
                 const branch = JSON.parse(currentBranch);
-                // Don't add branch_id if it's the main branch viewing all data
-                if (branch.id !== 'main') {
+                // Don't add branch_id if it's the main branch or 'all' viewing all data
+                if (branch.id && branch.id !== 'main' && branch.id !== 'all') {
                     config.params = {
                         ...config.params,
                         branch_id: branch.id,
@@ -158,7 +158,7 @@ export const endpoints = {
     },
     // Payroll - Backend uses /payroll/*
     payroll: {
-        list: '/payroll/salaries',
+        list: '/payroll/records', // Changed from /salaries to get mapped records
         process: '/payroll/process',
         get: (id: string) => `/payroll/${id}`,
         update: (id: string) => `/payroll/${id}`,

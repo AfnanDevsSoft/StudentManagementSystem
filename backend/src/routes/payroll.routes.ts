@@ -6,7 +6,7 @@ const router = Router();
 
 // Get salaries for a month/year
 router.get("/salaries", authMiddleware, async (req: Request, res: Response) => {
-  const branchId = req.query.branchId as string;
+  const branchId = (req.query.branch_id || req.query.branchId) as string;
   const month = req.query.month
     ? parseInt(req.query.month as string)
     : undefined;
@@ -58,7 +58,35 @@ router.post(
   }
 );
 
-// Process salary
+// Manual Create / Record Payment
+router.post("/", authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { teacher_id, salary_amount, bonus, deductions, payment_date, payment_method, status, remarks } = req.body;
+
+    // Basic validation
+    if (!teacher_id || !payment_date || salary_amount === undefined) {
+      return sendResponse(res, 400, false, "Missing required fields");
+    }
+
+    const result = await PayrollService.createPayment({
+      teacher_id,
+      salary_amount,
+      bonus,
+      deductions,
+      payment_date,
+      payment_method,
+      status,
+      remarks,
+      userContext: (req as any).user
+    });
+
+    return res.status(result.success ? 201 : 400).json(result);
+  } catch (error: any) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Process salary (Calculated)
 router.post("/process", authMiddleware, async (req: Request, res: Response) => {
   const {
     teacherId,
@@ -122,7 +150,7 @@ router.get(
 
 // Get payroll records
 router.get("/records", authMiddleware, async (req: Request, res: Response) => {
-  const branchId = req.query.branchId as string;
+  const branchId = (req.query.branch_id || req.query.branchId) as string;
   const teacherId = req.query.teacherId as string;
   const status = req.query.status as string;
   const limit = parseInt(req.query.limit as string) || 20;

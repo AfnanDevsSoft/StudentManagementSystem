@@ -30,16 +30,19 @@ const router = Router();
  */
 router.get("/", authMiddleware, async (req: Request, res: Response) => {
     try {
-        const { branch_id, student_id, course_id } = req.query;
+        const branch_id = (req.query.branch_id || req.query.branchId) as string;
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 20;
 
-        // For now, return empty array
-        // Grades are usually accessed through /students/:studentId/grades
-        return res.status(200).json({
-            success: true,
-            message: "Grades retrieved",
-            data: [],
-            note: "Use /students/:id/grades for student-specific grades"
-        });
+        const GradeService = require("../services/grade.service").default;
+        const result = await GradeService.getAllGrades(
+            branch_id,
+            limit,
+            page,
+            (req as any).user
+        );
+
+        return res.status(200).json(result);
     } catch (error: any) {
         return res.status(500).json({ message: error.message });
     }

@@ -35,17 +35,18 @@ const router = Router();
  */
 router.get("/", authMiddleware, async (req: Request, res: Response) => {
     try {
-        const { branch_id, student_id, course_id, date } = req.query;
+        const branch_id = (req.query.branch_id || req.query.branchId) as string;
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 20;
 
-        // For now, return empty array
-        // Attendance is usually accessed through /students/:studentId/attendance
-        // or /courses/:courseId/attendance
-        return res.status(200).json({
-            success: true,
-            message: "Attendance records retrieved",
-            data: [],
-            note: "Use /students/:id/attendance or /courses/:id/attendance for specific records"
-        });
+        const result = await AttendanceService.getAllAttendance(
+            branch_id,
+            limit,
+            page,
+            (req as any).user
+        );
+
+        return res.status(200).json(result);
     } catch (error: any) {
         return res.status(500).json({ message: error.message });
     }

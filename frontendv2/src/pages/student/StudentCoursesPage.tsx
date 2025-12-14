@@ -1,5 +1,6 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import { MainLayout } from '../../components/layout/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
@@ -19,6 +20,7 @@ import {
 export const StudentCoursesPage: React.FC = () => {
     const { user } = useAuth();
     const studentId = user?.studentId;
+    const navigate = useNavigate();
 
     // Fetch student enrollments (courses)
     const { data: enrollmentsData, isLoading, error } = useQuery({
@@ -148,11 +150,11 @@ export const StudentCoursesPage: React.FC = () => {
 
                                         {/* Actions */}
                                         <div className="flex gap-2 pt-2">
-                                            <Button size="sm" className="flex-1" disabled>
-                                                <BookOpen className="w-4 h-4 mr-1" />
-                                                Materials
-                                            </Button>
-                                            <Button size="sm" variant="outline" className="flex-1" disabled>
+                                            <Button
+                                                size="sm"
+                                                className="flex-1"
+                                                onClick={() => navigate('/student/assignments')}
+                                            >
                                                 <FileText className="w-4 h-4 mr-1" />
                                                 Assignments
                                             </Button>

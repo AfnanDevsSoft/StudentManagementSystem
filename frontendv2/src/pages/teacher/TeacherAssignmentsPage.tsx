@@ -304,8 +304,10 @@ export const TeacherAssignmentsPage: React.FC = () => {
                                         </TableCell>
                                         <TableCell>
                                             {sub.content_url && (
-                                                <Button size="sm" variant="outline" onClick={() => window.open(sub.content_url, '_blank')}>
-                                                    View Work
+                                                <Button size="sm" variant="outline" asChild>
+                                                    <a href={sub.content_url} target="_blank" rel="noopener noreferrer">
+                                                        View Work
+                                                    </a>
                                                 </Button>
                                             )}
                                         </TableCell>

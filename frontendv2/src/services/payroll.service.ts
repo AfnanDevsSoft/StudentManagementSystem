@@ -63,9 +63,9 @@ export const payrollService = {
         return response.data;
     },
 
-    // Alias for backwards compatibility - 'create' maps to 'process'
+    // Create manual payment
     async create(data: CreatePayrollDto | any) {
-        const response = await api.post(endpoints.payroll.process, data);
+        const response = await api.post('/payroll', data); // Changed from endpoints.payroll.process
         return response.data;
     },
 

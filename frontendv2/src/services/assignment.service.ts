@@ -30,6 +30,11 @@ export const assignmentService = {
         return response.data;
     },
 
+    async getStudentAssignments(courseId: string) {
+        const response = await api.get(`/assignments/student-course/${courseId}`);
+        return response.data;
+    },
+
     async create(data: CreateAssignmentDto) {
         const response = await api.post('/assignments', data);
         return response.data;
@@ -47,6 +52,11 @@ export const assignmentService = {
 
     async getSubmissions(assignmentId: string) {
         const response = await api.get(`/assignments/${assignmentId}/submissions`);
+        return response.data;
+    },
+
+    async submitAssignment(id: string, data: { content_url: string }) {
+        const response = await api.post(`/assignments/${id}/submit`, data);
         return response.data;
     }
 };

@@ -7,6 +7,7 @@ export class CourseService {
     page: number = 1,
     limit: number = 20,
     search?: string,
+    branchId?: string,
     userContext?: any
   ) {
     try {
@@ -16,6 +17,8 @@ export class CourseService {
       // Data Scoping
       if (userContext && userContext.role?.name !== 'SuperAdmin') {
         where.branch_id = userContext.branch_id;
+      } else if (branchId) {
+        where.branch_id = branchId;
       }
 
       if (search) {

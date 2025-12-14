@@ -6,15 +6,20 @@ export class AnalyticsService {
   /**
    * Calculate student enrollment metrics
    */
-  static async getEnrollmentMetrics(branchId: string) {
+  static async getEnrollmentMetrics(branchId?: string) {
     try {
+      const where: any = {};
+      if (branchId) {
+        where.course = { branch_id: branchId };
+      }
+
       const totalEnrollments = await prisma.studentEnrollment.count({
-        where: { course: { branch_id: branchId } },
+        where,
       });
 
       const enrollmentsByGrade = await prisma.studentEnrollment.groupBy({
         by: ["course_id"],
-        where: { course: { branch_id: branchId } },
+        where,
         _count: {
           id: true,
         },
@@ -39,19 +44,24 @@ export class AnalyticsService {
    * Calculate attendance metrics
    */
   static async getAttendanceMetrics(
-    branchId: string,
+    branchId: string | undefined,
     startDate: Date,
     endDate: Date
   ) {
     try {
-      const attendanceRecords = await prisma.attendance.findMany({
-        where: {
-          date: {
-            gte: startDate,
-            lte: endDate,
-          },
-          course: { branch_id: branchId },
+      const where: any = {
+        date: {
+          gte: startDate,
+          lte: endDate,
         },
+      };
+
+      if (branchId) {
+        where.course = { branch_id: branchId };
+      }
+
+      const attendanceRecords = await prisma.attendance.findMany({
+        where,
       });
 
       const totalRecords = attendanceRecords.length;
@@ -80,28 +90,29 @@ export class AnalyticsService {
   /**
    * Get fee collection metrics
    */
-  static async getFeeMetrics(branchId: string) {
+  static async getFeeMetrics(branchId?: string) {
     try {
-      const branch = await prisma.branch.findUnique({
-        where: { id: branchId },
-        include: {
-          students: {
-            select: { id: true },
-          },
-        },
-      });
+      if (branchId) {
+        const branch = await prisma.branch.findUnique({
+          where: { id: branchId },
+          include: { students: { select: { id: true } } },
+        });
 
-      if (!branch) {
-        return { success: false, message: "Branch not found" };
+        if (!branch) return { success: false, message: "Branch not found" };
+
+        return {
+          success: true,
+          message: "Fee metrics calculated",
+          data: { totalStudents: branch.students.length }
+        };
+      } else {
+        const totalStudents = await prisma.student.count();
+        return {
+          success: true,
+          message: "Global fee metrics calculated",
+          data: { totalStudents }
+        };
       }
-
-      return {
-        success: true,
-        message: "Fee metrics calculated",
-        data: {
-          totalStudents: branch.students.length,
-        },
-      };
     } catch (error: any) {
       console.error("Error calculating fee metrics:", error);
       return { success: false, message: error.message };
@@ -111,9 +122,10 @@ export class AnalyticsService {
   /**
    * Get teacher performance metrics
    */
-  static async getTeacherMetrics(branchId: string, teacherId?: string) {
+  static async getTeacherMetrics(branchId?: string, teacherId?: string) {
     try {
-      const where: any = { branch_id: branchId };
+      const where: any = {};
+      if (branchId) where.branch_id = branchId;
       if (teacherId) {
         where.id = teacherId;
       }

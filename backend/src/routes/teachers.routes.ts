@@ -48,8 +48,9 @@ router.get(
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
     const search = (req.query.search as string) || "";
+    const branchId = (req.query.branch_id as string) || "";
 
-    const result = await TeacherService.getAllTeachers(page, limit, search, (req as any).user);
+    const result = await TeacherService.getAllTeachers(page, limit, search, branchId, (req as any).user);
     sendResponse(
       res,
       200,

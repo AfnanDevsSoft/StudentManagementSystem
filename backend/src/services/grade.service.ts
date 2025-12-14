@@ -40,6 +40,84 @@ export class GradeService {
     }
 
     /**
+     * Get all grades with pagination and filtering
+     */
+    static async getAllGrades(
+        branchId?: string,
+        limit: number = 20,
+        page: number = 1,
+        userContext?: any
+    ) {
+        try {
+            const skip = (page - 1) * limit;
+            const whereClause: any = {};
+
+            // Data Scoping
+            if (userContext && userContext.role?.name !== 'SuperAdmin') {
+                branchId = userContext.branch_id;
+            }
+
+            if (branchId) {
+                // Filter by course's branch or student's branch? 
+                // Usually course determines the academic context.
+                whereClause.course = { branch_id: branchId };
+            }
+
+            const grades = await prisma.grade.findMany({
+                where: whereClause,
+                include: {
+                    student: {
+                        select: {
+                            first_name: true,
+                            last_name: true,
+                            student_code: true
+                        }
+                    },
+                    course: {
+                        select: {
+                            course_name: true,
+                            course_code: true
+                        }
+                    }
+                },
+                orderBy: { created_at: 'desc' },
+                take: limit,
+                skip: skip
+            });
+
+            const mappedGrades = grades.map(g => ({
+                id: g.id,
+                student_id: g.student_id,
+                course_id: g.course_id,
+                grade: g.assessment_type, // or another field if 'grade' letter exists
+                marks_obtained: Number(g.score),
+                total_marks: Number(g.max_score),
+                remarks: g.remarks,
+                exam_date: g.grade_date,
+                grading_period: 'Semester 1', // Default or fetch from db
+                student: g.student,
+                course: g.course
+            }));
+
+            const total = await prisma.grade.count({ where: whereClause });
+
+            return {
+                success: true,
+                message: "Grades retrieved",
+                data: mappedGrades,
+                pagination: {
+                    page,
+                    limit,
+                    total,
+                    pages: Math.ceil(total / limit)
+                }
+            };
+        } catch (error: any) {
+            return { success: false, message: error.message };
+        }
+    }
+
+    /**
      * Bulk create/update grades
      */
     static async bulkCreate(data: {

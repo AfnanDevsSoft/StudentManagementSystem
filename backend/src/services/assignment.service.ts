@@ -52,6 +52,9 @@ class AssignmentService {
     /**
      * Get assignments by course ID
      */
+    /**
+     * Get assignments by course ID (public/teacher view)
+     */
     async getByCourse(courseId: string) {
         const assignments = await (prisma as any).assignment.findMany({
             where: { course_id: courseId },
@@ -59,6 +62,35 @@ class AssignmentService {
             include: {
                 _count: {
                     select: { submissions: true }
+                }
+            }
+        });
+
+        return {
+            success: true,
+            message: "Assignments retrieved successfully",
+            data: assignments,
+        };
+    }
+
+    /**
+     * Get assignments for a student (includes submission status)
+     */
+    async getStudentAssignments(courseId: string, studentId: string) {
+        const assignments = await (prisma as any).assignment.findMany({
+            where: { course_id: courseId },
+            orderBy: { created_at: "desc" },
+            include: {
+                submissions: {
+                    where: { student_id: studentId },
+                    select: {
+                        id: true,
+                        status: true,
+                        submitted_at: true,
+                        grade: true,
+                        content_url: true
+                    },
+                    take: 1
                 }
             }
         });

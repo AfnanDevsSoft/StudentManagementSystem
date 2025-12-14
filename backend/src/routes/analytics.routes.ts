@@ -29,12 +29,12 @@ router.get(
     try {
       const { branchId } = req.query;
 
-      if (!branchId) {
-        return res.status(400).json({ message: "Branch ID is required" });
+      if (!branchId && (req as any).user.role.name !== 'SuperAdmin') {
+        return res.status(400).json({ message: "Branch ID is required for non-SuperAdmin" });
       }
 
       const result = await AnalyticsService.getEnrollmentMetrics(
-        branchId as string
+        branchId as string | undefined
       );
 
       return res.status(result.success ? 200 : 400).json(result);
@@ -77,15 +77,15 @@ router.get(
     try {
       const { branchId, startDate, endDate } = req.query;
 
-      if (!branchId) {
-        return res.status(400).json({ message: "Branch ID is required" });
+      if (!branchId && (req as any).user.role.name !== 'SuperAdmin') {
+        return res.status(400).json({ message: "Branch ID is required for non-SuperAdmin" });
       }
 
       const start = startDate ? new Date(startDate as string) : new Date();
       const end = endDate ? new Date(endDate as string) : new Date();
 
       const result = await AnalyticsService.getAttendanceMetrics(
-        branchId as string,
+        branchId as string | undefined,
         start,
         end
       );
@@ -119,11 +119,11 @@ router.get("/fees", authMiddleware, async (req: Request, res: Response) => {
   try {
     const { branchId } = req.query;
 
-    if (!branchId) {
-      return res.status(400).json({ message: "Branch ID is required" });
+    if (!branchId && (req as any).user.role.name !== 'SuperAdmin') {
+      return res.status(400).json({ message: "Branch ID is required for non-SuperAdmin" });
     }
 
-    const result = await AnalyticsService.getFeeMetrics(branchId as string);
+    const result = await AnalyticsService.getFeeMetrics(branchId as string | undefined);
 
     return res.status(result.success ? 200 : 400).json(result);
   } catch (error: any) {
@@ -157,12 +157,12 @@ router.get("/teachers", authMiddleware, async (req: Request, res: Response) => {
   try {
     const { branchId, teacherId } = req.query;
 
-    if (!branchId) {
-      return res.status(400).json({ message: "Branch ID is required" });
+    if (!branchId && (req as any).user.role.name !== 'SuperAdmin') {
+      return res.status(400).json({ message: "Branch ID is required for non-SuperAdmin" });
     }
 
     const result = await AnalyticsService.getTeacherMetrics(
-      branchId as string,
+      branchId as string | undefined,
       teacherId as string
     );
 
@@ -198,7 +198,7 @@ router.get(
       const { branchId } = req.query;
 
       const result = await AnalyticsService.getDashboardData(
-        branchId as string
+        branchId as string | undefined // If empty string, treats as undefined? need to check, but TS accepts string | undefined
       );
 
       return res.status(result.success ? 200 : 400).json(result);
