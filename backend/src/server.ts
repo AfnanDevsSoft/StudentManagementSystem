@@ -8,6 +8,7 @@ dotenv.config({
 
 import app from "./app";
 import { PrismaClient } from "@prisma/client";
+console.log('--- SERVER RESTARTED WITH NEW SCHEMA RELATIONS ---');
 
 const PORT = process.env.PORT || 3000;
 const prisma = new PrismaClient();

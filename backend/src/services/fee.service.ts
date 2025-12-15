@@ -58,6 +58,47 @@ export class FeeService {
   }
 
   /**
+   * Create a new fee structure
+   */
+  static async createFee(data: any, userContext?: any) {
+    try {
+      // Data Scoping
+      let branchId = data.branch_id;
+      if (userContext && userContext.role?.name !== 'SuperAdmin') {
+        branchId = userContext.branch_id;
+      }
+
+      if (!branchId) {
+        throw new Error("Branch ID is required");
+      }
+
+      const fee = await prisma.fee.create({
+        data: {
+          branch_id: branchId,
+          fee_name: data.name,
+          fee_type: data.type || 'Tuition', // Default or from payload
+          amount: new Decimal(data.amount),
+          due_date: new Date(data.due_date),
+          // description removed as it is not in schema
+        }
+      });
+
+      return {
+        success: true,
+        message: "Fee structure created successfully",
+        data: fee
+      };
+    } catch (error) {
+      console.error("Error creating fee structure:", error);
+      return {
+        success: false,
+        message: "Failed to create fee structure",
+        error: error instanceof Error ? error.message : "Unknown error"
+      };
+    }
+  }
+
+  /**
    * Calculate fee for a student
    */
   static async calculateFee(
@@ -227,6 +268,7 @@ export class FeeService {
               student_code: true,
             },
           },
+          fee: true, // Include fee details
         },
         orderBy: { payment_date: "desc" },
         take: limit,

@@ -25,8 +25,10 @@ export interface FeePayment {
         student_code: string;
     };
     fee?: {
-        name: string;
+        name?: string;
         amount: number;
+        fee_name?: string;
+        fee_type?: string;
     };
 }
 

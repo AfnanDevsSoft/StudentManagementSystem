@@ -93,8 +93,8 @@ export const FinancePage: React.FC = () => {
     const handleEdit = (item: any) => {
         setEditingItem(item);
         if (activeTab === 'fees') {
-            feeForm.setValue('name', item.name);
-            feeForm.setValue('amount', item.amount);
+            feeForm.setValue('name', item.fee_name || item.name); // Handle both
+            feeForm.setValue('amount', Number(item.amount));
             feeForm.setValue('due_date', item.due_date.split('T')[0]);
             feeForm.setValue('description', item.description || '');
         } else if (activeTab === 'payments') {
@@ -123,10 +123,10 @@ export const FinancePage: React.FC = () => {
     };
 
     const stats = {
-        totalFees: fees.reduce((acc: number, f: any) => acc + f.amount, 0),
-        collected: payments.filter((p: any) => p.status === 'Completed').reduce((acc: number, p: any) => acc + p.amount_paid, 0),
-        pending: payments.filter((p: any) => p.status === 'Pending').reduce((acc: number, p: any) => acc + p.amount_paid, 0),
-        scholarships: scholarships.reduce((acc: number, s: any) => acc + s.amount, 0),
+        totalFees: fees.reduce((acc: number, f: any) => acc + Number(f.amount), 0),
+        collected: payments.filter((p: any) => p.status?.toLowerCase() === 'completed').reduce((acc: number, p: any) => acc + Number(p.amount_paid), 0),
+        pending: payments.filter((p: any) => p.status?.toLowerCase() === 'pending').reduce((acc: number, p: any) => acc + Number(p.amount_paid), 0),
+        scholarships: scholarships.reduce((acc: number, s: any) => acc + Number(s.amount), 0),
     };
 
     return (
@@ -229,8 +229,8 @@ export const FinancePage: React.FC = () => {
                                 <tbody>
                                     {fees.map((fee: any) => (
                                         <tr key={fee.id} className="border-b">
-                                            <td className="p-4">{fee.name}</td>
-                                            <td className="p-4">${fee.amount}</td>
+                                            <td className="p-4">{fee.fee_name}</td>
+                                            <td className="p-4">${Number(fee.amount)}</td>
                                             <td className="p-4">{new Date(fee.due_date).toLocaleDateString()}</td>
                                             <td className="text-right p-4">
                                                 <Button variant="ghost" size="sm" onClick={() => handleEdit(fee)}><Edit className="w-4 h-4" /></Button>
@@ -258,8 +258,8 @@ export const FinancePage: React.FC = () => {
                                     {payments.map((payment: any) => (
                                         <tr key={payment.id} className="border-b">
                                             <td className="p-4">{payment.student?.first_name} {payment.student?.last_name}</td>
-                                            <td className="p-4">{payment.fee?.name}</td>
-                                            <td className="p-4">${payment.amount_paid}</td>
+                                            <td className="p-4">{payment.fee?.fee_name} ({payment.fee?.fee_type})</td>
+                                            <td className="p-4">${Number(payment.amount_paid)}</td>
                                             <td className="p-4">{new Date(payment.payment_date).toLocaleDateString()}</td>
                                             <td className="p-4"><Badge variant={payment.status === 'Completed' ? 'success' : 'secondary'}>{payment.status}</Badge></td>
                                             <td className="text-right p-4">

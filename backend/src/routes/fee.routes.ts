@@ -23,6 +23,26 @@ router.get(
   }
 );
 
+
+// Create fee structure
+router.post(
+  "/structures",
+  authMiddleware,
+  async (req: Request, res: Response) => {
+    const result = await FeeService.createFee({
+      ...req.body,
+      branch_id: (req as any).user.branch_id // Ensure branch context
+    }, (req as any).user);
+    sendResponse(
+      res,
+      result.success ? 201 : 400,
+      result.success,
+      result.message,
+      result.data
+    );
+  }
+);
+
 // Calculate fee for student
 router.post(
   "/calculate",
@@ -44,25 +64,35 @@ router.post(
 );
 
 // Process fee payment
+// Process fee payment
 router.post("/payment", authMiddleware, async (req: Request, res: Response) => {
   const {
-    studentId,
-    feeId,
-    amountPaid,
-    paymentMethod,
+    studentId, student_id,
+    feeId, fee_id,
+    amountPaid, amount_paid,
+    paymentMethod, payment_method,
     recordedBy,
-    transactionId,
+    transactionId, transaction_id
   } = req.body;
-  if (!studentId || !feeId || !amountPaid || !paymentMethod || !recordedBy) {
+
+  const finalStudentId = studentId || student_id;
+  const finalFeeId = feeId || fee_id;
+  const finalAmount = amountPaid || amount_paid;
+  const finalMethod = paymentMethod || payment_method;
+  const finalRecordedBy = recordedBy || (req as any).user.id; // Fallback to auth user
+  const finalTxId = transactionId || transaction_id;
+
+  if (!finalStudentId || !finalFeeId || !finalAmount || !finalMethod || !finalRecordedBy) {
     return sendResponse(res, 400, false, "Missing required fields");
   }
+
   const result = await FeeService.processFeePayment(
-    studentId,
-    feeId,
-    amountPaid,
-    paymentMethod,
-    recordedBy,
-    transactionId
+    finalStudentId,
+    finalFeeId,
+    finalAmount,
+    finalMethod,
+    finalRecordedBy,
+    finalTxId
   );
   sendResponse(
     res,

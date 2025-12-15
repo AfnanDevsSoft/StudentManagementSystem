@@ -496,6 +496,8 @@ model Fee {
 
   @@unique([branch_id, fee_name, fee_type])
   @@map("fees")
+
+  payments FeePayment[]
 }
 
 model FeePayment {
@@ -513,6 +515,7 @@ model FeePayment {
   created_at     DateTime @default(now())
   updated_at     DateTime @updatedAt
   student        Student  @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  fee            Fee      @relation(fields: [fee_id], references: [id], onDelete: Cascade)
 
   @@index([student_id])
   @@map("fee_payments")
