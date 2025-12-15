@@ -14,6 +14,7 @@ import { DashboardPage } from './pages/dashboard/DashboardPage';
 // Core Modules
 import { BranchesPage } from './pages/branches/BranchesPage';
 import { RolesPage } from './pages/roles/RolesPage';
+import { CreateRolePage } from './pages/roles/CreateRolePage';
 import { UsersPage } from './pages/users/UsersPage';
 import { StudentsPage } from './pages/students/StudentsPage';
 import { TeachersPage } from './pages/teachers/TeachersPage';
@@ -91,11 +92,21 @@ function App() {
               }
             />
 
+
             <Route
               path="/roles"
               element={
                 <ProtectedRoute allowedRoles={['superadmin']}>
                   <RolesPage />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/roles/new"
+              element={
+                <ProtectedRoute allowedRoles={['superadmin']}>
+                  <CreateRolePage />
                 </ProtectedRoute>
               }
             />

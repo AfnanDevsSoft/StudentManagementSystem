@@ -10,7 +10,7 @@ router.post("/", authMiddleware, async (req: Request, res: Response) => {
         const user = (req as any).user;
 
         // Check if user is a teacher
-        if (user.role.name !== "Teacher" || !user.teacher) {
+        if ((user.role.name !== "Teacher" && user.role.name !== "teacher") || !user.teacher) {
             return sendResponse(res, 403, false, "Only teachers can create assignments");
         }
 

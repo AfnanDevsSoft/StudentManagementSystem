@@ -1,48 +1,59 @@
+
 import { api, endpoints } from '../lib/api';
 
 export interface Role {
     id: string;
     name: string;
     description?: string;
-    is_system?: boolean;
-    branch_id?: string;
-    permissions: string[];
+    isSystem?: boolean;
+    permissions?: any;
+    usersCount?: number;
+    color?: string; // For UI
+    branchId?: string;
 }
 
-export interface CreateRoleDto {
-    name: string;
+export interface CreateRoleDTO {
+    branchId: string;
+    roleName: string;
     description?: string;
-    permissions: string[];
+    permissions?: string[];
+}
+
+export interface UpdateRoleDTO {
+    permissionIds: string[];
 }
 
 export const roleService = {
-    async getAll() {
+    getAll: async () => {
+        // Currently fetches system roles
         const response = await api.get(endpoints.roles.list);
         return response.data;
     },
 
-    async getById(id: string) {
+    getById: async (id: string) => {
         const response = await api.get(endpoints.roles.get(id));
         return response.data;
     },
 
-    async create(data: CreateRoleDto) {
+    create: async (data: CreateRoleDTO) => {
         const response = await api.post(endpoints.roles.create, data);
         return response.data;
     },
 
-    async update(id: string, data: Partial<CreateRoleDto>) {
+    update: async (id: string, data: UpdateRoleDTO) => {
         const response = await api.put(endpoints.roles.update(id), data);
         return response.data;
     },
 
-    async delete(id: string) {
+    delete: async (id: string) => {
         const response = await api.delete(endpoints.roles.delete(id));
         return response.data;
     },
 
-    async getPermissions() {
+    // RBAC Specific
+    getAllPermissions: async () => {
         const response = await api.get(endpoints.roles.permissions);
         return response.data;
-    },
+    }
 };
+

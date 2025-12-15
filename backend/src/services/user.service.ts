@@ -19,7 +19,14 @@ export class UserService {
       const where: any = {};
 
       // Data Scoping
-      if (userContext && userContext.role?.name?.toLowerCase() !== 'superadmin') {
+      const roleName = userContext?.role?.name?.toLowerCase();
+
+      // RBAC Check: Only Admins can list all users
+      if (roleName !== 'superadmin' && roleName !== 'branchadmin') {
+        throw new Error('Unauthorized: Insufficient permissions');
+      }
+
+      if (roleName !== 'superadmin') {
         where.branch_id = userContext.branch_id;
       }
 

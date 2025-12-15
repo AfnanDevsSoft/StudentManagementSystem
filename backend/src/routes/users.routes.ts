@@ -73,9 +73,10 @@ router.get(
     const search = (req.query.search as string) || "";
 
     const result = await UserService.getAllUsers(page, limit, search, (req as any).user);
+    const statusCode = result.success ? 200 : 403; // Assume 403 for failure in this context
     sendResponse(
       res,
-      200,
+      statusCode,
       result.success,
       result.message,
       result.data,
