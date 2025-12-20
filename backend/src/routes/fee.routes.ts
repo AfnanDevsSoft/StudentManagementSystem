@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import { FeeService } from "../services/fee.service";
 import { sendResponse, authMiddleware } from "../middleware/error.middleware";
+import { requirePermission } from "../middleware/permission.middleware";
 
 const router = Router();
 
@@ -8,6 +9,7 @@ const router = Router();
 router.get(
   "/structures",
   authMiddleware,
+  requirePermission("finance:read"),
   async (req: Request, res: Response) => {
     const branchId = (req.query.branch_id || req.query.branchId) as string;
     const limit = parseInt(req.query.limit as string) || 20;
@@ -28,6 +30,7 @@ router.get(
 router.post(
   "/structures",
   authMiddleware,
+  requirePermission("finance:create"),
   async (req: Request, res: Response) => {
     const result = await FeeService.createFee({
       ...req.body,
@@ -47,6 +50,7 @@ router.post(
 router.post(
   "/calculate",
   authMiddleware,
+  requirePermission("finance:read"),
   async (req: Request, res: Response) => {
     const { studentId } = req.body;
     if (!studentId) {
@@ -65,7 +69,7 @@ router.post(
 
 // Process fee payment
 // Process fee payment
-router.post("/payment", authMiddleware, async (req: Request, res: Response) => {
+router.post("/payment", authMiddleware, requirePermission("finance:create"), async (req: Request, res: Response) => {
   const {
     studentId, student_id,
     feeId, fee_id,
@@ -104,7 +108,7 @@ router.post("/payment", authMiddleware, async (req: Request, res: Response) => {
 });
 
 // Get fee records
-router.get("/records", authMiddleware, async (req: Request, res: Response) => {
+router.get("/records", authMiddleware, requirePermission("finance:read"), async (req: Request, res: Response) => {
   const studentId = req.query.studentId as string;
   const status = req.query.status as string;
   const limit = parseInt(req.query.limit as string) || 20;
@@ -131,6 +135,7 @@ router.get("/records", authMiddleware, async (req: Request, res: Response) => {
 router.get(
   "/:studentId/outstanding",
   authMiddleware,
+  requirePermission("finance:read"),
   async (req: Request, res: Response) => {
     const result = await FeeService.getOutstandingFees(req.params.studentId);
     sendResponse(
@@ -147,6 +152,7 @@ router.get(
 router.get(
   "/:studentId/payment-history",
   authMiddleware,
+  requirePermission("finance:read"),
   async (req: Request, res: Response) => {
     const { studentId } = req.params;
     const limit = parseInt(req.query.limit as string) || 50;
@@ -176,6 +182,7 @@ router.get(
 router.get(
   "/statistics",
   authMiddleware,
+  requirePermission("finance:read"),
   async (req: Request, res: Response) => {
     const branchId = (req.query.branch_id || req.query.branchId) as string;
     const result = await FeeService.getFeeStatistics(branchId, (req as any).user);

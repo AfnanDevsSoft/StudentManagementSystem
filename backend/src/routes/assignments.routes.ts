@@ -1,11 +1,12 @@
 import { Router, Request, Response } from "express";
 import AssignmentService from "../services/assignment.service";
 import { authMiddleware, sendResponse } from "../middleware/error.middleware";
+import { requirePermission } from "../middleware/permission.middleware";
 
 const router = Router();
 
 // Create Assignment
-router.post("/", authMiddleware, async (req: Request, res: Response) => {
+router.post("/", authMiddleware, requirePermission("assignments:create"), async (req: Request, res: Response) => {
     try {
         const user = (req as any).user;
 
@@ -50,7 +51,7 @@ router.post("/", authMiddleware, async (req: Request, res: Response) => {
 });
 
 // Get Assignments by Course
-router.get("/course/:courseId", authMiddleware, async (req: Request, res: Response) => {
+router.get("/course/:courseId", authMiddleware, requirePermission("assignments:read"), async (req: Request, res: Response) => {
     try {
         const { courseId } = req.params;
         const result = await AssignmentService.getByCourse(courseId);
@@ -68,7 +69,7 @@ router.get("/course/:courseId", authMiddleware, async (req: Request, res: Respon
 });
 
 // Get Student Assignments by Course (with status)
-router.get("/student-course/:courseId", authMiddleware, async (req: Request, res: Response) => {
+router.get("/student-course/:courseId", authMiddleware, requirePermission("assignments:read"), async (req: Request, res: Response) => {
     try {
         const { courseId } = req.params;
         const user = (req as any).user;
@@ -92,7 +93,7 @@ router.get("/student-course/:courseId", authMiddleware, async (req: Request, res
 });
 
 // Get Submissions for Assignment
-router.get("/:id/submissions", authMiddleware, async (req: Request, res: Response) => {
+router.get("/:id/submissions", authMiddleware, requirePermission("assignments:read"), async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
         // Verify teacher owns the assignment or is admin (skipped for brevity, but could add check)
@@ -112,7 +113,7 @@ router.get("/:id/submissions", authMiddleware, async (req: Request, res: Respons
 });
 
 // Delete Assignment
-router.delete("/:id", authMiddleware, async (req: Request, res: Response) => {
+router.delete("/:id", authMiddleware, requirePermission("assignments:update"), async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
         const result = await AssignmentService.delete(id);
@@ -129,7 +130,7 @@ router.delete("/:id", authMiddleware, async (req: Request, res: Response) => {
 });
 
 // Update Assignment
-router.put("/:id", authMiddleware, async (req: Request, res: Response) => {
+router.put("/:id", authMiddleware, requirePermission("assignments:update"), async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
         const result = await AssignmentService.update(id, req.body);
@@ -147,7 +148,7 @@ router.put("/:id", authMiddleware, async (req: Request, res: Response) => {
 });
 
 // Submit Assignment
-router.post("/:id/submit", authMiddleware, async (req: Request, res: Response) => {
+router.post("/:id/submit", authMiddleware, requirePermission("assignments:submit"), async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
         const user = (req as any).user;

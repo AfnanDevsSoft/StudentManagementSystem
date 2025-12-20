@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import { FileExportService } from "../services/fileExport.service";
 import { authMiddleware, sendResponse } from "../middleware/error.middleware";
+import { requirePermission } from "../middleware/permission.middleware";
 
 const router: Router = Router();
 
@@ -11,6 +12,7 @@ const router: Router = Router();
 router.post(
   "/create",
   authMiddleware,
+  requirePermission("reports:export"),
   async (req: Request, res: Response): Promise<void> => {
     const { userId, entityType, format, filters } = req.body;
 
@@ -36,6 +38,7 @@ router.post(
 router.get(
   "/status/:exportId",
   authMiddleware,
+  requirePermission("reports:export"),
   async (req: Request, res: Response): Promise<void> => {
     const result = await FileExportService.getExportStatus(req.params.exportId);
     sendResponse(res, 200, result.success, result.message, result.data);
@@ -49,6 +52,7 @@ router.get(
 router.get(
   "/user/:userId",
   authMiddleware,
+  requirePermission("reports:export"),
   async (req: Request, res: Response): Promise<void> => {
     const { limit = 20, offset = 0 } = req.query;
     const result = await FileExportService.getUserExports(
@@ -67,6 +71,7 @@ router.get(
 router.get(
   "/all",
   authMiddleware,
+  requirePermission("reports:export"),
   async (req: Request, res: Response): Promise<void> => {
     const { limit = 50, offset = 0 } = req.query;
     const result = await FileExportService.getAllExports(
@@ -84,6 +89,7 @@ router.get(
 router.get(
   "/download/:exportId",
   authMiddleware,
+  requirePermission("reports:export"),
   async (req: Request, res: Response): Promise<void> => {
     const result = await FileExportService.downloadExport(req.params.exportId);
     sendResponse(res, 200, result.success, result.message, result.data);
@@ -97,6 +103,7 @@ router.get(
 router.post(
   "/schedule",
   authMiddleware,
+  requirePermission("reports:export"),
   async (req: Request, res: Response): Promise<void> => {
     const { userId, entityType, format, frequency, recipientEmails } = req.body;
 
@@ -124,6 +131,7 @@ router.post(
 router.get(
   "/schedules/:userId",
   authMiddleware,
+  requirePermission("reports:export"),
   async (req: Request, res: Response): Promise<void> => {
     const result = await FileExportService.getExportSchedules(
       req.params.userId
@@ -139,6 +147,7 @@ router.get(
 router.put(
   "/schedules/:scheduleId",
   authMiddleware,
+  requirePermission("reports:export"),
   async (req: Request, res: Response): Promise<void> => {
     const result = await FileExportService.updateSchedule(
       req.params.scheduleId,
@@ -155,6 +164,7 @@ router.put(
 router.delete(
   "/schedules/:scheduleId",
   authMiddleware,
+  requirePermission("reports:export"),
   async (req: Request, res: Response): Promise<void> => {
     const result = await FileExportService.cancelSchedule(
       req.params.scheduleId

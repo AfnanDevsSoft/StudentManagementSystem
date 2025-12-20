@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import { authMiddleware } from "../middleware/error.middleware";
 import AnalyticsService from "../services/analytics.service";
+import { requirePermission } from "../middleware/permission.middleware";
 
 const router = Router();
 
@@ -25,6 +26,7 @@ const router = Router();
 router.get(
   "/enrollment",
   authMiddleware,
+  requirePermission("analytics:read"),
   async (req: Request, res: Response) => {
     try {
       const { branchId } = req.query;
@@ -73,6 +75,7 @@ router.get(
 router.get(
   "/attendance",
   authMiddleware,
+  requirePermission("analytics:read"),
   async (req: Request, res: Response) => {
     try {
       const { branchId, startDate, endDate } = req.query;
@@ -115,7 +118,7 @@ router.get(
  *       200:
  *         description: Fee metrics
  */
-router.get("/fees", authMiddleware, async (req: Request, res: Response) => {
+router.get("/fees", authMiddleware, requirePermission("analytics:read"), async (req: Request, res: Response) => {
   try {
     const { branchId } = req.query;
 
@@ -153,7 +156,7 @@ router.get("/fees", authMiddleware, async (req: Request, res: Response) => {
  *       200:
  *         description: Teacher metrics
  */
-router.get("/teachers", authMiddleware, async (req: Request, res: Response) => {
+router.get("/teachers", authMiddleware, requirePermission("analytics:read"), async (req: Request, res: Response) => {
   try {
     const { branchId, teacherId } = req.query;
 
@@ -193,6 +196,7 @@ router.get("/teachers", authMiddleware, async (req: Request, res: Response) => {
 router.get(
   "/dashboard",
   authMiddleware,
+  requirePermission("analytics:read"),
   async (req: Request, res: Response) => {
     try {
       const { branchId } = req.query;
@@ -238,6 +242,7 @@ router.get(
 router.get(
   "/trends/:metricType",
   authMiddleware,
+  requirePermission("analytics:read"),
   async (req: Request, res: Response) => {
     try {
       const { metricType } = req.params;

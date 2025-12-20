@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import { NotificationService } from "../services/notification.service";
 import { authMiddleware, sendResponse } from "../middleware/error.middleware";
+import { requirePermission } from "../middleware/permission.middleware";
 
 const router: Router = Router();
 
@@ -11,6 +12,7 @@ const router: Router = Router();
 router.post(
   "/send",
   authMiddleware,
+  requirePermission("messaging:send"),
   async (req: Request, res: Response): Promise<void> => {
     const { userId, notificationType, subject, message } = req.body;
 
@@ -36,6 +38,7 @@ router.post(
 router.get(
   "/user/:userId",
   authMiddleware,
+  requirePermission("messaging:read"),
   async (req: Request, res: Response): Promise<void> => {
     const { skip = 0, limit = 20 } = req.query;
     const result = await NotificationService.getNotifications(
@@ -54,6 +57,7 @@ router.get(
 router.put(
   "/:notificationId/read",
   authMiddleware,
+  requirePermission("messaging:read"),
   async (req: Request, res: Response): Promise<void> => {
     const result = await NotificationService.markAsRead(req.params.notificationId);
     sendResponse(res, 200, result.success, result.message, result.data);
@@ -67,6 +71,7 @@ router.put(
 router.put(
   "/user/:userId/read-all",
   authMiddleware,
+  requirePermission("messaging:read"),
   async (req: Request, res: Response): Promise<void> => {
     const result = await NotificationService.markAllAsRead(req.params.userId);
     sendResponse(res, 200, result.success, result.message, result.data);
@@ -80,6 +85,7 @@ router.put(
 router.delete(
   "/:notificationId",
   authMiddleware,
+  requirePermission("messaging:send"),
   async (req: Request, res: Response): Promise<void> => {
     const result = await NotificationService.deleteNotification(req.params.notificationId);
     sendResponse(res, 200, result.success, result.message);
@@ -93,6 +99,7 @@ router.delete(
 router.post(
   "/bulk",
   authMiddleware,
+  requirePermission("messaging:send"),
   async (req: Request, res: Response): Promise<void> => {
     const { userIds, notificationType, subject, message } = req.body;
 
@@ -118,6 +125,7 @@ router.post(
 router.get(
   "/stats",
   authMiddleware,
+  requirePermission("messaging:read"),
   async (req: Request, res: Response): Promise<void> => {
     const result = await NotificationService.getNotificationStats();
     sendResponse(res, 200, result.success, result.message, result.data);

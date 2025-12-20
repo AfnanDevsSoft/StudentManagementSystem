@@ -1,6 +1,7 @@
 import express, { Router, Request, Response } from "express";
 import HealthService from "../services/health.service";
 import { authMiddleware, sendResponse } from "../middleware/error.middleware";
+import { requirePermission } from "../middleware/permission.middleware";
 
 const router: Router = express.Router();
 
@@ -10,6 +11,7 @@ const router: Router = express.Router();
 router.get(
     "/student/:studentId",
     authMiddleware,
+    requirePermission("health:read"),
     async (req: Request, res: Response): Promise<void> => {
         const { studentId } = req.params;
         const result = await HealthService.getHealthRecord(studentId, (req as any).user);
@@ -27,6 +29,7 @@ router.get(
 router.post(
     "/student/:studentId",
     authMiddleware,
+    requirePermission("health:create"),
     async (req: Request, res: Response): Promise<void> => {
         const { studentId } = req.params;
         const result = await HealthService.upsertHealthRecord(studentId, req.body, (req as any).user);
@@ -46,6 +49,7 @@ router.post(
 router.get(
     "/checkups/:studentId",
     authMiddleware,
+    requirePermission("health:read"),
     async (req: Request, res: Response): Promise<void> => {
         const { studentId } = req.params;
         const result = await HealthService.getMedicalCheckups(studentId, (req as any).user);
@@ -63,6 +67,7 @@ router.get(
 router.post(
     "/checkups/:studentId",
     authMiddleware,
+    requirePermission("health:create"),
     async (req: Request, res: Response): Promise<void> => {
         const { studentId } = req.params;
         const result = await HealthService.addMedicalCheckup(studentId, req.body, (req as any).user);
@@ -80,6 +85,7 @@ router.post(
 router.patch(
     "/checkups/:id",
     authMiddleware,
+    requirePermission("health:update"),
     async (req: Request, res: Response): Promise<void> => {
         const { id } = req.params;
         const result = await HealthService.updateMedicalCheckup(id, req.body);
@@ -97,6 +103,7 @@ router.patch(
 router.delete(
     "/checkups/:id",
     authMiddleware,
+    requirePermission("health:update"),
     async (req: Request, res: Response): Promise<void> => {
         const { id } = req.params;
         const result = await HealthService.deleteMedicalCheckup(id);
@@ -115,6 +122,7 @@ router.delete(
 router.get(
     "/vaccinations/:studentId",
     authMiddleware,
+    requirePermission("health:read"),
     async (req: Request, res: Response): Promise<void> => {
         const { studentId } = req.params;
         const result = await HealthService.getVaccinations(studentId);
@@ -132,6 +140,7 @@ router.get(
 router.post(
     "/vaccinations/:studentId",
     authMiddleware,
+    requirePermission("health:create"),
     async (req: Request, res: Response): Promise<void> => {
         const { studentId } = req.params;
         const result = await HealthService.addVaccination(studentId, req.body);
@@ -149,6 +158,7 @@ router.post(
 router.patch(
     "/vaccinations/:id",
     authMiddleware,
+    requirePermission("health:update"),
     async (req: Request, res: Response): Promise<void> => {
         const { id } = req.params;
         const result = await HealthService.updateVaccination(id, req.body);
@@ -166,6 +176,7 @@ router.patch(
 router.delete(
     "/vaccinations/:id",
     authMiddleware,
+    requirePermission("health:update"),
     async (req: Request, res: Response): Promise<void> => {
         const { id } = req.params;
         const result = await HealthService.deleteVaccination(id);
@@ -184,6 +195,7 @@ router.delete(
 router.get(
     "/incidents/:studentId",
     authMiddleware,
+    requirePermission("health:read"),
     async (req: Request, res: Response): Promise<void> => {
         const { studentId } = req.params;
         const result = await HealthService.getMedicalIncidents(studentId);
@@ -201,6 +213,7 @@ router.get(
 router.post(
     "/incidents",
     authMiddleware,
+    requirePermission("health:create"),
     async (req: Request, res: Response): Promise<void> => {
         const result = await HealthService.reportIncident(req.body);
         sendResponse(
@@ -217,6 +230,7 @@ router.post(
 router.patch(
     "/incidents/:id",
     authMiddleware,
+    requirePermission("health:update"),
     async (req: Request, res: Response): Promise<void> => {
         const { id } = req.params;
         const result = await HealthService.updateIncident(id, req.body);
@@ -234,6 +248,7 @@ router.patch(
 router.delete(
     "/incidents/:id",
     authMiddleware,
+    requirePermission("health:update"),
     async (req: Request, res: Response): Promise<void> => {
         const { id } = req.params;
         const result = await HealthService.deleteIncident(id);
@@ -252,6 +267,7 @@ router.delete(
 router.get(
     "/summary/:studentId",
     authMiddleware,
+    requirePermission("health:read"),
     async (req: Request, res: Response): Promise<void> => {
         const { studentId } = req.params;
         const result = await HealthService.getHealthSummary(studentId, (req as any).user);

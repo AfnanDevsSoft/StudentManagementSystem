@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import { authMiddleware } from "../middleware/error.middleware";
 import CourseContentService from "../services/courseContent.service";
+import { requirePermission } from "../middleware/permission.middleware";
 
 const router = Router();
 
@@ -37,7 +38,7 @@ const router = Router();
  *       201:
  *         description: Content uploaded
  */
-router.post("/upload", authMiddleware, async (req: Request, res: Response) => {
+router.post("/upload", authMiddleware, requirePermission("courses:create"), async (req: Request, res: Response) => {
   try {
     const {
       courseId,
@@ -101,6 +102,7 @@ router.post("/upload", authMiddleware, async (req: Request, res: Response) => {
 router.get(
   "/:courseId",
   authMiddleware,
+  requirePermission("courses:read"),
   async (req: Request, res: Response) => {
     try {
       const { courseId } = req.params;
@@ -140,6 +142,7 @@ router.get(
 router.get(
   "/:courseId/published",
   authMiddleware,
+  requirePermission("courses:read"),
   async (req: Request, res: Response) => {
     try {
       const { courseId } = req.params;
@@ -180,6 +183,7 @@ router.get(
 router.patch(
   "/:contentId",
   authMiddleware,
+  requirePermission("courses:update"),
   async (req: Request, res: Response) => {
     try {
       const { contentId } = req.params;
@@ -217,6 +221,7 @@ router.patch(
 router.delete(
   "/:contentId",
   authMiddleware,
+  requirePermission("courses:update"),
   async (req: Request, res: Response) => {
     try {
       const { contentId } = req.params;
@@ -251,6 +256,7 @@ router.delete(
 router.post(
   "/:contentId/view",
   authMiddleware,
+  requirePermission("courses:read"),
   async (req: Request, res: Response) => {
     try {
       const { contentId } = req.params;
@@ -294,6 +300,7 @@ router.post(
 router.post(
   "/:contentId/pin",
   authMiddleware,
+  requirePermission("courses:update"),
   async (req: Request, res: Response) => {
     try {
       const { contentId } = req.params;
@@ -334,6 +341,7 @@ router.post(
 router.get(
   "/:courseId/by-type/:contentType",
   authMiddleware,
+  requirePermission("courses:read"),
   async (req: Request, res: Response) => {
     try {
       const { courseId, contentType } = req.params;
@@ -371,6 +379,7 @@ router.get(
 router.get(
   "/:courseId/popular",
   authMiddleware,
+  requirePermission("courses:read"),
   async (req: Request, res: Response) => {
     try {
       const { courseId } = req.params;

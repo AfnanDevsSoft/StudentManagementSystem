@@ -1,11 +1,12 @@
 import { Router, Request, Response } from "express";
 import { PayrollService } from "../services/payroll.service";
 import { sendResponse, authMiddleware } from "../middleware/error.middleware";
+import { requirePermission } from "../middleware/permission.middleware";
 
 const router = Router();
 
 // Get salaries for a month/year
-router.get("/salaries", authMiddleware, async (req: Request, res: Response) => {
+router.get("/salaries", authMiddleware, requirePermission("payroll:read"), async (req: Request, res: Response) => {
   const branchId = (req.query.branch_id || req.query.branchId) as string;
   const month = req.query.month
     ? parseInt(req.query.month as string)
@@ -34,6 +35,7 @@ router.get("/salaries", authMiddleware, async (req: Request, res: Response) => {
 router.post(
   "/calculate",
   authMiddleware,
+  requirePermission("payroll:create"),
   async (req: Request, res: Response) => {
     const { teacherId, month, year, baseSalary, daysWorked, leaveDays } =
       req.body;
@@ -59,7 +61,7 @@ router.post(
 );
 
 // Manual Create / Record Payment
-router.post("/", authMiddleware, async (req: Request, res: Response) => {
+router.post("/", authMiddleware, requirePermission("payroll:create"), async (req: Request, res: Response) => {
   try {
     const { teacher_id, salary_amount, bonus, deductions, payment_date, payment_method, status, remarks } = req.body;
 
@@ -87,7 +89,7 @@ router.post("/", authMiddleware, async (req: Request, res: Response) => {
 });
 
 // Process salary (Calculated)
-router.post("/process", authMiddleware, async (req: Request, res: Response) => {
+router.post("/process", authMiddleware, requirePermission("payroll:create"), async (req: Request, res: Response) => {
   const {
     teacherId,
     branchId,
@@ -123,6 +125,7 @@ router.post("/process", authMiddleware, async (req: Request, res: Response) => {
 router.get(
   "/teacher/:teacherId",
   authMiddleware,
+  requirePermission("payroll:read"),
   async (req: Request, res: Response) => {
     const { teacherId } = req.params;
     const status = req.query.status as string;
@@ -149,7 +152,7 @@ router.get(
 );
 
 // Get payroll records
-router.get("/records", authMiddleware, async (req: Request, res: Response) => {
+router.get("/records", authMiddleware, requirePermission("payroll:read"), async (req: Request, res: Response) => {
   const branchId = (req.query.branch_id || req.query.branchId) as string;
   const teacherId = req.query.teacherId as string;
   const status = req.query.status as string;
@@ -176,6 +179,7 @@ router.get("/records", authMiddleware, async (req: Request, res: Response) => {
 router.post(
   "/:id/approve",
   authMiddleware,
+  requirePermission("payroll:update"),
   async (req: Request, res: Response) => {
     const { approvedBy } = req.body;
     if (!approvedBy) {
@@ -199,6 +203,7 @@ router.post(
 router.post(
   "/:id/mark-paid",
   authMiddleware,
+  requirePermission("payroll:update"),
   async (req: Request, res: Response) => {
     const result = await PayrollService.markAsPaid(req.params.id);
     sendResponse(

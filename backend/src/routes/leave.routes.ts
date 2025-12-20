@@ -1,11 +1,12 @@
 import { Router, Request, Response } from "express";
 import { LeaveService } from "../services/leave.service";
 import { sendResponse, authMiddleware } from "../middleware/error.middleware";
+import { requirePermission } from "../middleware/permission.middleware";
 
 const router = Router();
 
 // Get pending leaves (admin/branch admin)
-router.get("/pending", authMiddleware, async (req: Request, res: Response) => {
+router.get("/pending", authMiddleware, requirePermission("leave:read"), async (req: Request, res: Response) => {
   const limit = parseInt(req.query.limit as string) || 20;
   const offset = parseInt(req.query.offset as string) || 0;
 
@@ -31,6 +32,7 @@ router.get("/pending", authMiddleware, async (req: Request, res: Response) => {
 router.get(
   "/statistics",
   authMiddleware,
+  requirePermission("leave:read"),
   async (req: Request, res: Response) => {
     const year = req.query.year
       ? parseInt(req.query.year as string)
@@ -47,7 +49,7 @@ router.get(
 );
 
 // Request leave
-router.post("/request", authMiddleware, async (req: Request, res: Response) => {
+router.post("/request", authMiddleware, requirePermission("leave:create"), async (req: Request, res: Response) => {
   const { teacherId, leaveType, startDate, endDate, reason } = req.body;
   if (!teacherId || !leaveType || !startDate || !endDate || !reason) {
     return sendResponse(res, 400, false, "Missing required fields");
@@ -72,6 +74,7 @@ router.post("/request", authMiddleware, async (req: Request, res: Response) => {
 router.post(
   "/:id/approve",
   authMiddleware,
+  requirePermission("leave:update"),
   async (req: Request, res: Response) => {
     const user = (req as any).user;
     const result = await LeaveService.approveLeave(req.params.id, user.id);
@@ -89,6 +92,7 @@ router.post(
 router.post(
   "/:id/reject",
   authMiddleware,
+  requirePermission("leave:update"),
   async (req: Request, res: Response) => {
     const { reason } = req.body;
     const user = (req as any).user;
@@ -112,6 +116,7 @@ router.post(
 router.get(
   "/teacher/:teacherId",
   authMiddleware,
+  requirePermission("leave:read"),
   async (req: Request, res: Response) => {
     const limit = parseInt(req.query.limit as string) || 20;
     const offset = parseInt(req.query.offset as string) || 0;
@@ -138,6 +143,7 @@ router.get(
 router.get(
   "/:teacherId/balance",
   authMiddleware,
+  requirePermission("leave:read"),
   async (req: Request, res: Response) => {
     const year = req.query.year
       ? parseInt(req.query.year as string)
@@ -160,6 +166,7 @@ router.get(
 router.get(
   "/:teacherId/history",
   authMiddleware,
+  requirePermission("leave:read"),
   async (req: Request, res: Response) => {
     const limit = parseInt(req.query.limit as string) || 20;
     const offset = parseInt(req.query.offset as string) || 0;

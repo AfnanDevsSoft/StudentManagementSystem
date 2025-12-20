@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import { authMiddleware } from "../middleware/error.middleware";
 import AttendanceService from "../services/attendance.service";
+import { requirePermission } from "../middleware/permission.middleware";
 
 const router = Router();
 
@@ -33,7 +34,7 @@ const router = Router();
  *       200:
  *         description: Attendance records
  */
-router.get("/", authMiddleware, async (req: Request, res: Response) => {
+router.get("/", authMiddleware, requirePermission("attendance:read"), async (req: Request, res: Response) => {
     try {
         const branch_id = (req.query.branch_id || req.query.branchId) as string;
         const page = parseInt(req.query.page as string) || 1;
@@ -87,7 +88,7 @@ router.get("/", authMiddleware, async (req: Request, res: Response) => {
  *       200:
  *         description: Attendance marked successfully
  */
-router.post("/", authMiddleware, async (req: Request, res: Response) => {
+router.post("/", authMiddleware, requirePermission("attendance:create"), async (req: Request, res: Response) => {
     try {
         const { student_id, course_id, date, status, remarks } = req.body;
         const user = (req as any).user;

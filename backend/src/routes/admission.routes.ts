@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import { AdmissionService } from "../services/admission.service";
 import { sendResponse, authMiddleware } from "../middleware/error.middleware";
+import { requirePermission } from "../middleware/permission.middleware";
 
 const router = Router();
 
@@ -29,6 +30,7 @@ router.post("/apply", async (req: Request, res: Response) => {
 router.get(
   "/statistics",
   authMiddleware,
+  requirePermission("admissions:read"),
   async (req: Request, res: Response) => {
     const branchId = req.query.branchId as string;
     const result = await AdmissionService.getAdmissionStats(branchId, (req as any).user);
@@ -43,7 +45,7 @@ router.get(
 );
 
 // Get applications
-router.get("/", authMiddleware, async (req: Request, res: Response) => {
+router.get("/", authMiddleware, requirePermission("admissions:read"), async (req: Request, res: Response) => {
   const branchId = req.query.branchId as string;
   const status = req.query.status as string;
   const limit = parseInt(req.query.limit as string) || 20;
@@ -65,7 +67,7 @@ router.get("/", authMiddleware, async (req: Request, res: Response) => {
 });
 
 // Update application
-router.put("/:id", authMiddleware, async (req: Request, res: Response) => {
+router.put("/:id", authMiddleware, requirePermission("admissions:update"), async (req: Request, res: Response) => {
   const result = await AdmissionService.updateApplication(req.params.id, req.body);
   sendResponse(
     res,
@@ -77,7 +79,7 @@ router.put("/:id", authMiddleware, async (req: Request, res: Response) => {
 });
 
 // Get application details
-router.get("/:id", authMiddleware, async (req: Request, res: Response) => {
+router.get("/:id", authMiddleware, requirePermission("admissions:read"), async (req: Request, res: Response) => {
   const result = await AdmissionService.getApplicationDetails(req.params.id);
   sendResponse(
     res,
@@ -92,6 +94,7 @@ router.get("/:id", authMiddleware, async (req: Request, res: Response) => {
 router.post(
   "/:id/approve",
   authMiddleware,
+  requirePermission("admissions:update"),
   async (req: Request, res: Response) => {
     const { reviewedBy, reviewNotes } = req.body;
     if (!reviewedBy) {
@@ -116,6 +119,7 @@ router.post(
 router.post(
   "/:id/reject",
   authMiddleware,
+  requirePermission("admissions:update"),
   async (req: Request, res: Response) => {
     const { reviewedBy, reason } = req.body;
     if (!reviewedBy || !reason) {
@@ -140,6 +144,7 @@ router.post(
 router.post(
   "/:id/payment-status",
   authMiddleware,
+  requirePermission("admissions:update"),
   async (req: Request, res: Response) => {
     const { paymentStatus } = req.body;
     if (!paymentStatus) {

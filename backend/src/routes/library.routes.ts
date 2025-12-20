@@ -1,6 +1,7 @@
 import express, { Router, Request, Response } from "express";
 import LibraryService from "../services/library.service";
 import { authMiddleware, sendResponse } from "../middleware/error.middleware";
+import { requirePermission } from "../middleware/permission.middleware";
 
 const router: Router = express.Router();
 
@@ -10,6 +11,7 @@ const router: Router = express.Router();
 router.get(
     "/books",
     authMiddleware,
+    requirePermission("library:read"),
     async (req: Request, res: Response): Promise<void> => {
         const { branch_id, category, author, title } = req.query;
         const result = await LibraryService.getBooks(branch_id as string, {
@@ -25,6 +27,7 @@ router.get(
 router.post(
     "/books",
     authMiddleware,
+    requirePermission("library:create"),
     async (req: Request, res: Response): Promise<void> => {
         const result = await LibraryService.createBook(req.body, (req as any).user);
         sendResponse(res, result.success ? 201 : 400, result.success, result.message, result.data);
@@ -35,6 +38,7 @@ router.post(
 router.patch(
     "/books/:id",
     authMiddleware,
+    requirePermission("library:update"),
     async (req: Request, res: Response): Promise<void> => {
         const { id } = req.params;
         const result = await LibraryService.updateBook(id, req.body);
@@ -46,6 +50,7 @@ router.patch(
 router.delete(
     "/books/:id",
     authMiddleware,
+    requirePermission("library:delete"),
     async (req: Request, res: Response): Promise<void> => {
         const { id } = req.params;
         const result = await LibraryService.deleteBook(id);
@@ -59,6 +64,7 @@ router.delete(
 router.get(
     "/loans",
     authMiddleware,
+    requirePermission("library:read"),
     async (req: Request, res: Response): Promise<void> => {
         const { borrowerId, borrower_type, branch_id } = req.query;
 
@@ -84,6 +90,7 @@ router.get(
 router.post(
     "/loans/issue",
     authMiddleware,
+    requirePermission("library:create"),
     async (req: Request, res: Response): Promise<void> => {
         const result = await LibraryService.issueBook(req.body);
         sendResponse(res, result.success ? 201 : 400, result.success, result.message, result.data);
@@ -94,6 +101,7 @@ router.post(
 router.post(
     "/loans/:id/return",
     authMiddleware,
+    requirePermission("library:update"),
     async (req: Request, res: Response): Promise<void> => {
         const { id } = req.params;
         const { returned_to } = req.body;
@@ -106,6 +114,7 @@ router.post(
 router.post(
     "/loans/:id/renew",
     authMiddleware,
+    requirePermission("library:update"),
     async (req: Request, res: Response): Promise<void> => {
         const { id } = req.params;
         const result = await LibraryService.renewBook(id);
@@ -117,6 +126,7 @@ router.post(
 router.get(
     "/loans/borrower/:borrowerId",
     authMiddleware,
+    requirePermission("library:read"),
     async (req: Request, res: Response): Promise<void> => {
         const { borrowerId } = req.params;
         const { borrower_type } = req.query;
@@ -129,6 +139,7 @@ router.get(
 router.get(
     "/loans/overdue",
     authMiddleware,
+    requirePermission("library:read"),
     async (req: Request, res: Response): Promise<void> => {
         const { branch_id } = req.query;
         const result = await LibraryService.getAllOverdueLoans(branch_id as string, (req as any).user);
@@ -142,6 +153,7 @@ router.get(
 router.get(
     "/fines/borrower/:borrowerId",
     authMiddleware,
+    requirePermission("library:read"),
     async (req: Request, res: Response): Promise<void> => {
         const { borrowerId } = req.params;
         const { borrower_type } = req.query;
@@ -154,6 +166,7 @@ router.get(
 router.post(
     "/fines/:id/pay",
     authMiddleware,
+    requirePermission("library:update"),
     async (req: Request, res: Response): Promise<void> => {
         const { id } = req.params;
         const { amount, method } = req.body;
@@ -166,6 +179,7 @@ router.post(
 router.post(
     "/fines/:id/waive",
     authMiddleware,
+    requirePermission("library:update"),
     async (req: Request, res: Response): Promise<void> => {
         const { id } = req.params;
         const { waived_by, reason } = req.body;

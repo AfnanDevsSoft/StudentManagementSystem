@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import { authMiddleware } from "../middleware/error.middleware";
 import AnnouncementService from "../services/announcement.service";
+import { requirePermission } from "../middleware/permission.middleware";
 
 const router = Router();
 
@@ -39,7 +40,7 @@ const router = Router();
  *       201:
  *         description: Announcement created
  */
-router.post("/", authMiddleware, async (req: Request, res: Response) => {
+router.post("/", authMiddleware, requirePermission("announcements:create"), async (req: Request, res: Response) => {
   try {
     const {
       courseId,
@@ -102,7 +103,7 @@ router.post("/", authMiddleware, async (req: Request, res: Response) => {
  *       200:
  *         description: List of general announcements
  */
-router.get("/", authMiddleware, async (req: Request, res: Response) => {
+router.get("/", authMiddleware, requirePermission("announcements:read"), async (req: Request, res: Response) => {
   try {
     const { limit = 50, offset = 0, targetAudience } = req.query;
 
@@ -152,6 +153,7 @@ router.get("/", authMiddleware, async (req: Request, res: Response) => {
 router.get(
   "/:courseId",
   authMiddleware,
+  requirePermission("announcements:read"),
   async (req: Request, res: Response) => {
     try {
       const { courseId } = req.params;
@@ -201,6 +203,7 @@ router.get(
 router.get(
   "/:courseId/priority/:priority",
   authMiddleware,
+  requirePermission("announcements:read"),
   async (req: Request, res: Response) => {
     try {
       const { courseId, priority } = req.params;
@@ -250,6 +253,7 @@ router.get(
 router.get(
   "/:courseId/type/:announcementType",
   authMiddleware,
+  requirePermission("announcements:read"),
   async (req: Request, res: Response) => {
     try {
       const { courseId, announcementType } = req.params;
@@ -296,6 +300,7 @@ router.get(
 router.patch(
   "/:announcementId",
   authMiddleware,
+  requirePermission("announcements:create"),
   async (req: Request, res: Response) => {
     try {
       const { announcementId } = req.params;
@@ -333,6 +338,7 @@ router.patch(
 router.delete(
   "/:announcementId",
   authMiddleware,
+  requirePermission("announcements:create"),
   async (req: Request, res: Response) => {
     try {
       const { announcementId } = req.params;
@@ -377,6 +383,7 @@ router.delete(
 router.post(
   "/:announcementId/pin",
   authMiddleware,
+  requirePermission("announcements:create"),
   async (req: Request, res: Response) => {
     try {
       const { announcementId } = req.params;
@@ -415,6 +422,7 @@ router.post(
 router.post(
   "/:announcementId/view",
   authMiddleware,
+  requirePermission("announcements:read"),
   async (req: Request, res: Response) => {
     try {
       const { announcementId } = req.params;
@@ -449,6 +457,7 @@ router.post(
 router.get(
   "/:courseId/pinned",
   authMiddleware,
+  requirePermission("announcements:read"),
   async (req: Request, res: Response) => {
     try {
       const { courseId } = req.params;
@@ -483,6 +492,7 @@ router.get(
 router.get(
   "/:courseId/upcoming",
   authMiddleware,
+  requirePermission("announcements:read"),
   async (req: Request, res: Response) => {
     try {
       const { courseId } = req.params;
@@ -518,6 +528,7 @@ router.get(
 router.get(
   "/:courseId/statistics",
   authMiddleware,
+  requirePermission("announcements:read"),
   async (req: Request, res: Response) => {
     try {
       const { courseId } = req.params;

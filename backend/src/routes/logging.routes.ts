@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import { LoggingService } from "../services/logging.service";
 import { authMiddleware, sendResponse } from "../middleware/error.middleware";
+import { requirePermission } from "../middleware/permission.middleware";
 
 const router: Router = Router();
 
@@ -11,6 +12,7 @@ const router: Router = Router();
 router.get(
   "/",
   authMiddleware,
+  requirePermission("system:admin"),
   async (req: Request, res: Response): Promise<void> => {
     const { level, skip = 0, limit = 50 } = req.query;
 
@@ -30,6 +32,7 @@ router.get(
 router.get(
   "/api-requests",
   authMiddleware,
+  requirePermission("system:admin"),
   async (req: Request, res: Response): Promise<void> => {
     const result = await LoggingService.getApiRequestLogs({
       method: req.query.method as string,
@@ -46,6 +49,7 @@ router.get(
 router.get(
   "/stats",
   authMiddleware,
+  requirePermission("system:admin"),
   async (req: Request, res: Response): Promise<void> => {
     const result = {
       success: true,
@@ -68,6 +72,7 @@ router.get(
 router.get(
   "/health",
   authMiddleware,
+  requirePermission("system:admin"),
   async (req: Request, res: Response): Promise<void> => {
     const result = {
       success: true,
@@ -92,6 +97,7 @@ router.get(
 router.get(
   "/metrics/performance",
   authMiddleware,
+  requirePermission("system:admin"),
   async (req: Request, res: Response): Promise<void> => {
     const result = {
       avgResponseTime: "145ms",
@@ -111,6 +117,7 @@ router.get(
 router.post(
   "/archive",
   authMiddleware,
+  requirePermission("system:admin"),
   async (req: Request, res: Response): Promise<void> => {
     const { daysToKeep = 30 } = req.body;
     sendResponse(res, 200, true, `Logs older than ${daysToKeep} days archived`);

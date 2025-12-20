@@ -1,6 +1,7 @@
 import express, { Router, Request, Response } from "express";
 import TimetableService from "../services/timetable.service";
 import { authMiddleware, sendResponse } from "../middleware/error.middleware";
+import { requirePermission } from "../middleware/permission.middleware";
 
 const router: Router = express.Router();
 
@@ -10,6 +11,7 @@ const router: Router = express.Router();
 router.get(
     "/time-slots",
     authMiddleware,
+    requirePermission("courses:read"),
     async (req: Request, res: Response): Promise<void> => {
         const branchId = req.query.branch_id as string;
         const result = await TimetableService.getTimeSlots(branchId);
@@ -27,6 +29,7 @@ router.get(
 router.post(
     "/time-slots",
     authMiddleware,
+    requirePermission("courses:create"),
     async (req: Request, res: Response): Promise<void> => {
         const result = await TimetableService.createTimeSlot(req.body);
         sendResponse(
@@ -43,6 +46,7 @@ router.post(
 router.patch(
     "/time-slots/:id",
     authMiddleware,
+    requirePermission("courses:update"),
     async (req: Request, res: Response): Promise<void> => {
         const { id } = req.params;
         const result = await TimetableService.updateTimeSlot(id, req.body);
@@ -60,6 +64,7 @@ router.patch(
 router.delete(
     "/time-slots/:id",
     authMiddleware,
+    requirePermission("courses:update"),
     async (req: Request, res: Response): Promise<void> => {
         const { id } = req.params;
         const result = await TimetableService.deleteTimeSlot(id);
@@ -78,6 +83,7 @@ router.delete(
 router.get(
     "/rooms",
     authMiddleware,
+    requirePermission("courses:read"),
     async (req: Request, res: Response): Promise<void> => {
         const branchId = req.query.branch_id as string;
         const result = await TimetableService.getRooms(branchId);
@@ -95,6 +101,7 @@ router.get(
 router.post(
     "/rooms",
     authMiddleware,
+    requirePermission("courses:create"),
     async (req: Request, res: Response): Promise<void> => {
         const result = await TimetableService.createRoom(req.body);
         sendResponse(
@@ -111,6 +118,7 @@ router.post(
 router.patch(
     "/rooms/:id",
     authMiddleware,
+    requirePermission("courses:update"),
     async (req: Request, res: Response): Promise<void> => {
         const { id } = req.params;
         const result = await TimetableService.updateRoom(id, req.body);
@@ -128,6 +136,7 @@ router.patch(
 router.delete(
     "/rooms/:id",
     authMiddleware,
+    requirePermission("courses:update"),
     async (req: Request, res: Response): Promise<void> => {
         const { id } = req.params;
         const result = await TimetableService.deleteRoom(id);
@@ -146,6 +155,7 @@ router.delete(
 router.get(
     "/course/:courseId",
     authMiddleware,
+    requirePermission("courses:read"),
     async (req: Request, res: Response): Promise<void> => {
         const { courseId } = req.params;
         const result = await TimetableService.getCourseTimetable(courseId);
@@ -163,6 +173,7 @@ router.get(
 router.get(
     "/teacher/:teacherId",
     authMiddleware,
+    requirePermission("courses:read"),
     async (req: Request, res: Response): Promise<void> => {
         const { teacherId } = req.params;
         const result = await TimetableService.getTeacherTimetable(teacherId);
@@ -180,6 +191,7 @@ router.get(
 router.get(
     "/student/:studentId",
     authMiddleware,
+    requirePermission("courses:read"),
     async (req: Request, res: Response): Promise<void> => {
         const { studentId } = req.params;
         const result = await TimetableService.getStudentTimetable(studentId);
@@ -197,6 +209,7 @@ router.get(
 router.get(
     "/branch/:academicYearId",
     authMiddleware,
+    requirePermission("courses:read"),
     async (req: Request, res: Response): Promise<void> => {
         const { academicYearId } = req.params;
         const result = await TimetableService.getBranchTimetable(academicYearId);
@@ -214,6 +227,7 @@ router.get(
 router.post(
     "/entries",
     authMiddleware,
+    requirePermission("courses:create"),
     async (req: Request, res: Response): Promise<void> => {
         const result = await TimetableService.createTimetableEntry(req.body);
         sendResponse(
@@ -230,6 +244,7 @@ router.post(
 router.patch(
     "/entries/:id",
     authMiddleware,
+    requirePermission("courses:update"),
     async (req: Request, res: Response): Promise<void> => {
         const { id } = req.params;
         const result = await TimetableService.updateTimetableEntry(id, req.body);
@@ -247,6 +262,7 @@ router.patch(
 router.delete(
     "/entries/:id",
     authMiddleware,
+    requirePermission("courses:update"),
     async (req: Request, res: Response): Promise<void> => {
         const { id } = req.params;
         const result = await TimetableService.deleteTimetableEntry(id);

@@ -1,6 +1,7 @@
 import express, { Router, Request, Response } from "express";
 import EventsService from "../services/events.service";
 import { authMiddleware, sendResponse } from "../middleware/error.middleware";
+import { requirePermission } from "../middleware/permission.middleware";
 
 const router: Router = express.Router();
 
@@ -8,6 +9,7 @@ const router: Router = express.Router();
 router.get(
     "/",
     authMiddleware,
+    requirePermission("events:read"),
     async (req: Request, res: Response): Promise<void> => {
         const { branch_id, event_type, start_date, end_date, is_holiday } = req.query;
         const result = await EventsService.getEvents(branch_id as string, {
@@ -24,6 +26,7 @@ router.get(
 router.get(
     "/upcoming",
     authMiddleware,
+    requirePermission("events:read"),
     async (req: Request, res: Response): Promise<void> => {
         const { branch_id } = req.query;
         const result = await EventsService.getUpcomingEvents(branch_id as string, (req as any).user);
@@ -35,6 +38,7 @@ router.get(
 router.get(
     "/calendar/:year/:month",
     authMiddleware,
+    requirePermission("events:read"),
     async (req: Request, res: Response): Promise<void> => {
         const { year, month } = req.params;
         const { branch_id } = req.query;
@@ -52,6 +56,7 @@ router.get(
 router.post(
     "/",
     authMiddleware,
+    requirePermission("events:create"),
     async (req: Request, res: Response): Promise<void> => {
         const result = await EventsService.createEvent(req.body, (req as any).user);
         sendResponse(res, result.success ? 201 : 400, result.success, result.message, result.data);
@@ -62,6 +67,7 @@ router.post(
 router.patch(
     "/:id",
     authMiddleware,
+    requirePermission("events:create"),
     async (req: Request, res: Response): Promise<void> => {
         const { id } = req.params;
         const result = await EventsService.updateEvent(id, req.body);
@@ -73,6 +79,7 @@ router.patch(
 router.delete(
     "/:id",
     authMiddleware,
+    requirePermission("events:create"),
     async (req: Request, res: Response): Promise<void> => {
         const { id } = req.params;
         const result = await EventsService.deleteEvent(id);

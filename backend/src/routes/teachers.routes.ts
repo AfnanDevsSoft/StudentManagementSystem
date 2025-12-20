@@ -1,6 +1,7 @@
 import express, { Router, Request, Response } from "express";
 import TeacherService from "../services/teacher.service";
 import { authMiddleware, sendResponse } from "../middleware/error.middleware";
+import { requirePermission } from "../middleware/permission.middleware";
 
 const router: Router = express.Router();
 
@@ -10,6 +11,7 @@ const router: Router = express.Router();
 router.get(
   "/:id/courses",
   authMiddleware,
+  requirePermission("teachers:read"),
   async (req: Request, res: Response): Promise<void> => {
     const { id } = req.params;
     const result = await TeacherService.getTeacherCourses(id);
@@ -27,6 +29,7 @@ router.get(
 router.get(
   "/:id/attendance",
   authMiddleware,
+  requirePermission("teachers:read"),
   async (req: Request, res: Response): Promise<void> => {
     const { id } = req.params;
     const result = await TeacherService.getTeacherAttendance(id);
@@ -44,6 +47,7 @@ router.get(
 router.get(
   "/",
   authMiddleware,
+  requirePermission("teachers:read"),
   async (req: Request, res: Response): Promise<void> => {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
@@ -66,6 +70,7 @@ router.get(
 router.get(
   "/:id",
   authMiddleware,
+  requirePermission("teachers:read"),
   async (req: Request, res: Response): Promise<void> => {
     const { id } = req.params;
     const result = await TeacherService.getTeacherById(id);
@@ -83,6 +88,7 @@ router.get(
 router.post(
   "/",
   authMiddleware,
+  requirePermission("teachers:create"),
   async (req: Request, res: Response): Promise<void> => {
     const user = (req as any).user;
     const payload = { ...req.body };
@@ -106,6 +112,7 @@ router.post(
 router.put(
   "/:id",
   authMiddleware,
+  requirePermission("teachers:update"),
   async (req: Request, res: Response): Promise<void> => {
     const { id } = req.params;
     const result = await TeacherService.updateTeacher(id, req.body);
@@ -118,6 +125,7 @@ router.put(
 router.delete(
   "/:id",
   authMiddleware,
+  requirePermission("teachers:delete"),
   async (req: Request, res: Response): Promise<void> => {
     const { id } = req.params;
     const result = await TeacherService.deleteTeacher(id);

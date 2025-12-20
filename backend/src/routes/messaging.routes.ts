@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import { authMiddleware } from "../middleware/error.middleware";
 import MessagingService from "../services/messaging.service";
+import { requirePermission } from "../middleware/permission.middleware";
 
 const router = Router();
 
@@ -33,7 +34,7 @@ const router = Router();
  *       201:
  *         description: Message sent
  */
-router.post("/send", authMiddleware, async (req: Request, res: Response) => {
+router.post("/send", authMiddleware, requirePermission("messaging:send"), async (req: Request, res: Response) => {
   try {
     const { senderId, recipientId, subject, messageBody, attachmentUrl } =
       req.body;
@@ -80,7 +81,7 @@ router.post("/send", authMiddleware, async (req: Request, res: Response) => {
  *       200:
  *         description: Inbox messages
  */
-router.get("/inbox", authMiddleware, async (req: Request, res: Response) => {
+router.get("/inbox", authMiddleware, requirePermission("messaging:read"), async (req: Request, res: Response) => {
   try {
     const { userId, limit = 20, offset = 0 } = req.query;
 
@@ -126,7 +127,7 @@ router.get("/inbox", authMiddleware, async (req: Request, res: Response) => {
  *       200:
  *         description: Sent messages
  */
-router.get("/sent", authMiddleware, async (req: Request, res: Response) => {
+router.get("/sent", authMiddleware, requirePermission("messaging:read"), async (req: Request, res: Response) => {
   try {
     const { userId, limit = 20, offset = 0 } = req.query;
 
@@ -176,6 +177,7 @@ router.get("/sent", authMiddleware, async (req: Request, res: Response) => {
 router.get(
   "/conversation",
   authMiddleware,
+  requirePermission("messaging:read"),
   async (req: Request, res: Response) => {
     try {
       const { userId, otherUserId, limit = 50 } = req.query;
@@ -220,6 +222,7 @@ router.get(
 router.post(
   "/:messageId/read",
   authMiddleware,
+  requirePermission("messaging:read"),
   async (req: Request, res: Response) => {
     try {
       const { messageId } = req.params;
@@ -259,6 +262,7 @@ router.post(
 router.post(
   "/mark-multiple-read",
   authMiddleware,
+  requirePermission("messaging:read"),
   async (req: Request, res: Response) => {
     try {
       const { messageIds } = req.body;
@@ -299,6 +303,7 @@ router.post(
 router.delete(
   "/:messageId",
   authMiddleware,
+  requirePermission("messaging:send"),
   async (req: Request, res: Response) => {
     try {
       const { messageId } = req.params;
@@ -339,7 +344,7 @@ router.delete(
  *       200:
  *         description: Search results
  */
-router.get("/search", authMiddleware, async (req: Request, res: Response) => {
+router.get("/search", authMiddleware, requirePermission("messaging:read"), async (req: Request, res: Response) => {
   try {
     const { userId, searchTerm, limit = 20 } = req.query;
 
@@ -382,6 +387,7 @@ router.get("/search", authMiddleware, async (req: Request, res: Response) => {
 router.get(
   "/unread-count",
   authMiddleware,
+  requirePermission("messaging:read"),
   async (req: Request, res: Response) => {
     try {
       const { userId } = req.query;

@@ -2,6 +2,7 @@ import express, { Router, Request, Response } from "express";
 import CourseService from "../services/course.service";
 import EnrollmentService from "../services/enrollment.service";
 import { authMiddleware, sendResponse } from "../middleware/error.middleware";
+import { requirePermission } from "../middleware/permission.middleware";
 
 const router: Router = express.Router();
 
@@ -11,6 +12,7 @@ const router: Router = express.Router();
 router.get(
   "/:id/enrollments",
   authMiddleware,
+  requirePermission("courses:read"),
   async (req: Request, res: Response): Promise<void> => {
     const { id } = req.params;
     const result = await CourseService.getCourseEnrollments(id);
@@ -28,6 +30,7 @@ router.get(
 router.get(
   "/:id/students",
   authMiddleware,
+  requirePermission("courses:read"),
   async (req: Request, res: Response): Promise<void> => {
     const { id } = req.params;
     const result = await CourseService.getCourseStudents(id);
@@ -45,6 +48,7 @@ router.get(
 router.post(
   "/:id/enroll",
   authMiddleware,
+  requirePermission("courses:update"),
   async (req: Request, res: Response): Promise<void> => {
     const { id } = req.params;
     const { student_id } = req.body;
@@ -59,6 +63,7 @@ router.post(
 router.delete(
   "/:id/enroll/:student_id",
   authMiddleware,
+  requirePermission("courses:update"),
   async (req: Request, res: Response): Promise<void> => {
     const { id, student_id } = req.params;
 
@@ -76,6 +81,7 @@ router.delete(
 router.get(
   "/:id/attendance",
   authMiddleware,
+  requirePermission("attendance:read"),
   async (req: Request, res: Response): Promise<void> => {
     const { id } = req.params;
     const { date } = req.query;
@@ -98,6 +104,7 @@ router.get(
 router.post(
   "/:id/attendance/bulk",
   authMiddleware,
+  requirePermission("attendance:create"),
   async (req: Request, res: Response): Promise<void> => {
     const { id } = req.params;
     const { date, records } = req.body;
@@ -124,6 +131,7 @@ router.post(
 router.get(
   "/",
   authMiddleware,
+  requirePermission("courses:read"),
   async (req: Request, res: Response): Promise<void> => {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
@@ -146,6 +154,7 @@ router.get(
 router.get(
   "/:id",
   authMiddleware,
+  requirePermission("courses:read"),
   async (req: Request, res: Response): Promise<void> => {
     const { id } = req.params;
     const result = await CourseService.getCourseById(id);
@@ -163,6 +172,7 @@ router.get(
 router.post(
   "/",
   authMiddleware,
+  requirePermission("courses:create"),
   async (req: Request, res: Response): Promise<void> => {
     const result = await CourseService.createCourse(req.body);
     const statusCode = result.success ? 201 : 400;
@@ -174,6 +184,7 @@ router.post(
 router.get(
   "/:id/grades",
   authMiddleware,
+  requirePermission("grades:read"),
   async (req: Request, res: Response): Promise<void> => {
     const { id } = req.params;
 
@@ -194,6 +205,7 @@ router.get(
 router.post(
   "/:id/grades/bulk",
   authMiddleware,
+  requirePermission("grades:create"),
   async (req: Request, res: Response): Promise<void> => {
     const { id } = req.params;
     const user = (req as any).user;
@@ -219,6 +231,7 @@ router.post(
 router.put(
   "/:id",
   authMiddleware,
+  requirePermission("courses:update"),
   async (req: Request, res: Response): Promise<void> => {
     const { id } = req.params;
     const result = await CourseService.updateCourse(id, req.body);
@@ -231,6 +244,7 @@ router.put(
 router.delete(
   "/:id",
   authMiddleware,
+  requirePermission("courses:delete"),
   async (req: Request, res: Response): Promise<void> => {
     const { id } = req.params;
     const result = await CourseService.deleteCourse(id);

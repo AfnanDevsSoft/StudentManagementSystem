@@ -1,11 +1,12 @@
 import { Router, Request, Response } from "express";
 import { NotificationService } from "../services/notification.service";
 import { sendResponse, authMiddleware } from "../middleware/error.middleware";
+import { requirePermission } from "../middleware/permission.middleware";
 
 const router = Router();
 
 // Send notification
-router.post("/send", authMiddleware, async (req: Request, res: Response) => {
+router.post("/send", authMiddleware, requirePermission("messaging:send"), async (req: Request, res: Response) => {
   const { userId, notificationType, subject, message } = req.body;
   if (!userId || !notificationType || !subject || !message) {
     return sendResponse(res, 400, false, "Missing required fields");
@@ -29,6 +30,7 @@ router.post("/send", authMiddleware, async (req: Request, res: Response) => {
 router.post(
   "/send-bulk",
   authMiddleware,
+  requirePermission("messaging:send"),
   async (req: Request, res: Response) => {
     const { userIds, notificationType, subject, message } = req.body;
     if (
@@ -56,7 +58,7 @@ router.post(
   }
 );
 // Get notifications for the authenticated user
-router.get("/", authMiddleware, async (req: Request, res: Response) => {
+router.get("/", authMiddleware, requirePermission("messaging:read"), async (req: Request, res: Response) => {
   const userId = (req as any).user?.id;
   if (!userId) {
     return sendResponse(res, 401, false, "Unauthenticated");
@@ -84,6 +86,7 @@ router.get("/", authMiddleware, async (req: Request, res: Response) => {
 router.get(
   "/user/:userId",
   authMiddleware,
+  requirePermission("messaging:read"),
   async (req: Request, res: Response) => {
     const limit = parseInt(req.query.limit as string) || 20;
     const offset = parseInt(req.query.offset as string) || 0;
@@ -108,6 +111,7 @@ router.get(
 router.post(
   "/:id/read",
   authMiddleware,
+  requirePermission("messaging:read"),
   async (req: Request, res: Response) => {
     const result = await NotificationService.markAsRead(req.params.id);
     sendResponse(
@@ -124,6 +128,7 @@ router.post(
 router.post(
   "/user/:userId/read-all",
   authMiddleware,
+  requirePermission("messaging:read"),
   async (req: Request, res: Response) => {
     const result = await NotificationService.markAllAsRead(req.params.userId);
     sendResponse(
@@ -137,7 +142,7 @@ router.post(
 );
 
 // Delete notification
-router.delete("/:id", authMiddleware, async (req: Request, res: Response) => {
+router.delete("/:id", authMiddleware, requirePermission("messaging:send"), async (req: Request, res: Response) => {
   const result = await NotificationService.deleteNotification(req.params.id);
   sendResponse(
     res,
@@ -152,6 +157,7 @@ router.delete("/:id", authMiddleware, async (req: Request, res: Response) => {
 router.get(
   "/statistics",
   authMiddleware,
+  requirePermission("messaging:read"),
   async (req: Request, res: Response) => {
     const branchId = req.query.branchId as string;
     const result = await NotificationService.getNotificationStats(branchId);

@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import { authMiddleware } from "../middleware/error.middleware";
 import ReportingService from "../services/reporting.service";
+import { requirePermission } from "../middleware/permission.middleware";
 
 const router = Router();
 
@@ -33,6 +34,7 @@ const router = Router();
 router.post(
   "/student-progress",
   authMiddleware,
+  requirePermission("reports:generate"),
   async (req: Request, res: Response) => {
     try {
       const { branchId, courseId, format } = req.body;
@@ -83,6 +85,7 @@ router.post(
 router.post(
   "/teacher-performance",
   authMiddleware,
+  requirePermission("reports:generate"),
   async (req: Request, res: Response) => {
     try {
       const { branchId, teacherId, format } = req.body;
@@ -131,6 +134,7 @@ router.post(
 router.post(
   "/fee-collection",
   authMiddleware,
+  requirePermission("reports:generate"),
   async (req: Request, res: Response) => {
     try {
       const { branchId, format } = req.body;
@@ -179,6 +183,7 @@ router.post(
 router.post(
   "/attendance",
   authMiddleware,
+  requirePermission("reports:generate"),
   async (req: Request, res: Response) => {
     try {
       const { branchId, startDate, endDate, format } = req.body;
@@ -230,7 +235,7 @@ router.post(
  *       200:
  *         description: List of reports
  */
-router.get("/", authMiddleware, async (req: Request, res: Response) => {
+router.get("/", authMiddleware, requirePermission("reports:generate"), async (req: Request, res: Response) => {
   try {
     const { branchId, limit = 20, offset = 0 } = req.query;
 
@@ -271,6 +276,7 @@ router.get("/", authMiddleware, async (req: Request, res: Response) => {
 router.delete(
   "/:reportId",
   authMiddleware,
+  requirePermission("reports:generate"),
   async (req: Request, res: Response) => {
     try {
       const { reportId } = req.params;

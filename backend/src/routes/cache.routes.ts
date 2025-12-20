@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import { CacheService } from "../services/cache.service";
 import { authMiddleware, sendResponse } from "../middleware/error.middleware";
+import { requirePermission } from "../middleware/permission.middleware";
 
 const router: Router = Router();
 
@@ -11,6 +12,7 @@ const router: Router = Router();
 router.get(
   "/stats",
   authMiddleware,
+  requirePermission("system:admin"),
   async (req: Request, res: Response): Promise<void> => {
     const result = CacheService.getStats();
     sendResponse(res, 200, true, "Cache stats retrieved", result);
@@ -24,6 +26,7 @@ router.get(
 router.get(
   "/detailed-stats",
   authMiddleware,
+  requirePermission("system:admin"),
   async (req: Request, res: Response): Promise<void> => {
     const result = CacheService.getDetailedStats();
     sendResponse(res, 200, true, "Detailed cache stats retrieved", result);
@@ -37,6 +40,7 @@ router.get(
 router.post(
   "/clear",
   authMiddleware,
+  requirePermission("system:admin"),
   async (req: Request, res: Response): Promise<void> => {
     CacheService.clear();
     sendResponse(res, 200, true, "Cache cleared successfully");
@@ -50,6 +54,7 @@ router.post(
 router.post(
   "/flush",
   authMiddleware,
+  requirePermission("system:admin"),
   async (req: Request, res: Response): Promise<void> => {
     CacheService.flush();
     sendResponse(res, 200, true, "Cache flushed successfully");
@@ -63,6 +68,7 @@ router.post(
 router.post(
   "/reset-stats",
   authMiddleware,
+  requirePermission("system:admin"),
   async (req: Request, res: Response): Promise<void> => {
     const result = CacheService.resetStats();
     sendResponse(res, 200, true, "Cache stats reset", result);
@@ -76,6 +82,7 @@ router.post(
 router.delete(
   "/invalidate/all",
   authMiddleware,
+  requirePermission("system:admin"),
   async (req: Request, res: Response): Promise<void> => {
     CacheService.invalidateAllCache();
     sendResponse(res, 200, true, "All cache invalidated");

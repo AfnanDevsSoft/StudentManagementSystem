@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import { BackupService } from "../services/backup.service";
 import { authMiddleware, sendResponse } from "../middleware/error.middleware";
+import { requirePermission } from "../middleware/permission.middleware";
 
 const router: Router = Router();
 
@@ -11,6 +12,7 @@ const router: Router = Router();
 router.post(
   "/full",
   authMiddleware,
+  requirePermission("system:admin"),
   async (req: Request, res: Response): Promise<void> => {
     const { description } = req.body;
     const result = await BackupService.createFullBackup(description);
@@ -25,6 +27,7 @@ router.post(
 router.post(
   "/incremental",
   authMiddleware,
+  requirePermission("system:admin"),
   async (req: Request, res: Response): Promise<void> => {
     const { sinceLastBackup } = req.body;
     const result = await BackupService.createIncrementalBackup(
@@ -41,6 +44,7 @@ router.post(
 router.get(
   "/",
   authMiddleware,
+  requirePermission("system:admin"),
   async (req: Request, res: Response): Promise<void> => {
     const { skip = 0, limit = 20 } = req.query;
     const result = await BackupService.getBackupHistory(
@@ -58,6 +62,7 @@ router.get(
 router.get(
   "/available",
   authMiddleware,
+  requirePermission("system:admin"),
   async (req: Request, res: Response): Promise<void> => {
     const result = await BackupService.listAvailableBackups();
     sendResponse(res, 200, result.success, result.message, result.data);
@@ -71,6 +76,7 @@ router.get(
 router.get(
   "/:backupId",
   authMiddleware,
+  requirePermission("system:admin"),
   async (req: Request, res: Response): Promise<void> => {
     const result = await BackupService.getBackupStatus(req.params.backupId);
     sendResponse(res, 200, result.success, result.message, result.data);
@@ -84,6 +90,7 @@ router.get(
 router.get(
   "/:backupId/preview",
   authMiddleware,
+  requirePermission("system:admin"),
   async (req: Request, res: Response): Promise<void> => {
     const result = await BackupService.previewBackup(req.params.backupId);
     sendResponse(res, 200, result.success, result.message, result.data);
@@ -97,6 +104,7 @@ router.get(
 router.post(
   "/:backupId/verify",
   authMiddleware,
+  requirePermission("system:admin"),
   async (req: Request, res: Response): Promise<void> => {
     const result = await BackupService.verifyBackupIntegrity(req.params.backupId);
     sendResponse(res, 200, true, result ? "Backup verified" : "Backup verification failed");
@@ -110,6 +118,7 @@ router.post(
 router.post(
   "/:backupId/restore",
   authMiddleware,
+  requirePermission("system:admin"),
   async (req: Request, res: Response): Promise<void> => {
     const result = await BackupService.restoreFromBackup(req.params.backupId);
     sendResponse(res, 200, result.success, result.message, result.data);
@@ -123,6 +132,7 @@ router.post(
 router.post(
   "/restore/point-in-time",
   authMiddleware,
+  requirePermission("system:admin"),
   async (req: Request, res: Response): Promise<void> => {
     const { timestamp } = req.body;
 
@@ -143,6 +153,7 @@ router.post(
 router.post(
   "/schedule",
   authMiddleware,
+  requirePermission("system:admin"),
   async (req: Request, res: Response): Promise<void> => {
     const { backupType = "full", frequency, timeOfDay, retentionDays } = req.body;
 
@@ -169,6 +180,7 @@ router.post(
 router.get(
   "/schedules",
   authMiddleware,
+  requirePermission("system:admin"),
   async (req: Request, res: Response): Promise<void> => {
     const result = await BackupService.getBackupSchedules();
     sendResponse(res, 200, result.success, result.message, result.data);
@@ -182,6 +194,7 @@ router.get(
 router.delete(
   "/schedules/:scheduleId",
   authMiddleware,
+  requirePermission("system:admin"),
   async (req: Request, res: Response): Promise<void> => {
     const result = await BackupService.cancelScheduledBackup(req.params.scheduleId);
     sendResponse(res, 200, result.success, result.message);
@@ -195,6 +208,7 @@ router.delete(
 router.get(
   "/stats",
   authMiddleware,
+  requirePermission("system:admin"),
   async (req: Request, res: Response): Promise<void> => {
     const result = await BackupService.getBackupStorageStats();
     sendResponse(res, 200, result.success, result.message, result.data);

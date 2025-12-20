@@ -1,6 +1,7 @@
 import express, { Router, Request, Response } from "express";
 import UserService from "../services/user.service";
 import { authMiddleware, sendResponse } from "../middleware/error.middleware";
+import { requirePermission } from "../middleware/permission.middleware";
 
 const router: Router = express.Router();
 
@@ -52,6 +53,7 @@ const router: Router = express.Router();
 router.get(
   "/roles",
   authMiddleware,
+  requirePermission("roles:read"),
   async (req: Request, res: Response): Promise<void> => {
     try {
       // Need PrismaClient here or import usage from service
@@ -67,6 +69,7 @@ router.get(
 router.get(
   "/",
   authMiddleware,
+  requirePermission("users:read"),
   async (req: Request, res: Response): Promise<void> => {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 20;
@@ -112,6 +115,7 @@ router.get(
 router.get(
   "/:id",
   authMiddleware,
+  requirePermission("users:read"),
   async (req: Request, res: Response): Promise<void> => {
     const { id } = req.params;
     const result = await UserService.getUserById(id);
@@ -147,6 +151,7 @@ router.get(
 router.post(
   "/",
   authMiddleware,
+  requirePermission("users:create"),
   async (req: Request, res: Response): Promise<void> => {
     const result = await UserService.createUser(req.body, (req as any).user);
     const statusCode = result.success ? 201 : 400;
@@ -183,6 +188,7 @@ router.post(
 router.put(
   "/:id",
   authMiddleware,
+  requirePermission("users:update"),
   async (req: Request, res: Response): Promise<void> => {
     const { id } = req.params;
     const result = await UserService.updateUser(id, req.body);
@@ -197,6 +203,7 @@ router.put(
 router.patch(
   "/:id",
   authMiddleware,
+  requirePermission("users:update"),
   async (req: Request, res: Response): Promise<void> => {
     const { id } = req.params;
     const result = await UserService.updateUser(id, req.body);
@@ -228,6 +235,7 @@ router.patch(
 router.delete(
   "/:id",
   authMiddleware,
+  requirePermission("users:delete"),
   async (req: Request, res: Response): Promise<void> => {
     const { id } = req.params;
     const result = await UserService.deleteUser(id);

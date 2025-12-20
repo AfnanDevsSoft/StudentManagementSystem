@@ -1,6 +1,7 @@
 import express, { Router, Request, Response } from "express";
 import BranchService from "../services/branch.service";
 import { authMiddleware, sendResponse } from "../middleware/error.middleware";
+import { requirePermission } from "../middleware/permission.middleware";
 
 const router: Router = express.Router();
 
@@ -8,6 +9,7 @@ const router: Router = express.Router();
 router.get(
   "/",
   authMiddleware,
+  requirePermission("branches:read"),
   async (req: Request, res: Response): Promise<void> => {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
@@ -29,6 +31,7 @@ router.get(
 router.get(
   "/:id",
   authMiddleware,
+  requirePermission("branches:read"),
   async (req: Request, res: Response): Promise<void> => {
     const { id } = req.params;
     const result = await BranchService.getBranchById(id);
@@ -46,6 +49,7 @@ router.get(
 router.post(
   "/",
   authMiddleware,
+  requirePermission("branches:create"),
   async (req: Request, res: Response): Promise<void> => {
     const result = await BranchService.createBranch(req.body);
     const statusCode = result.success ? 201 : 400;
@@ -57,6 +61,7 @@ router.post(
 router.put(
   "/:id",
   authMiddleware,
+  requirePermission("branches:update"),
   async (req: Request, res: Response): Promise<void> => {
     const { id } = req.params;
     const result = await BranchService.updateBranch(id, req.body);
@@ -69,6 +74,7 @@ router.put(
 router.patch(
   "/:id",
   authMiddleware,
+  requirePermission("branches:update"),
   async (req: Request, res: Response): Promise<void> => {
     const { id } = req.params;
     const result = await BranchService.updateBranch(id, req.body);
@@ -81,6 +87,7 @@ router.patch(
 router.delete(
   "/:id",
   authMiddleware,
+  requirePermission("branches:delete"),
   async (req: Request, res: Response): Promise<void> => {
     const { id } = req.params;
     const result = await BranchService.deleteBranch(id);
