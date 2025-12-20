@@ -475,13 +475,11 @@ export const UsersPage: React.FC = () => {
                                             <SelectValue placeholder="Select role" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {roles
-                                                .filter((role: any) => !selectedBranch || role.branch_id === selectedBranch || role.is_system || !role.branch_id)
-                                                .map((role: any) => (
-                                                    <SelectItem key={role.id} value={role.id}>
-                                                        {role.name}
-                                                    </SelectItem>
-                                                ))}
+                                            {roles.map((role: any) => (
+                                                <SelectItem key={role.id} value={role.id}>
+                                                    {role.name}
+                                                </SelectItem>
+                                            ))}
                                         </SelectContent>
                                     </Select>
                                     {errors.role_id && (
