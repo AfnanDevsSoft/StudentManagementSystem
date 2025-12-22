@@ -1,7 +1,5 @@
-import { PrismaClient } from "@prisma/client";
 import bcryptjs from "bcryptjs";
-
-const prisma = new PrismaClient();
+import { prisma } from "../lib/db";
 
 export class TeacherService {
   static async getAllTeachers(

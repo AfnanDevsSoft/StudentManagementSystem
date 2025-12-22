@@ -1,6 +1,4 @@
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { prisma } from "../lib/db";
 
 class AssignmentService {
     /**
@@ -125,6 +123,20 @@ class AssignmentService {
             success: true,
             message: "Submissions retrieved successfully",
             data: submissions,
+        };
+    }
+
+    /**
+     * Get assignment by ID
+     */
+    async getById(id: string) {
+        const assignment = await (prisma as any).assignment.findUnique({ where: { id } });
+        if (!assignment) {
+            throw new Error("Assignment not found");
+        }
+        return {
+            success: true,
+            data: assignment,
         };
     }
 

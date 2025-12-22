@@ -1,7 +1,5 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../lib/db";
 import { Decimal } from "@prisma/client/runtime/library";
-
-const prisma = new PrismaClient();
 
 export class PayrollService {
   /**

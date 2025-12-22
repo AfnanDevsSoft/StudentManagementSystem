@@ -1,8 +1,6 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../lib/db";
 import path from "path";
 import fs from "fs";
-
-const prisma = new PrismaClient();
 
 export class CourseContentService {
   private static readonly UPLOAD_DIR = path.join(

@@ -1,8 +1,6 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../lib/db";
 import * as fs from "fs";
 import * as path from "path";
-
-const prisma = new PrismaClient();
 
 export class FileExportService {
   private static exportsDir = path.join(process.cwd(), "exports");

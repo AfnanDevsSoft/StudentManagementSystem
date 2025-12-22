@@ -1,6 +1,4 @@
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { prisma } from "../lib/db";
 
 export class EnrollmentService {
   static async enrollStudent(studentId: string, courseId: string) {
