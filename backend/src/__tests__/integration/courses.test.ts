@@ -2,7 +2,7 @@ import request from 'supertest';
 import app from '../../app';
 import { prisma, setupTestDatabase, clearDatabase, teardownTestDatabase } from '../setup/testDb';
 import { testUsers, testBranch, testAcademicYear } from '../setup/fixtures';
-import { getAuthToken, authHeader, createTestRoles } from '../setup/helpers';
+import { getAuthToken, authHeader, createTestRoles, createTestRBACRoles, assignRBACRole, uniqueId } from '../setup/helpers';
 
 describe('Courses Management API Tests', () => {
     let adminToken: string;
@@ -12,6 +12,7 @@ describe('Courses Management API Tests', () => {
     let teacherId: string;
     let academicYearId: string;
     let roleIds: any;
+    let adminUsername: string;
 
     beforeAll(async () => {
         await setupTestDatabase();
@@ -27,11 +28,15 @@ describe('Courses Management API Tests', () => {
         const branch = await prisma.branch.create({ data: testBranch });
         branchId = branch.id;
 
-        // Create admin user
-        await prisma.user.create({
+        // Setup RBAC Roles
+        const rbacRoles = await createTestRBACRoles(prisma, branchId);
+
+        // Create admin user with unique username
+        adminUsername = `admin-${uniqueId('course')}@test.com`;
+        const adminUser = await prisma.user.create({
             data: {
-                email: testUsers.admin.email,
-                username: testUsers.admin.username,
+                email: adminUsername,
+                username: adminUsername,
                 password_hash: testUsers.admin.password_hash,
                 first_name: testUsers.admin.first_name,
                 last_name: testUsers.admin.last_name,
@@ -41,6 +46,19 @@ describe('Courses Management API Tests', () => {
                 role_id: roleIds.adminId,
             },
         });
+
+        // Assign RBAC Role
+        await assignRBACRole(prisma, adminUser.id, rbacRoles.adminRoleId, branchId, adminUser.id);
+
+        try {
+            adminToken = await getAuthToken(app, 'admin', {
+                username: adminUsername,
+                password: testUsers.admin.password
+            });
+        } catch (e) {
+            console.error('DEBUG: Token fetch failed', e);
+            throw e;
+        }
 
         // Create subject
         const subject = await prisma.subject.create({
@@ -86,8 +104,7 @@ describe('Courses Management API Tests', () => {
         });
         academicYearId = academicYear.id;
 
-        // Get auth token
-        adminToken = await getAuthToken(app, 'admin');
+        academicYearId = academicYear.id;
     });
 
     afterAll(async () => {

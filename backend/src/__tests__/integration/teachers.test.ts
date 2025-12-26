@@ -2,12 +2,13 @@ import request from 'supertest';
 import app from '../../app';
 import { prisma, setupTestDatabase, clearDatabase, teardownTestDatabase } from '../setup/testDb';
 import { testUsers, testBranch, testTeacherData, testAcademicYear } from '../setup/fixtures';
-import { getAuthToken, authHeader, uniqueId, createTestRoles } from '../setup/helpers';
+import { getAuthToken, authHeader, uniqueId, createTestRoles, createTestRBACRoles, assignRBACRole } from '../setup/helpers';
 
 describe('Teacher Management API Tests', () => {
     let adminToken: string;
     let branchId: string;
     let roleIds: any;
+    let adminUsername: string;
 
     beforeAll(async () => {
         await setupTestDatabase();
@@ -23,11 +24,15 @@ describe('Teacher Management API Tests', () => {
         const branch = await prisma.branch.create({ data: testBranch });
         branchId = branch.id;
 
-        // Create admin user
-        await prisma.user.create({
+        // Setup RBAC Roles
+        const rbacRoles = await createTestRBACRoles(prisma, branchId);
+
+        // Create admin user with unique username
+        adminUsername = `admin-${uniqueId('teacher')}@test.com`;
+        const adminUser = await prisma.user.create({
             data: {
-                email: testUsers.admin.email,
-                username: testUsers.admin.username,
+                email: adminUsername,
+                username: adminUsername,
                 password_hash: testUsers.admin.password_hash,
                 first_name: testUsers.admin.first_name,
                 last_name: testUsers.admin.last_name,
@@ -38,8 +43,14 @@ describe('Teacher Management API Tests', () => {
             },
         });
 
+        // Assign RBAC Role
+        await assignRBACRole(prisma, adminUser.id, rbacRoles.adminRoleId, branchId, adminUser.id);
+
         // Get auth token
-        adminToken = await getAuthToken(app, 'admin');
+        adminToken = await getAuthToken(app, 'admin', {
+            username: adminUsername,
+            password: testUsers.admin.password
+        });
     });
 
     afterAll(async () => {

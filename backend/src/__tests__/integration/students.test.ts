@@ -2,7 +2,7 @@ import request from 'supertest';
 import app from '../../app';
 import { prisma, setupTestDatabase, clearDatabase, teardownTestDatabase } from '../setup/testDb';
 import { testUsers, testBranch, testAcademicYear, testGradeLevels, testStudentData } from '../setup/fixtures';
-import { getAuthToken, authHeader, uniqueId, createTestRoles } from '../setup/helpers';
+import { getAuthToken, authHeader, uniqueId, createTestRoles, createTestRBACRoles, assignRBACRole } from '../setup/helpers';
 
 describe('Student Management API Tests', () => {
     let adminToken: string;
@@ -25,8 +25,11 @@ describe('Student Management API Tests', () => {
         const branch = await prisma.branch.create({ data: testBranch });
         branchId = branch.id;
 
+        // Setup RBAC Roles
+        const rbacRoles = await createTestRBACRoles(prisma, branchId);
+
         // Create admin user
-        await prisma.user.create({
+        const adminUser = await prisma.user.create({
             data: {
                 email: testUsers.admin.email,
                 username: testUsers.admin.username,
@@ -39,6 +42,9 @@ describe('Student Management API Tests', () => {
                 role_id: roleIds.adminId,
             },
         });
+
+        // Assign RBAC Role
+        await assignRBACRole(prisma, adminUser.id, rbacRoles.adminRoleId, branchId, adminUser.id);
 
         // Create academic year
         const academicYear = await prisma.academicYear.create({
@@ -53,7 +59,11 @@ describe('Student Management API Tests', () => {
         gradeLevelId = gradeLevel.id;
 
         // Get auth token
-        adminToken = await getAuthToken(app, 'admin');
+        try {
+            adminToken = await getAuthToken(app, 'admin');
+        } catch (e) {
+            throw e;
+        }
     });
 
     afterAll(async () => {

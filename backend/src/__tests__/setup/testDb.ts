@@ -54,7 +54,9 @@ export async function clearDatabase() {
 
     try {
         // Disable triggers and truncate with cascade
-        await prisma.$executeRawUnsafe(`TRUNCATE TABLE ${tables} RESTART IDENTITY CASCADE;`);
+        if (tables.length > 0) {
+            await prisma.$executeRawUnsafe(`TRUNCATE TABLE ${tables} RESTART IDENTITY CASCADE;`);
+        }
     } catch (error) {
         console.log({ error });
     }

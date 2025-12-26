@@ -1,8 +1,6 @@
 import { Request, Response, NextFunction } from "express";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../lib/db";
 import jwt from "jsonwebtoken";
-
-const prisma = new PrismaClient();
 
 interface ApiError extends Error {
   code?: string;

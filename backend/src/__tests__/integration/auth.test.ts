@@ -2,7 +2,7 @@ import request from 'supertest';
 import app from '../../app';
 import { prisma, setupTestDatabase, clearDatabase, teardownTestDatabase } from '../setup/testDb';
 import { testUsers, testBranch } from '../setup/fixtures';
-import { createTestRoles } from '../setup/helpers';
+import { createTestRoles, uniqueId } from '../setup/helpers';
 
 describe('Authentication API Tests', () => {
     let roleIds: any;
@@ -20,10 +20,11 @@ describe('Authentication API Tests', () => {
         // Create branch and admin user
         const branch = await prisma.branch.create({ data: testBranch });
 
+        const adminUsername = `admin-auth-${uniqueId('auth')}@test.com`;
         const createdUser = await prisma.user.create({
             data: {
-                email: testUsers.admin.email,
-                username: testUsers.admin.username,
+                email: adminUsername,
+                username: adminUsername,
                 password_hash: testUsers.admin.password_hash,
                 first_name: testUsers.admin.first_name,
                 last_name: testUsers.admin.last_name,
@@ -32,13 +33,6 @@ describe('Authentication API Tests', () => {
                 branch_id: branch.id,
                 role_id: roleIds.adminId,
             },
-        });
-
-        console.log('🔍 DEBUG: Created test user:', {
-            username: createdUser.username,
-            email: createdUser.email,
-            has_password_hash: !!createdUser.password_hash,
-            password_to_test: testUsers.admin.password,
         });
     });
 

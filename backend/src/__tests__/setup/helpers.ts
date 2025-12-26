@@ -5,8 +5,12 @@ import { testUsers } from './fixtures';
 /**
  * Helper to get authentication token for testing
  */
-export async function getAuthToken(app: any, userType: keyof typeof testUsers = 'admin'): Promise<string> {
-    const user = testUsers[userType];
+export async function getAuthToken(
+    app: any,
+    userType: keyof typeof testUsers = 'admin',
+    customCredentials?: { username: string; password: string }
+): Promise<string> {
+    const user = customCredentials || testUsers[userType];
 
     const response = await request(app)
         .post('/api/v1/auth/login')
@@ -45,9 +49,34 @@ export const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, 
  * Create test roles and return their IDs
  */
 export async function createTestRoles(prisma: any) {
+    // Create necessary permissions
+    const permissions = [
+        'students:read',
+        'students:create',
+        'students:update',
+        'students:delete'
+    ];
+
+    await Promise.all(permissions.map(p =>
+        prisma.permission.create({
+            data: {
+                name: p,
+                slug: p, // Assuming slug exists or using name as unique identifier
+                description: `Permission for ${p}`
+            }
+        }).catch(() => { }) // Ignore if exists
+    ));
+
     const roles = await Promise.all([
         prisma.role.create({ data: { name: 'SuperAdmin' } }),
-        prisma.role.create({ data: { name: 'Admin' } }),
+        prisma.role.create({
+            data: {
+                name: 'Admin',
+                permissions: {
+                    connect: permissions.map(p => ({ name: p }))
+                }
+            }
+        }),
         prisma.role.create({ data: { name: 'Teacher' } }),
         prisma.role.create({ data: { name: 'Student' } }),
         prisma.role.create({ data: { name: 'Parent' } }),
@@ -67,6 +96,80 @@ export async function createTestRoles(prisma: any) {
  */
 export function uniqueId(prefix: string): string {
     return `${prefix}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+}
+
+
+/**
+ * Create RBAC roles and permissions
+ */
+export async function createTestRBACRoles(prisma: any, branchId: string) {
+    // Ensure permissions exist
+    const permissions = [
+        'students:read',
+        'students:create',
+        'students:update',
+        'students:delete',
+        'auth:login'
+    ];
+
+    // Upsert permissions
+    await Promise.all(permissions.map(p =>
+        prisma.permission.upsert({
+            where: { permission_name: p },
+            create: {
+                permission_name: p,
+                resource: p.split(':')[0],
+                action: p.split(':')[1],
+                description: `Permission for ${p}`
+            },
+            update: {}
+        })
+    ));
+
+    // Create RBAC Roles
+    const roles = await Promise.all([
+        prisma.rBACRole.create({
+            data: {
+                role_name: 'Admin',
+                branch_id: branchId,
+                permissions: {
+                    connect: permissions.map(p => ({ permission_name: p }))
+                }
+            }
+        }),
+        prisma.rBACRole.create({
+            data: { role_name: 'Teacher', branch_id: branchId }
+        }),
+        prisma.rBACRole.create({
+            data: { role_name: 'Student', branch_id: branchId }
+        })
+    ]);
+
+    return {
+        adminRoleId: roles[0].id,
+        teacherRoleId: roles[1].id,
+        studentRoleId: roles[2].id
+    };
+}
+
+/**
+ * Assign RBAC Role to User
+ */
+export async function assignRBACRole(
+    prisma: any,
+    userId: string,
+    roleId: string,
+    branchId: string,
+    assignedBy: string
+) {
+    return await prisma.userRole.create({
+        data: {
+            user_id: userId,
+            rbac_role_id: roleId,
+            branch_id: branchId,
+            assigned_by: assignedBy
+        }
+    });
 }
 
 /**
