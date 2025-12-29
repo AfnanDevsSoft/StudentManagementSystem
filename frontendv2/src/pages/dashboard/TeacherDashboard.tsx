@@ -5,6 +5,8 @@ import { Button } from '../../components/ui/button';
 import { useAuth } from '../../contexts/AuthContext';
 import { teacherService } from '../../services/teacher.service';
 import { leaveService } from '../../services/leave.service';
+import { workingDaysService } from '../../services/workingDays.service';
+import { AttendanceSummaryCard } from '../../components/attendance/AttendanceSummaryCard';
 import {
     BookOpen,
     Users,
@@ -36,7 +38,14 @@ export const TeacherDashboard: React.FC = () => {
         enabled: !!teacherId,
     });
 
-    const isLoading = loadingCourses || loadingLeave;
+    // Fetch attendance summary
+    const { data: attendanceSummaryData, isLoading: loadingAttendanceSummary } = useQuery({
+        queryKey: ['teacher-attendance-summary', teacherId],
+        queryFn: () => workingDaysService.getTeacherSummary(teacherId!),
+        enabled: !!teacherId,
+    });
+
+    const isLoading = loadingCourses || loadingLeave || loadingAttendanceSummary;
 
     // Extract data
     const courses = coursesData?.data || coursesData || [];
@@ -115,6 +124,15 @@ export const TeacherDashboard: React.FC = () => {
                         </Card>
                     ))}
                 </div>
+            )}
+
+            {/* Attendance Summary Card */}
+            {!isLoading && attendanceSummaryData?.success && attendanceSummaryData?.data && (
+                <AttendanceSummaryCard
+                    summary={attendanceSummaryData.data}
+                    entityType="teacher"
+                    showDetails={true}
+                />
             )}
 
             {/* Main Content Grid */}
