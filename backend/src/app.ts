@@ -37,6 +37,7 @@ import academicYearRoutes from "./routes/academic-years.routes";
 import gradeLevelRoutes from "./routes/grade-levels.routes";
 import subjectRoutes from "./routes/subjects.routes";
 import assignmentsRoutes from "./routes/assignments.routes";
+import workingDaysRoutes from "./routes/workingDays.routes";
 import { errorHandler } from "./middleware/error.middleware";
 
 const app: Express = express();
@@ -164,6 +165,9 @@ apiV1.use("/subjects", subjectRoutes);
 
 // Assignment Routes
 apiV1.use("/assignments", assignmentsRoutes);
+
+// Working Days Configuration Routes
+apiV1.use("/working-days", workingDaysRoutes);
 
 // Mount v1 routes
 app.use("/api/v1", apiV1);

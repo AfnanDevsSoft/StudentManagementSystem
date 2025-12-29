@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/ca
 import { Button } from '../../components/ui/button';
 import { useAuth } from '../../contexts/AuthContext';
 import { studentService } from '../../services/student.service';
+import { workingDaysService } from '../../services/workingDays.service';
+import { AttendanceSummaryCard } from '../../components/attendance/AttendanceSummaryCard';
 import {
     BookOpen,
     ClipboardCheck,
@@ -50,7 +52,14 @@ export const StudentDashboard: React.FC = () => {
         enabled: !!studentId,
     });
 
-    const isLoading = loadingEnrollments || loadingGrades || loadingAttendance || loadingFees;
+    // Fetch attendance summary
+    const { data: attendanceSummaryData, isLoading: loadingAttendanceSummary } = useQuery({
+        queryKey: ['student-attendance-summary', studentId],
+        queryFn: () => workingDaysService.getStudentSummary(studentId!),
+        enabled: !!studentId,
+    });
+
+    const isLoading = loadingEnrollments || loadingGrades || loadingAttendance || loadingFees || loadingAttendanceSummary;
 
     // Extract data
     const enrollments = enrollmentsData?.data || enrollmentsData || [];
@@ -152,6 +161,15 @@ export const StudentDashboard: React.FC = () => {
                         </Card>
                     ))}
                 </div>
+            )}
+
+            {/* Attendance Summary Card */}
+            {!isLoading && attendanceSummaryData?.success && attendanceSummaryData?.data && (
+                <AttendanceSummaryCard
+                    summary={attendanceSummaryData.data}
+                    entityType="student"
+                    showDetails={true}
+                />
             )}
 
             {/* Main Content Grid */}

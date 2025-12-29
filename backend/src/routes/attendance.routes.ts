@@ -118,4 +118,92 @@ router.post("/", authMiddleware, requirePermission("attendance:create"), async (
     }
 });
 
+/**
+ * Get student attendance summary
+ * GET /api/v1/attendance/summary/student/:studentId?academicYearId=&branchId=
+ */
+router.get(
+    "/summary/student/:studentId",
+    authMiddleware,
+    requirePermission("attendance:read"),
+    async (req: Request, res: Response) => {
+        try {
+            const { studentId } = req.params;
+            const { academicYearId, branchId } = req.query;
+            const user = (req as any).user;
+
+            const result = await AttendanceService.getStudentAttendanceSummary(
+                studentId,
+                academicYearId as string,
+                (branchId as string) || user.branch_id
+            );
+
+            return res.status(result.success ? 200 : 400).json(result);
+        } catch (error: any) {
+            return res.status(500).json({ success: false, message: error.message });
+        }
+    }
+);
+
+/**
+ * Get teacher attendance summary
+ * GET /api/v1/attendance/summary/teacher/:teacherId?academicYearId=&branchId=
+ */
+router.get(
+    "/summary/teacher/:teacherId",
+    authMiddleware,
+    requirePermission("attendance:read"),
+    async (req: Request, res: Response) => {
+        try {
+            const { teacherId } = req.params;
+            const { academicYearId, branchId } = req.query;
+            const user = (req as any).user;
+
+            const result = await AttendanceService.getTeacherAttendanceSummary(
+                teacherId,
+                academicYearId as string,
+                (branchId as string) || user.branch_id
+            );
+
+            return res.status(result.success ? 200 : 400).json(result);
+        } catch (error: any) {
+            return res.status(500).json({ success: false, message: error.message });
+        }
+    }
+);
+
+/**
+ * Recalculate attendance summary
+ * POST /api/v1/attendance/summary/recalculate
+ */
+router.post(
+    "/summary/recalculate",
+    authMiddleware,
+    requirePermission("attendance:create"),
+    async (req: Request, res: Response) => {
+        try {
+            const { entityType, entityId, academicYearId, branchId } = req.body;
+            const user = (req as any).user;
+
+            if (!entityType || !entityId) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Entity type and entity ID are required",
+                });
+            }
+
+            const result = await AttendanceService.recalculateAttendanceSummary(
+                entityType,
+                entityId,
+                academicYearId,
+                branchId || user.branch_id
+            );
+
+            return res.status(result.success ? 200 : 400).json(result);
+        } catch (error: any) {
+            return res.status(500).json({ success: false, message: error.message });
+        }
+    }
+);
+
 export default router;

@@ -285,6 +285,261 @@ export class AttendanceService {
         }
     }
 
+    /**
+     * Get or calculate student attendance summary
+     */
+    static async getStudentAttendanceSummary(
+        studentId: string,
+        academicYearId?: string,
+        branchId?: string
+    ) {
+        try {
+            // Get working days configuration
+            const student = await prisma.student.findUnique({
+                where: { id: studentId },
+                select: { branch_id: true, current_grade_level_id: true },
+            });
+
+            if (!student) {
+                return { success: false, message: "Student not found" };
+            }
+
+            const workingDaysConfig = await prisma.workingDaysConfig.findFirst({
+                where: {
+                    branch_id: branchId || student.branch_id,
+                    academic_year_id: academicYearId || null,
+                    grade_level_id: student.current_grade_level_id || null,
+                    is_active: true,
+                },
+                orderBy: { created_at: "desc" },
+            });
+
+            if (!workingDaysConfig) {
+                return {
+                    success: false,
+                    message: "Working days configuration not found",
+                };
+            }
+
+            // Count attendance records by status
+            const attendanceStats = await prisma.attendance.groupBy({
+                by: ["status"],
+                where: {
+                    student_id: studentId,
+                    date: {
+                        gte: workingDaysConfig.start_date,
+                        lte: workingDaysConfig.end_date,
+                    },
+                },
+                _count: { status: true },
+            });
+
+            const daysPresent =
+                attendanceStats.find((s) => s.status.toLowerCase() === "present")?._count.status || 0;
+            const daysAbsent =
+                attendanceStats.find((s) => s.status.toLowerCase() === "absent")?._count.status || 0;
+            const daysLate =
+                attendanceStats.find((s) => s.status.toLowerCase() === "late")?._count.status || 0;
+            const daysExcused =
+                attendanceStats.find((s) => s.status.toLowerCase() === "excused")?._count.status || 0;
+
+            const attendancePercentage =
+                workingDaysConfig.total_days > 0
+                    ? (daysPresent / workingDaysConfig.total_days) * 100
+                    : 0;
+
+            const meetsMinimum = attendancePercentage >= 80;
+
+            // Upsert attendance summary
+            const summary = await prisma.attendanceSummary.upsert({
+                where: {
+                    entity_type_entity_id_academic_year_id: {
+                        entity_type: "student",
+                        entity_id: studentId,
+                        academic_year_id: academicYearId || null,
+                    },
+                },
+                create: {
+                    entity_type: "student",
+                    entity_id: studentId,
+                    branch_id: branchId || student.branch_id,
+                    academic_year_id: academicYearId || null,
+                    total_working_days: workingDaysConfig.total_days,
+                    days_present: daysPresent,
+                    days_absent: daysAbsent,
+                    days_late: daysLate,
+                    days_excused: daysExcused,
+                    attendance_percentage: attendancePercentage,
+                    meets_minimum: meetsMinimum,
+                    last_calculated: new Date(),
+                },
+                update: {
+                    total_working_days: workingDaysConfig.total_days,
+                    days_present: daysPresent,
+                    days_absent: daysAbsent,
+                    days_late: daysLate,
+                    days_excused: daysExcused,
+                    attendance_percentage: attendancePercentage,
+                    meets_minimum: meetsMinimum,
+                    last_calculated: new Date(),
+                },
+            });
+
+            return {
+                success: true,
+                data: summary,
+            };
+        } catch (error: any) {
+            return {
+                success: false,
+                message: error.message || "Failed to get student attendance summary",
+            };
+        }
+    }
+
+    /**
+     * Get or calculate teacher attendance summary
+     */
+    static async getTeacherAttendanceSummary(
+        teacherId: string,
+        academicYearId?: string,
+        branchId?: string
+    ) {
+        try {
+            // Get teacher's branch
+            const teacher = await prisma.teacher.findUnique({
+                where: { id: teacherId },
+                select: { branch_id: true },
+            });
+
+            if (!teacher) {
+                return { success: false, message: "Teacher not found" };
+            }
+
+            const workingDaysConfig = await prisma.workingDaysConfig.findFirst({
+                where: {
+                    branch_id: branchId || teacher.branch_id,
+                    academic_year_id: academicYearId || null,
+                    is_active: true,
+                },
+                orderBy: { created_at: "desc" },
+            });
+
+            if (!workingDaysConfig) {
+                return {
+                    success: false,
+                    message: "Working days configuration not found",
+                };
+            }
+
+            // For teachers, we would need to track their attendance separately
+            // This is a placeholder - you'll need to implement teacher attendance tracking
+            // For now, we'll return a summary with 0 values
+            const summary = await prisma.attendanceSummary.upsert({
+                where: {
+                    entity_type_entity_id_academic_year_id: {
+                        entity_type: "teacher",
+                        entity_id: teacherId,
+                        academic_year_id: academicYearId || null,
+                    },
+                },
+                create: {
+                    entity_type: "teacher",
+                    entity_id: teacherId,
+                    branch_id: branchId || teacher.branch_id,
+                    academic_year_id: academicYearId || null,
+                    total_working_days: workingDaysConfig.total_days,
+                    days_present: 0,
+                    days_absent: 0,
+                    days_late: 0,
+                    days_excused: 0,
+                    attendance_percentage: 0,
+                    meets_minimum: false,
+                    last_calculated: new Date(),
+                },
+                update: {
+                    last_calculated: new Date(),
+                },
+            });
+
+            return {
+                success: true,
+                data: summary,
+                message: "Teacher attendance tracking not fully implemented yet",
+            };
+        } catch (error: any) {
+            return {
+                success: false,
+                message: error.message || "Failed to get teacher attendance summary",
+            };
+        }
+    }
+
+    /**
+     * Recalculate attendance summary on demand
+     */
+    static async recalculateAttendanceSummary(
+        entityType: "student" | "teacher",
+        entityId: string,
+        academicYearId?: string,
+        branchId?: string
+    ) {
+        try {
+            if (entityType === "student") {
+                return await this.getStudentAttendanceSummary(
+                    entityId,
+                    academicYearId,
+                    branchId
+                );
+            } else {
+                return await this.getTeacherAttendanceSummary(
+                    entityId,
+                    academicYearId,
+                    branchId
+                );
+            }
+        } catch (error: any) {
+            return {
+                success: false,
+                message: error.message || "Failed to recalculate attendance summary",
+            };
+        }
+    }
+
+    /**
+     * Get attendance percentage for quick lookup
+     */
+    static async getAttendancePercentage(
+        entityId: string,
+        entityType: "student" | "teacher",
+        academicYearId?: string
+    ) {
+        try {
+            const summary = await prisma.attendanceSummary.findFirst({
+                where: {
+                    entity_id: entityId,
+                    entity_type: entityType,
+                    academic_year_id: academicYearId || null,
+                },
+                select: {
+                    attendance_percentage: true,
+                    meets_minimum: true,
+                    days_present: true,
+                    total_working_days: true,
+                },
+            });
+
+            return {
+                success: true,
+                data: summary,
+            };
+        } catch (error: any) {
+            return {
+                success: false,
+                message: error.message || "Failed to get attendance percentage",
+            };
+        }
+    }
 
 }
 

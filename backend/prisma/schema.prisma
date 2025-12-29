@@ -38,6 +38,8 @@ model Branch {
   teachers                Teacher[]
   branches_users          UserBranch[]
   users                   User[]
+  working_days_configs    WorkingDaysConfig[]
+  attendance_summaries    AttendanceSummary[]
 
   @@index([code])
   @@map("branches")
@@ -221,30 +223,33 @@ model Teacher {
 }
 
 model AcademicYear {
-  id         String   @id @default(uuid()) @db.Uuid
-  branch_id  String   @db.Uuid
-  year       String
-  start_date DateTime
-  end_date   DateTime
-  is_current Boolean  @default(false)
-  created_at DateTime @default(now())
-  branch     Branch   @relation(fields: [branch_id], references: [id])
-  courses    Course[]
-  grades     Grade[]
+  id                   String                 @id @default(uuid()) @db.Uuid
+  branch_id            String                 @db.Uuid
+  year                 String
+  start_date           DateTime
+  end_date             DateTime
+  is_current           Boolean                @default(false)
+  created_at           DateTime               @default(now())
+  branch               Branch                 @relation(fields: [branch_id], references: [id])
+  courses              Course[]
+  grades               Grade[]
+  working_days_configs WorkingDaysConfig[]
+  attendance_summaries AttendanceSummary[]
 
   @@unique([branch_id, year])
   @@map("academic_years")
 }
 
 model GradeLevel {
-  id         String   @id @default(uuid()) @db.Uuid
-  branch_id  String   @db.Uuid
-  name       String
-  code       String
-  sort_order Int?
-  is_active  Boolean  @default(true)
-  created_at DateTime @default(now())
-  courses    Course[]
+  id                   String              @id @default(uuid()) @db.Uuid
+  branch_id            String              @db.Uuid
+  name                 String
+  code                 String
+  sort_order           Int?
+  is_active            Boolean             @default(true)
+  created_at           DateTime            @default(now())
+  courses              Course[]
+  working_days_configs WorkingDaysConfig[]
 
   @@unique([branch_id, code])
   @@map("grade_levels")
@@ -1195,4 +1200,52 @@ model BookFine {
   @@index([loan_id])
   @@index([payment_status])
   @@map("book_fines")
+}
+
+model WorkingDaysConfig {
+  id               String        @id @default(uuid()) @db.Uuid
+  branch_id        String        @db.Uuid
+  academic_year_id String?       @db.Uuid
+  grade_level_id   String?       @db.Uuid
+  total_days       Int
+  start_date       DateTime
+  end_date         DateTime
+  is_active        Boolean       @default(true)
+  created_at       DateTime      @default(now())
+  updated_at       DateTime      @updatedAt
+  branch           Branch        @relation(fields: [branch_id], references: [id], onDelete: Cascade)
+  academic_year    AcademicYear? @relation(fields: [academic_year_id], references: [id], onDelete: SetNull)
+  grade_level      GradeLevel?   @relation(fields: [grade_level_id], references: [id], onDelete: SetNull)
+
+  @@index([branch_id])
+  @@index([academic_year_id])
+  @@index([is_active])
+  @@map("working_days_config")
+}
+
+model AttendanceSummary {
+  id                    String        @id @default(uuid()) @db.Uuid
+  entity_type           String
+  entity_id             String        @db.Uuid
+  branch_id             String        @db.Uuid
+  academic_year_id      String?       @db.Uuid
+  total_working_days    Int
+  days_present          Int           @default(0)
+  days_absent           Int           @default(0)
+  days_late             Int           @default(0)
+  days_excused          Int           @default(0)
+  attendance_percentage Float         @default(0)
+  meets_minimum         Boolean       @default(false)
+  last_calculated       DateTime      @default(now())
+  created_at            DateTime      @default(now())
+  updated_at            DateTime      @updatedAt
+  branch                Branch        @relation(fields: [branch_id], references: [id], onDelete: Cascade)
+  academic_year         AcademicYear? @relation(fields: [academic_year_id], references: [id], onDelete: SetNull)
+
+  @@unique([entity_type, entity_id, academic_year_id])
+  @@index([entity_type])
+  @@index([entity_id])
+  @@index([branch_id])
+  @@index([academic_year_id])
+  @@map("attendance_summaries")
 }

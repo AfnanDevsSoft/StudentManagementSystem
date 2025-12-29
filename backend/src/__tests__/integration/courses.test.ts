@@ -177,6 +177,7 @@ describe('Courses Management API Tests', () => {
                 subject_id: subjectId,
                 grade_level_id: gradeLevelId,
                 teacher_id: teacherId,
+                academic_year_id: academicYearId,
                 max_students: 30,
             };
 
@@ -213,6 +214,7 @@ describe('Courses Management API Tests', () => {
                     subject_id: subjectId,
                     grade_level_id: gradeLevelId,
                     teacher_id: teacherId,
+                    academic_year_id: academicYearId,
                 });
 
             expect(response.status).toBe(409);

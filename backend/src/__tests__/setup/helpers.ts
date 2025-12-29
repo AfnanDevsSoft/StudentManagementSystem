@@ -103,12 +103,38 @@ export function uniqueId(prefix: string): string {
  * Create RBAC roles and permissions
  */
 export async function createTestRBACRoles(prisma: any, branchId: string) {
-    // Ensure permissions exist
+    // Ensure permissions exist - includes all modules needed for integration tests
     const permissions = [
+        // Students
         'students:read',
         'students:create',
         'students:update',
         'students:delete',
+        // Teachers
+        'teachers:read',
+        'teachers:create',
+        'teachers:update',
+        'teachers:delete',
+        // Courses
+        'courses:read',
+        'courses:create',
+        'courses:update',
+        'courses:delete',
+        // Finance/Fees
+        'finance:read',
+        'finance:create',
+        'finance:update',
+        // Attendance
+        'attendance:read',
+        'attendance:create',
+        'attendance:update',
+        'attendance:delete',
+        // Grades
+        'grades:read',
+        'grades:create',
+        'grades:update',
+        'grades:delete',
+        // Auth
         'auth:login'
     ];
 

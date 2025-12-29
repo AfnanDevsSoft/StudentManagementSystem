@@ -141,7 +141,6 @@ describe('Attendance Management API Tests', () => {
             data: {
                 student_id: studentId,
                 course_id: courseId,
-                academic_year_id: academicYearId,
                 enrollment_date: new Date(),
                 status: 'active',
             },
@@ -198,7 +197,6 @@ describe('Attendance Management API Tests', () => {
                 data: {
                     student_id: student2.id,
                     course_id: courseId,
-                    academic_year_id: academicYearId,
                     enrollment_date: new Date(),
                     status: 'active',
                 },

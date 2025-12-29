@@ -285,7 +285,7 @@ export const StudentsPage: React.FC = () => {
                             <table className="w-full">
                                 <thead>
                                     <tr className="border-b">
-                                        <th className="text-left p-4 font-medium">Student Code</th>
+                                        <th className="text-left p-4 font-medium">Student ID</th>
                                         <th className="text-left p-4 font-medium">Name</th>
                                         <th className="text-left p-4 font-medium">Gender</th>
                                         <th className="text-left p-4 font-medium">Contact</th>

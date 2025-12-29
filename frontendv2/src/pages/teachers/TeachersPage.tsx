@@ -272,7 +272,7 @@ export const TeachersPage: React.FC = () => {
                             <table className="w-full">
                                 <thead>
                                     <tr className="border-b">
-                                        <th className="text-left p-4 font-medium">Employee Code</th>
+                                        <th className="text-left p-4 font-medium">Teacher ID</th>
                                         <th className="text-left p-4 font-medium">Name</th>
                                         <th className="text-left p-4 font-medium">Contact</th>
                                         <th className="text-left p-4 font-medium">Employment</th>
