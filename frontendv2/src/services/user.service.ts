@@ -3,6 +3,7 @@ import { api, endpoints } from '../lib/api';
 export interface User {
     id: string;
     username: string;
+    employee_id?: string;
     email: string;
     first_name: string;
     last_name: string;

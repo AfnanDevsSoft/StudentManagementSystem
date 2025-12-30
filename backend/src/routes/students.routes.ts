@@ -45,12 +45,39 @@ router.get(
 );
 
 // GET student attendance
+// GET student attendance
 router.get(
   "/:id/attendance",
   authMiddleware,
-  requirePermission("students:read"),
+  // requirePermission("students:read"), // Check inside
   async (req: Request, res: Response): Promise<void> => {
     const { id } = req.params;
+    const user = (req as any).user;
+
+    if (!user) {
+      sendResponse(res, 401, false, "Unauthorized");
+      return;
+    }
+
+    // Check permissions: Owner OR Has Permission
+    const isOwner = user.student_id === id || user.id === id;
+
+    let hasPermission = false;
+    if (isOwner) {
+      hasPermission = true;
+    } else {
+      // Import RBACService to check permission manually
+      // Note: need to handle import if not present, but for now we trust it's effectively available via module system or I can add import if needed.
+      // Actually RBACService is NOT imported in this file. I need to add it or use require.
+      const { RBACService } = require("../services/rbac.service");
+      hasPermission = await RBACService.checkUserPermission(user.id, "students:read");
+    }
+
+    if (!hasPermission) {
+      sendResponse(res, 403, false, "Permission denied");
+      return;
+    }
+
     const result = await StudentService.getStudentAttendance(id);
     sendResponse(
       res,

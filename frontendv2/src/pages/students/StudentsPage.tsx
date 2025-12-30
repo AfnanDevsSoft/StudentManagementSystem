@@ -158,7 +158,7 @@ export const StudentsPage: React.FC = () => {
     };
 
     const filteredStudents = students.filter((student: Student) =>
-        `${student.first_name} ${student.last_name} ${student.student_code}`
+        `${student.first_name} ${student.last_name} ${student.student_code} ${student.admission_number || ''}`
             .toLowerCase()
             .includes(searchQuery.toLowerCase())
     );
@@ -266,7 +266,7 @@ export const StudentsPage: React.FC = () => {
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                             <Input
-                                placeholder="Search students by name or code..."
+                                placeholder="Search by name, ID, or Admission No..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className="pl-10"
@@ -286,6 +286,7 @@ export const StudentsPage: React.FC = () => {
                                 <thead>
                                     <tr className="border-b">
                                         <th className="text-left p-4 font-medium">Student ID</th>
+                                        <th className="text-left p-4 font-medium">Adm. No</th>
                                         <th className="text-left p-4 font-medium">Name</th>
                                         <th className="text-left p-4 font-medium">Gender</th>
                                         <th className="text-left p-4 font-medium">Contact</th>
@@ -298,6 +299,7 @@ export const StudentsPage: React.FC = () => {
                                     {filteredStudents.map((student: Student) => (
                                         <tr key={student.id} className="border-b hover:bg-muted/50">
                                             <td className="p-4 font-medium">{student.student_code}</td>
+                                            <td className="p-4 font-medium text-muted-foreground">{student.admission_number || '-'}</td>
                                             <td className="p-4">
                                                 <div>
                                                     <p className="font-medium">

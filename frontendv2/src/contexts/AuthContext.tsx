@@ -17,6 +17,7 @@ interface User {
         id: string;
         name: string;
     };
+    permissions?: string[];  // RBAC permissions from backend
     // Entity IDs for role-specific data fetching
     studentId?: string;
     teacherId?: string;
@@ -28,6 +29,7 @@ interface AuthContextType {
     login: (email: string, password: string) => Promise<void>;
     logout: () => void;
     isAuthenticated: boolean;
+    hasPermission: (permission: string) => boolean;  // Permission check helper
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -75,6 +77,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 localStorage.setItem('refresh_token', refreshToken);
             }
 
+            // Extract branch data from various possible formats
+            const branchData = userData.branch || (userData.branch_id ? {
+                id: userData.branch_id,
+                name: userData.branchName || userData.branch_name || 'Default Branch'
+            } : undefined);
+
             // Transform user data to match our interface
             const user = {
                 id: userData.id,
@@ -83,12 +91,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 first_name: userData.firstName || userData.first_name,
                 last_name: userData.lastName || userData.last_name,
                 role: userData.role,
+                branch: branchData,
+                permissions: userData.permissions || [],  // Store RBAC permissions
                 // Include entity IDs for role-specific data fetching
-                studentId: userData.studentId,
-                teacherId: userData.teacherId,
+                studentId: userData.studentId || userData.student_id,
+                teacherId: userData.teacherId || userData.teacher_id,
             };
 
             localStorage.setItem('user', JSON.stringify(user));
+
+            // Store branch separately for easy access by services
+            if (branchData) {
+                localStorage.setItem('current_branch', JSON.stringify(branchData));
+            }
+
             setUser(user as User);
         } catch (error) {
             throw error;
@@ -99,8 +115,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
         localStorage.removeItem('user');
+        localStorage.removeItem('current_branch');
         setUser(null);
         window.location.href = '/login';
+    };
+
+    // Helper function to check if user has a specific permission
+    const hasPermission = (permission: string): boolean => {
+        if (!user) return false;
+        // SuperAdmin has all permissions (marked with '*')
+        if (user.permissions?.includes('*')) return true;
+        // Check specific permission
+        return user.permissions?.includes(permission) ?? false;
     };
 
     return (
@@ -111,6 +137,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 login,
                 logout,
                 isAuthenticated: !!user,
+                hasPermission,
             }}
         >
             {children}

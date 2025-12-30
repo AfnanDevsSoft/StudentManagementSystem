@@ -87,4 +87,15 @@ export const attendanceService = {
         const response = await api.post(`/courses/${data.courseId}/attendance/bulk`, data);
         return response.data;
     },
+
+    // Mark attendance for a teacher
+    async markTeacherAttendance(data: {
+        teacher_id: string;
+        date: string;
+        status: string;
+        remarks?: string;
+    }) {
+        const response = await api.post('/attendance/teacher', data);
+        return response.data;
+    },
 };

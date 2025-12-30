@@ -23,6 +23,11 @@ export const requirePermission = (requiredPermission: string) => {
                 });
             }
 
+            // SuperAdmin bypass: Skip RBAC check for SuperAdmin users (legacy Role system bridge)
+            if (user.role?.name === 'SuperAdmin') {
+                return next();
+            }
+
             // Check if user has the required permission
             const hasPermission = await RBACService.checkUserPermission(
                 user.id,
@@ -65,6 +70,11 @@ export const requireAnyPermission = (permissions: string[]) => {
                     message: "Authentication required",
                     code: "UNAUTHORIZED",
                 });
+            }
+
+            // SuperAdmin bypass: Skip RBAC check for SuperAdmin users
+            if (user.role?.name === 'SuperAdmin') {
+                return next();
             }
 
             // Get all user permissions
@@ -111,6 +121,11 @@ export const requireAllPermissions = (permissions: string[]) => {
                     message: "Authentication required",
                     code: "UNAUTHORIZED",
                 });
+            }
+
+            // SuperAdmin bypass: Skip RBAC check for SuperAdmin users
+            if (user.role?.name === 'SuperAdmin') {
+                return next();
             }
 
             // Get all user permissions

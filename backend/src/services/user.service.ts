@@ -45,6 +45,7 @@ export class UserService {
           select: {
             id: true,
             username: true,
+            employee_id: true,
             email: true,
             first_name: true,
             last_name: true,
@@ -99,6 +100,7 @@ export class UserService {
         select: {
           id: true,
           username: true,
+          employee_id: true,
           email: true,
           first_name: true,
           last_name: true,
@@ -204,6 +206,18 @@ export class UserService {
         },
         include: { role: true, branch: true },
       });
+
+      // Auto-generate Employee ID for staff roles
+      if (user.role.name !== 'Student') {
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-var-requires
+          const { EmployeeIdService } = require('./employee-id.service');
+          const employeeId = await EmployeeIdService.assignEmployeeId(user.id, user.branch_id);
+          (user as any).employee_id = employeeId;
+        } catch (err) {
+          console.error("Failed to generate employee ID:", err);
+        }
+      }
 
       return {
         success: true,

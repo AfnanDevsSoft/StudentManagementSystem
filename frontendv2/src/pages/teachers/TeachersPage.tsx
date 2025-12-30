@@ -52,6 +52,8 @@ export const TeachersPage: React.FC = () => {
             department: '',
             designation: '',
             qualification: '',
+            total_leaves: 24,
+            used_leaves: 0,
         },
     });
 
@@ -81,7 +83,9 @@ export const TeachersPage: React.FC = () => {
         mutationFn: ({ id, data }: { id: string; data: Partial<TeacherFormData> }) => {
             const payload = {
                 ...data,
-                years_experience: data.years_experience === '' ? undefined : data.years_experience
+                years_experience: data.years_experience === '' ? undefined : data.years_experience,
+                total_leaves: data.total_leaves === '' ? undefined : data.total_leaves,
+                used_leaves: data.used_leaves === '' ? undefined : data.used_leaves
             } as any; // Cast to any or Specific Partial<CreateTeacherDto> to bypass strict check
             return teacherService.update(id, payload);
         },
@@ -126,7 +130,9 @@ export const TeachersPage: React.FC = () => {
     const onSubmit = (data: TeacherFormData) => {
         const payload = {
             ...data,
-            years_experience: data.years_experience === '' ? undefined : data.years_experience
+            years_experience: data.years_experience === '' ? undefined : data.years_experience,
+            total_leaves: data.total_leaves === '' ? undefined : data.total_leaves,
+            used_leaves: data.used_leaves === '' ? undefined : data.used_leaves
         } as import('../../services/teacher.service').CreateTeacherDto;
 
         if (editingTeacher) {
@@ -147,6 +153,8 @@ export const TeachersPage: React.FC = () => {
         setValue('department', teacher.department || '');
         setValue('designation', teacher.designation || '');
         setValue('qualification', teacher.qualification || '');
+        setValue('total_leaves', teacher.total_leaves ?? 24);
+        setValue('used_leaves', teacher.used_leaves ?? 0);
         setIsDialogOpen(true);
     };
 
@@ -163,7 +171,7 @@ export const TeachersPage: React.FC = () => {
     };
 
     const filteredTeachers = teachers.filter((teacher: Teacher) =>
-        `${teacher.first_name} ${teacher.last_name} ${teacher.employee_code}`
+        `${teacher.first_name} ${teacher.last_name} ${teacher.employee_code} ${teacher.user?.employee_id || ''}`
             .toLowerCase()
             .includes(searchQuery.toLowerCase())
     );
@@ -254,7 +262,7 @@ export const TeachersPage: React.FC = () => {
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                             <Input
-                                placeholder="Search teachers by name or code..."
+                                placeholder="Search by name or Employee ID..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className="pl-10"
@@ -272,11 +280,12 @@ export const TeachersPage: React.FC = () => {
                             <table className="w-full">
                                 <thead>
                                     <tr className="border-b">
-                                        <th className="text-left p-4 font-medium">Teacher ID</th>
+                                        <th className="text-left p-4 font-medium">Employee ID</th>
                                         <th className="text-left p-4 font-medium">Name</th>
                                         <th className="text-left p-4 font-medium">Contact</th>
                                         <th className="text-left p-4 font-medium">Employment</th>
                                         <th className="text-left p-4 font-medium">Department</th>
+                                        <th className="text-left p-4 font-medium">Leaves Remaining</th>
                                         <th className="text-left p-4 font-medium">Status</th>
                                         <th className="text-right p-4 font-medium">Actions</th>
                                     </tr>
@@ -284,7 +293,7 @@ export const TeachersPage: React.FC = () => {
                                 <tbody>
                                     {filteredTeachers.map((teacher: Teacher) => (
                                         <tr key={teacher.id} className="border-b hover:bg-muted/50">
-                                            <td className="p-4 font-medium">{teacher.employee_code}</td>
+                                            <td className="p-4 font-medium">{teacher.user?.employee_id || teacher.employee_code}</td>
                                             <td className="p-4">
                                                 <div>
                                                     <p className="font-medium">
@@ -303,6 +312,16 @@ export const TeachersPage: React.FC = () => {
                                                 <Badge variant="outline">{teacher.employment_type}</Badge>
                                             </td>
                                             <td className="p-4 text-sm">{teacher.department || 'N/A'}</td>
+                                            <td className="p-4">
+                                                <div className="flex flex-col">
+                                                    <span className="font-medium text-blue-600">
+                                                        {(teacher.total_leaves || 24) - (teacher.used_leaves || 0)} Days
+                                                    </span>
+                                                    <span className="text-xs text-muted-foreground">
+                                                        {teacher.used_leaves || 0} used / {teacher.total_leaves || 24} total
+                                                    </span>
+                                                </div>
+                                            </td>
                                             <td className="p-4">
                                                 <Badge variant={teacher.is_active ? 'success' : 'secondary'}>
                                                     {teacher.is_active ? 'Active' : 'Inactive'}
@@ -483,6 +502,33 @@ export const TeachersPage: React.FC = () => {
                                 {errors.years_experience && (
                                     <p className="text-sm text-destructive mt-1">{errors.years_experience.message}</p>
                                 )}
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <Label htmlFor="total_leaves">Total Leaves (Annual)</Label>
+                                    <Input
+                                        id="total_leaves"
+                                        type="number"
+                                        {...register('total_leaves', { valueAsNumber: true })}
+                                        className={errors.total_leaves ? 'border-destructive' : ''}
+                                    />
+                                    {errors.total_leaves && (
+                                        <p className="text-sm text-destructive mt-1">{errors.total_leaves.message}</p>
+                                    )}
+                                </div>
+                                <div>
+                                    <Label htmlFor="used_leaves">Leaves Taken</Label>
+                                    <Input
+                                        id="used_leaves"
+                                        type="number"
+                                        {...register('used_leaves', { valueAsNumber: true })}
+                                        className={errors.used_leaves ? 'border-destructive' : ''}
+                                    />
+                                    {errors.used_leaves && (
+                                        <p className="text-sm text-destructive mt-1">{errors.used_leaves.message}</p>
+                                    )}
+                                </div>
                             </div>
 
                             <div className="flex gap-2 pt-4">

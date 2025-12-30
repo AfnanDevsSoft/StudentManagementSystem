@@ -38,7 +38,7 @@ export interface NavigationGroup {
 
 // Admin Navigation - Full system access
 export const adminNavigation: NavigationItem[] = [
-    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
     { name: 'Branches', href: '/branches', icon: Building2, group: 'Management' },
     { name: 'Roles & Permissions', href: '/roles', icon: Shield, group: 'Management' },
     { name: 'Users', href: '/users', icon: Users, group: 'Management' },
@@ -88,7 +88,7 @@ export const studentNavigation: NavigationItem[] = [
 
 // Branch Admin Navigation - Assigned branch management
 export const branchAdminNavigation: NavigationItem[] = [
-    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
     // Branch Admin does not manage Branches or Roles globally
     { name: 'Users', href: '/users', icon: Users, group: 'Management' },
     { name: 'Students', href: '/students', icon: GraduationCap, group: 'Management' },
@@ -149,7 +149,11 @@ export function hasRouteAccess(role: string, pathToCheck: string): boolean {
 /**
  * Get the default dashboard route for a role
  */
-export function getDefaultRoute(_role: string): string {
+export function getDefaultRoute(role: string): string {
+    const normalizedRole = role?.toLowerCase() || '';
+    if (['superadmin', 'admin', 'branchadmin'].includes(normalizedRole)) {
+        return '/admin';
+    }
     return '/dashboard';
 }
 

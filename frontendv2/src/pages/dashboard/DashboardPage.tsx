@@ -1,7 +1,7 @@
 import React from 'react';
+import { Navigate } from 'react-router-dom';
 import { MainLayout } from '../../components/layout/MainLayout';
 import { useAuth } from '../../contexts/AuthContext';
-import { AdminDashboard } from './AdminDashboard';
 import { TeacherDashboard } from './TeacherDashboard';
 import { StudentDashboard } from './StudentDashboard';
 
@@ -15,7 +15,7 @@ export const DashboardPage: React.FC = () => {
             case 'superadmin':
             case 'admin':
             case 'branchadmin':
-                return <AdminDashboard />;
+                return <Navigate to="/admin" replace />;
             case 'teacher':
                 return <TeacherDashboard />;
             case 'student':

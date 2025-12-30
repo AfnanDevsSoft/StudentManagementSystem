@@ -58,14 +58,37 @@ export class LeaveService {
    */
   static async approveLeave(leaveRequestId: string, approvedBy: string) {
     try {
-      const leaveRequest = await prisma.leaveRequest.update({
+      // First, get the leave request to know the teacher and days count
+      const existingRequest = await prisma.leaveRequest.findUnique({
         where: { id: leaveRequestId },
-        data: {
-          status: "approved",
-          approved_by: approvedBy,
-          approval_date: new Date(),
-        },
       });
+
+      if (!existingRequest) {
+        return {
+          success: false,
+          message: "Leave request not found",
+        };
+      }
+
+      // Update leave request status and increment teacher's used_leaves atomically
+      const [leaveRequest, updatedTeacher] = await prisma.$transaction([
+        prisma.leaveRequest.update({
+          where: { id: leaveRequestId },
+          data: {
+            status: "approved",
+            approved_by: approvedBy,
+            approval_date: new Date(),
+          },
+        }),
+        prisma.teacher.update({
+          where: { id: existingRequest.teacher_id },
+          data: {
+            used_leaves: {
+              increment: existingRequest.days_count,
+            },
+          },
+        }),
+      ]);
 
       return {
         success: true,

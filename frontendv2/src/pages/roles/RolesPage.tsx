@@ -38,8 +38,8 @@ export const RolesPage: React.FC = () => {
     const selectedRole = roles.find((r: any) => r.id === selectedRoleId) || roles[0];
 
     // Helper to get color based on role name (consistent UI)
-    const getRoleColor = (name: string) => {
-        const lower = name.toLowerCase();
+    const getRoleColor = (role_name: string) => {
+        const lower = (role_name || '').toLowerCase();
         if (lower.includes('admin')) return 'from-red-500 to-red-600';
         if (lower.includes('teacher')) return 'from-purple-500 to-purple-600';
         if (lower.includes('student')) return 'from-cyan-500 to-cyan-600';
@@ -88,38 +88,42 @@ export const RolesPage: React.FC = () => {
                     {/* Roles List */}
                     <div className="lg:col-span-1 space-y-3">
                         <h2 className="text-lg font-semibold mb-4">Roles</h2>
-                        {roles.map((role: any) => (
-                            <Card
-                                key={role.id}
-                                className={`p-4 cursor-pointer transition-all ${selectedRole?.id === role.id
-                                    ? 'ring-2 ring-primary shadow-md'
-                                    : 'hover:shadow-md'
-                                    }`}
-                                onClick={() => setSelectedRoleId(role.id)}
-                            >
-                                <div className="flex items-start justify-between mb-2">
-                                    <div className="flex items-center space-x-3">
-                                        <div className={`w-10 h-10 bg-gradient-to-br ${getRoleColor(role.name)} rounded-lg flex items-center justify-center`}>
-                                            <Shield className="w-5 h-5 text-white" />
-                                        </div>
-                                        <div>
-                                            <h3 className="font-semibold">{role.name}</h3>
-                                            {/* Legacy roles are system roles essentially */}
-                                            <Badge variant="outline" className="text-xs mt-1">System Role</Badge>
+                        {roles.map((role: any) => {
+                            // Handle both RBAC (role_name) and legacy (name) formats
+                            const roleName = role.role_name || role.name;
+                            return (
+                                <Card
+                                    key={role.id}
+                                    className={`p-4 cursor-pointer transition-all ${selectedRole?.id === role.id
+                                        ? 'ring-2 ring-primary shadow-md'
+                                        : 'hover:shadow-md'
+                                        }`}
+                                    onClick={() => setSelectedRoleId(role.id)}
+                                >
+                                    <div className="flex items-start justify-between mb-2">
+                                        <div className="flex items-center space-x-3">
+                                            <div className={`w-10 h-10 bg-gradient-to-br ${getRoleColor(roleName)} rounded-lg flex items-center justify-center`}>
+                                                <Shield className="w-5 h-5 text-white" />
+                                            </div>
+                                            <div>
+                                                <h3 className="font-semibold">{roleName}</h3>
+                                                <Badge variant="outline" className="text-xs mt-1">
+                                                    {role.is_system ? 'System Role' : 'Custom Role'}
+                                                </Badge>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                                <p className="text-sm text-muted-foreground mb-3">{role.description || 'System defined role'}</p>
-                                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                                    <span className="flex items-center">
-                                        <Users className="w-3 h-3 mr-1" />
-                                        {/* Count not returned by legacy API yet, hardcode or hide */}
-                                        -- users
-                                    </span>
-                                    <span>-- permissions</span>
-                                </div>
-                            </Card>
-                        ))}
+                                    <p className="text-sm text-muted-foreground mb-3">{role.description || 'No description'}</p>
+                                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                                        <span className="flex items-center">
+                                            <Users className="w-3 h-3 mr-1" />
+                                            -- users
+                                        </span>
+                                        <span>{role.permissions?.length || 0} permissions</span>
+                                    </div>
+                                </Card>
+                            );
+                        })}
                     </div>
 
                     {/* Permissions Matrix */}
@@ -128,8 +132,8 @@ export const RolesPage: React.FC = () => {
                             <Card className="p-6">
                                 <div className="flex items-center justify-between mb-6">
                                     <div>
-                                        <h2 className="text-xl font-bold">{selectedRole.name}</h2>
-                                        <p className="text-sm text-muted-foreground mt-1">{selectedRole.description || 'System Role'}</p>
+                                        <h2 className="text-xl font-bold">{selectedRole.role_name || selectedRole.name}</h2>
+                                        <p className="text-sm text-muted-foreground mt-1">{selectedRole.description || 'No description'}</p>
                                     </div>
                                     <div className="flex gap-2">
                                         {/* Disable Edit/Delete for now until fully RBAC implemented */}
@@ -166,13 +170,13 @@ export const RolesPage: React.FC = () => {
                                                     </td>
                                                     <td className="p-4 text-center">
                                                         {/* Simulate admin vs others */}
-                                                        {selectedRole.name === 'SuperAdmin' ? <CheckCircle2 className="w-5 h-5 text-green-500 mx-auto" /> : <XCircle className="w-5 h-5 text-gray-300 mx-auto" />}
+                                                        {(selectedRole.role_name || selectedRole.name) === 'SuperAdmin' ? <CheckCircle2 className="w-5 h-5 text-green-500 mx-auto" /> : <XCircle className="w-5 h-5 text-gray-300 mx-auto" />}
                                                     </td>
                                                     <td className="p-4 text-center">
-                                                        {selectedRole.name === 'SuperAdmin' ? <CheckCircle2 className="w-5 h-5 text-green-500 mx-auto" /> : <XCircle className="w-5 h-5 text-gray-300 mx-auto" />}
+                                                        {(selectedRole.role_name || selectedRole.name) === 'SuperAdmin' ? <CheckCircle2 className="w-5 h-5 text-green-500 mx-auto" /> : <XCircle className="w-5 h-5 text-gray-300 mx-auto" />}
                                                     </td>
                                                     <td className="p-4 text-center">
-                                                        {selectedRole.name === 'SuperAdmin' ? <CheckCircle2 className="w-5 h-5 text-green-500 mx-auto" /> : <XCircle className="w-5 h-5 text-gray-300 mx-auto" />}
+                                                        {(selectedRole.role_name || selectedRole.name) === 'SuperAdmin' ? <CheckCircle2 className="w-5 h-5 text-green-500 mx-auto" /> : <XCircle className="w-5 h-5 text-gray-300 mx-auto" />}
                                                     </td>
                                                 </tr>
                                             ))}

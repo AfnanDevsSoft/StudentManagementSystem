@@ -37,6 +37,7 @@ export class TeacherService {
           include: {
             branch: { select: { name: true } },
             courses: { select: { course_name: true } },
+            user: { select: { employee_id: true } },
           },
         }),
         prisma.teacher.count({ where }),
@@ -73,10 +74,10 @@ export class TeacherService {
 
   static async createTeacher(teacherData: any) {
     try {
-      if (!teacherData.employee_code || !teacherData.branch_id) {
+      if (!teacherData.branch_id) {
         return {
           success: false,
-          message: "Employee code and branch ID are required",
+          message: "Branch ID is required",
         };
       }
 
@@ -131,11 +132,30 @@ export class TeacherService {
         console.log("DEBUG: User created", userId);
       }
 
+      const { EmployeeIdService } = require('./employee-id.service');
+      // Auto-generate employee_code if not provided
+      let finalEmployeeCode = teacherData.employee_code;
+
+      if (!finalEmployeeCode) {
+        try {
+          // If we have a user, ensure they have an ID and use it
+          if (userId) {
+            finalEmployeeCode = await EmployeeIdService.assignEmployeeId(userId, teacherData.branch_id);
+          } else {
+            // If no user, just generate a raw ID using a dummy ID for the function signature
+            finalEmployeeCode = await EmployeeIdService.generateEmployeeId("temp-generation", teacherData.branch_id);
+          }
+        } catch (e) {
+          console.error("Failed to generate employee ID for teacher:", e);
+          finalEmployeeCode = `EMP-${Date.now()}`;
+        }
+      }
+
       const teacher = await prisma.teacher.create({
         data: {
           branch_id: teacherData.branch_id,
           user_id: userId || null, // Link to user account for login
-          employee_code: teacherData.employee_code,
+          employee_code: finalEmployeeCode,
           first_name: teacherData.first_name,
           last_name: teacherData.last_name,
           email: teacherData.email,
@@ -149,6 +169,8 @@ export class TeacherService {
           qualification: teacherData.qualification || teacherData.qualification_level,
           years_experience: teacherData.years_experience || teacherData.years_of_experience,
           department: teacherData.department,
+          total_leaves: teacherData.total_leaves !== undefined ? parseInt(teacherData.total_leaves) : 24,
+          used_leaves: teacherData.used_leaves !== undefined ? parseInt(teacherData.used_leaves) : 0,
         },
         include: {
           branch: true,

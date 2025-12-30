@@ -328,4 +328,55 @@ router.post("/logout", (req: Request, res: Response) => {
   sendResponse(res, 200, true, "Logout successful");
 });
 
+// Debug endpoint to check user permissions
+router.get("/permissions", async (req: Request, res: Response): Promise<void> => {
+  try {
+    const token = req.headers.authorization?.split(" ")[1];
+    if (!token) {
+      sendResponse(res, 401, false, "Authorization token required");
+      return;
+    }
+
+    const decoded: any = jwt.verify(token, process.env.JWT_SECRET || "your-secret-key");
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.userId },
+      include: { role: true },
+    });
+
+    if (!user) {
+      sendResponse(res, 401, false, "User not found");
+      return;
+    }
+
+    const userRoles = await prisma.userRole.findMany({
+      where: { user_id: user.id },
+      include: {
+        rbac_role: {
+          include: { permissions: true },
+        },
+      },
+    });
+
+    const allPermissions = new Set<string>();
+    userRoles.forEach((ur) => {
+      ur.rbac_role.permissions.forEach((p) => {
+        allPermissions.add(p.permission_name);
+      });
+    });
+
+    res.status(200).json({
+      success: true,
+      user: { id: user.id, username: user.username, role: user.role.name },
+      rbac_roles: userRoles.map((ur) => ({
+        role_name: ur.rbac_role.role_name,
+        permission_count: ur.rbac_role.permissions.length,
+      })),
+      total_permissions: allPermissions.size,
+      permissions: Array.from(allPermissions).sort(),
+    });
+  } catch (error: any) {
+    sendResponse(res, 500, false, error.message);
+  }
+});
+
 export default router;

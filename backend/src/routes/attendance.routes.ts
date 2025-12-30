@@ -125,12 +125,35 @@ router.post("/", authMiddleware, requirePermission("attendance:create"), async (
 router.get(
     "/summary/student/:studentId",
     authMiddleware,
-    requirePermission("attendance:read"),
+    // requirePermission("attendance:read"), // Moved check inside
     async (req: Request, res: Response) => {
         try {
             const { studentId } = req.params;
             const { academicYearId, branchId } = req.query;
             const user = (req as any).user;
+
+            if (!user) {
+                return res.status(401).json({ success: false, message: "Unauthorized" });
+            }
+
+            // Check permissions: Owner OR Has Permission
+            const isOwner = user.student_id === studentId || user.id === studentId;
+            // Note: user.student_id should be populated if auth middleware enriches it, 
+            // but if not, we rely on having 'attendance:read'. 
+            // Ideally we check RBAC manually here if not owner.
+
+            let hasPermission = false;
+            if (isOwner) {
+                hasPermission = true;
+            } else {
+                // Import RBACService to check permission manually
+                const { RBACService } = require("../services/rbac.service");
+                hasPermission = await RBACService.checkUserPermission(user.id, "attendance:read");
+            }
+
+            if (!hasPermission) {
+                return res.status(403).json({ success: false, message: "Permission denied" });
+            }
 
             const result = await AttendanceService.getStudentAttendanceSummary(
                 studentId,
@@ -144,6 +167,60 @@ router.get(
         }
     }
 );
+
+/**
+ * @swagger
+ * /api/v1/attendance/teacher:
+ *   post:
+ *     summary: Mark attendance for a teacher
+ *     tags: [Attendance]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - teacher_id
+ *               - date
+ *               - status
+ *             properties:
+ *               teacher_id:
+ *                 type: string
+ *               date:
+ *                 type: string
+ *                 format: date
+ *               status:
+ *                 type: string
+ *                 enum: [Present, Absent, Leave, Late]
+ *               remarks:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Teacher attendance marked successfully
+ */
+router.post("/teacher", authMiddleware, requirePermission("attendance:create"), async (req: Request, res: Response) => {
+    try {
+        const { teacher_id, date, status, remarks } = req.body;
+
+        const result = await AttendanceService.markTeacherAttendance({
+            teacher_id,
+            date,
+            status,
+            remarks
+        });
+
+        if (!result.success) {
+            return res.status(400).json(result);
+        }
+
+        return res.status(200).json(result);
+    } catch (error: any) {
+        return res.status(500).json({ success: false, message: error.message });
+    }
+});
 
 /**
  * Get teacher attendance summary

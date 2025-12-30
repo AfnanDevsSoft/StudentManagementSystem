@@ -22,17 +22,30 @@ export const StudentAttendancePage: React.FC = () => {
     const [selectedMonth] = useState('December 2024');
 
     // Fetch student attendance
-    const { data: attendanceData, isLoading, error } = useQuery({
+    const { data: attendanceData, isLoading: isLoadingAttendance, error: attendanceError } = useQuery({
         queryKey: ['student-attendance', studentId],
         queryFn: () => studentService.getAttendance(studentId!),
         enabled: !!studentId,
     });
 
+    // Fetch attendance summary
+    const { data: summaryData, isLoading: isLoadingSummary } = useQuery({
+        queryKey: ['student-attendance-summary', studentId],
+        queryFn: () => studentService.getAttendanceSummary(studentId!),
+        enabled: !!studentId,
+    });
+
+    const isLoading = isLoadingAttendance || isLoadingSummary;
+    const error = attendanceError;
+
     const attendanceRecords = attendanceData?.data || attendanceData || [];
+    const summary = summaryData?.data;
 
     // Calculate attendance stats
     const records = Array.isArray(attendanceRecords) ? attendanceRecords : [];
     const totalRecords = records.length;
+
+    // Stats from records (Current Progress)
     const presentCount = records.filter((a: any) =>
         a.status?.toLowerCase() === 'present' || a.status === 'P'
     ).length;
@@ -42,9 +55,20 @@ export const StudentAttendancePage: React.FC = () => {
     const lateCount = records.filter((a: any) =>
         a.status?.toLowerCase() === 'late' || a.status === 'L'
     ).length;
-    const attendancePercentage = totalRecords > 0
+
+    // Calculate "Current" Attendance Rate (based on days passed so far)
+    const currentAttendanceRate = totalRecords > 0
         ? ((presentCount / totalRecords) * 100).toFixed(1)
-        : '100.0';
+        : '100.0'; // Default to 100 if no records yet
+
+    // Stats from Summary (Annual Goals)
+    const totalWorkingDays = summary?.total_working_days || 0;
+    const daysRemaining = Math.max(0, totalWorkingDays - totalRecords);
+
+    // Annual Progress (based on Total Working Days)
+    // const annualProgress = totalWorkingDays > 0 
+    //     ? ((presentCount / totalWorkingDays) * 100).toFixed(1)
+    //     : '0.0';
 
     // Group attendance by course
     const courseAttendance = records.reduce((acc: any, record: any) => {
@@ -143,17 +167,31 @@ export const StudentAttendancePage: React.FC = () => {
                                 <CardContent className="p-6">
                                     <div className="flex items-center justify-between">
                                         <div>
-                                            <p className="text-sm text-muted-foreground">Attendance Rate</p>
-                                            <h3 className="text-3xl font-bold mt-1">{attendancePercentage}%</h3>
-                                            <p className="text-sm text-green-600 flex items-center gap-1 mt-1">
-                                                <TrendingUp className="w-3 h-3" />
-                                                {parseFloat(attendancePercentage) >= 75 ? 'Good Standing' : 'Needs Improvement'}
-                                            </p>
+                                            <p className="text-sm text-muted-foreground">Current Rate</p>
+                                            <h3 className="text-3xl font-bold mt-1">{currentAttendanceRate}%</h3>
+                                            <div className="text-xs text-muted-foreground mt-1">
+                                                {daysRemaining} days remaining
+                                            </div>
                                         </div>
-                                        <div className="p-3 rounded-xl bg-green-100 dark:bg-green-900/30">
-                                            <ClipboardCheck className="w-6 h-6 text-green-600" />
+                                        <div className="p-3 rounded-xl bg-blue-100 dark:bg-blue-900/30">
+                                            <TrendingUp className="w-6 h-6 text-blue-600" />
                                         </div>
                                     </div>
+                                    {/* Progress Bar for Annual Goal */}
+                                    {totalWorkingDays > 0 && (
+                                        <div className="mt-4">
+                                            <div className="flex justify-between text-xs mb-1">
+                                                <span>Year Progress</span>
+                                                <span>{presentCount}/{totalWorkingDays} days</span>
+                                            </div>
+                                            <div className="h-2 bg-muted rounded-full overflow-hidden">
+                                                <div
+                                                    className="h-full bg-blue-500 rounded-full"
+                                                    style={{ width: `${(totalRecords / totalWorkingDays) * 100}%` }}
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
                                 </CardContent>
                             </Card>
 
@@ -305,7 +343,7 @@ export const StudentAttendancePage: React.FC = () => {
                         </div>
 
                         {/* Alert if attendance is low */}
-                        {parseFloat(attendancePercentage) < 75 && totalRecords > 0 && (
+                        {parseFloat(currentAttendanceRate) < 75 && totalRecords > 0 && (
                             <Card className="border-red-200 bg-red-50 dark:bg-red-900/20">
                                 <CardContent className="p-4">
                                     <div className="flex items-center gap-3">

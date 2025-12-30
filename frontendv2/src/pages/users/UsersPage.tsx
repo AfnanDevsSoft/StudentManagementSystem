@@ -176,7 +176,7 @@ export const UsersPage: React.FC = () => {
     };
 
     const filteredUsers = users.filter((user: User) =>
-        `${user.first_name} ${user.last_name} ${user.username} ${user.email}`
+        `${user.first_name} ${user.last_name} ${user.username} ${user.email} ${user.employee_id || ''}`
             .toLowerCase()
             .includes(searchQuery.toLowerCase())
     );
@@ -267,7 +267,7 @@ export const UsersPage: React.FC = () => {
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                             <Input
-                                placeholder="Search users by name, username or email..."
+                                placeholder="Search users by name, username, email or Employee ID..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className="pl-10"
@@ -285,6 +285,7 @@ export const UsersPage: React.FC = () => {
                             <table className="w-full">
                                 <thead>
                                     <tr className="border-b">
+                                        <th className="text-left p-4 font-medium">Employee ID</th>
                                         <th className="text-left p-4 font-medium">User</th>
                                         <th className="text-left p-4 font-medium">Role</th>
                                         <th className="text-left p-4 font-medium">Branch</th>
@@ -295,6 +296,9 @@ export const UsersPage: React.FC = () => {
                                 <tbody>
                                     {filteredUsers.map((user: User) => (
                                         <tr key={user.id} className="border-b hover:bg-muted/50">
+                                            <td className="p-4">
+                                                <span className="font-mono text-sm">{user.employee_id || '-'}</span>
+                                            </td>
                                             <td className="p-4">
                                                 <div>
                                                     <p className="font-medium">

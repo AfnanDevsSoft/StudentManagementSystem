@@ -65,6 +65,7 @@ model User {
   branch_id          String             @db.Uuid
   role_id            String             @db.Uuid
   username           String             @unique
+  employee_id        String?            @unique
   email              String             @unique
   password_hash      String
   first_name         String
@@ -116,6 +117,7 @@ model Student {
   branch_id              String              @db.Uuid
   user_id                String?             @unique @db.Uuid
   student_code           String              @unique
+  admission_number       String?             @unique
   first_name             String
   last_name              String
   date_of_birth          DateTime
@@ -204,6 +206,8 @@ model Teacher {
   salary_grade      String?
   is_active         Boolean             @default(true)
   employment_status String              @default("active")
+  total_leaves      Int                 @default(24)
+  used_leaves       Int                 @default(0)
   profile_photo     String?
   created_at        DateTime            @default(now())
   updated_at        DateTime            @updatedAt
@@ -324,17 +328,19 @@ model StudentEnrollment {
 model Attendance {
   id          String   @id @default(uuid()) @db.Uuid
   student_id  String   @db.Uuid
-  course_id   String   @db.Uuid
+  course_id   String?  @db.Uuid  // Made optional for general attendance
+  branch_id   String?  @db.Uuid  // Temporarily optional for migration
   date        DateTime
   status      String
   remarks     String?
   recorded_by String   @db.Uuid
   created_at  DateTime @default(now())
-  course      Course   @relation(fields: [course_id], references: [id])
+  course      Course?  @relation(fields: [course_id], references: [id])
   student     Student  @relation(fields: [student_id], references: [id], onDelete: Cascade)
 
-  @@unique([student_id, course_id, date])
+  @@unique([student_id, date])  // One attendance per student per day (simplified)
   @@index([student_id])
+  @@index([branch_id])
   @@map("attendance")
 }
 

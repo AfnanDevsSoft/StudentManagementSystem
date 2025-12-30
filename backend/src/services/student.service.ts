@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { prisma } from "../lib/db";
+import { EmployeeIdService } from "./employee-id.service";
 
 interface ApiResponse<T = any> {
   success: boolean;
@@ -34,6 +35,7 @@ class StudentService {
           { personal_email: { contains: search, mode: "insensitive" } },
           { personal_phone: { contains: search, mode: "insensitive" } },
           { student_code: { contains: search, mode: "insensitive" } },
+          { admission_number: { contains: search, mode: "insensitive" } },
           { cnic: { contains: search, mode: "insensitive" } },
         ];
       }
@@ -280,9 +282,20 @@ class StudentService {
         userId = newUser.id;
       }
 
+      // Auto-generate Admission Number
+      let finalAdmissionNumber = data.admission_number;
+      if (!finalAdmissionNumber) {
+        try {
+          finalAdmissionNumber = await EmployeeIdService.generateAdmissionNumber("", branch_id);
+        } catch (err) {
+          console.error("Failed to generate admission number:", err);
+        }
+      }
+
       // Create student
       const student = await prisma.student.create({
         data: {
+          admission_number: finalAdmissionNumber,
           first_name,
           last_name,
           student_code,
@@ -395,6 +408,7 @@ class StudentService {
           ...(personal_email !== undefined && { personal_email }),
           ...(admission_date && { admission_date: new Date(admission_date) }),
           ...(admission_status !== undefined && { admission_status }),
+          ...(data.admission_number && { admission_number: data.admission_number }),
         },
         include: {
           branch: true,

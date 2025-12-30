@@ -9,7 +9,9 @@ import { LoginPage } from './pages/auth/LoginPage';
 import { UnauthorizedPage } from './pages/error/UnauthorizedPage';
 
 // Dashboard
+// Dashboard
 import { DashboardPage } from './pages/dashboard/DashboardPage';
+import { AdminDashboardPage } from './pages/admin/AdminDashboardPage';
 
 // Core Modules
 import { BranchesPage } from './pages/branches/BranchesPage';
@@ -21,6 +23,7 @@ import { TeachersPage } from './pages/teachers/TeachersPage';
 import { CoursesPage } from './pages/courses/CoursesPage';
 import { AdmissionsPage } from './pages/admissions/AdmissionsPage';
 import { AttendancePage } from './pages/attendance/AttendancePage';
+import { HRTeacherAttendancePage } from './pages/attendance/HRTeacherAttendancePage';
 import { GradesPage } from './pages/grades/GradesPage';
 import { PayrollPage } from './pages/payroll/PayrollPage';
 import { FinancePage } from './pages/finance/FinancePage';
@@ -47,6 +50,7 @@ import { TeacherPayrollPage } from './pages/teacher/TeacherPayrollPage';
 import { TeacherAttendancePage } from './pages/teacher/TeacherAttendancePage';
 import { TeacherGradesPage } from './pages/teacher/TeacherGradesPage';
 import { TeacherLeavePage } from './pages/teacher/TeacherLeavePage';
+import { AdminLeaveRequestsPage } from './pages/admin/AdminLeaveRequestsPage';
 
 import { Toaster } from './components/ui/toaster';
 
@@ -72,6 +76,15 @@ function App() {
 
             {/* Protected Routes */}
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
+
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute allowedRoles={['superadmin', 'branchadmin']}>
+                  <AdminDashboardPage />
+                </ProtectedRoute>
+              }
+            />
 
             <Route
               path="/dashboard"
@@ -162,6 +175,24 @@ function App() {
               element={
                 <ProtectedRoute allowedRoles={['superadmin', 'branchadmin']}>
                   <AttendancePage />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/attendance/teachers"
+              element={
+                <ProtectedRoute allowedRoles={['superadmin', 'branchadmin']}>
+                  <HRTeacherAttendancePage />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/admin/leaves"
+              element={
+                <ProtectedRoute allowedRoles={['superadmin', 'branchadmin']}>
+                  <AdminLeaveRequestsPage />
                 </ProtectedRoute>
               }
             />

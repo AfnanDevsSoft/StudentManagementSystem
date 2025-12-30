@@ -54,7 +54,7 @@ api.interceptors.response.use(
             try {
                 const refreshToken = localStorage.getItem('refresh_token');
                 if (refreshToken) {
-                    const response = await axios.post(`${API_BASE_URL}/v1/auth/refresh`, {
+                    const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
                         refresh_token: refreshToken,
                     });
 
@@ -105,11 +105,11 @@ export const endpoints = {
         update: (id: string) => `/users/${id}`,
         delete: (id: string) => `/users/${id}`,
     },
-    // Roles - Backend uses /rbac/* but Users need legacy roles for creation
+    // Roles - Now using RBAC system consistently
     roles: {
-        list: '/users/roles', // Changed from /rbac/roles to fetch legacy compatible roles
+        list: '/rbac/roles',  // Changed from /users/roles to use RBAC system
         create: '/rbac/roles',
-        get: (id: string) => `/rbac/roles/${id}`,
+        get: (id: string) => `/rbac/roles/detail/${id}`,  // Fixed path for detail
         update: (id: string) => `/rbac/roles/${id}`,
         delete: (id: string) => `/rbac/roles/${id}`,
         permissions: '/rbac/permissions',

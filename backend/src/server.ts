@@ -8,7 +8,9 @@ dotenv.config({
 
 import app from "./app";
 import { PrismaClient } from "@prisma/client";
-console.log('--- SERVER RESTARTED WITH RBAC FIXES V2 ---');
+import { initializePermissions } from "./lib/init-permissions";
+
+console.log('--- SERVER RESTARTED WITH AUTO PERMISSION INITIALIZATION ---');
 
 const PORT = process.env.PORT || 3000;
 const prisma = new PrismaClient();
@@ -18,6 +20,9 @@ async function startServer() {
     // Test database connection
     await prisma.$connect();
     console.log("✓ Database connected successfully");
+
+    // Initialize permissions system (auto-creates if empty)
+    await initializePermissions();
 
     // Start server
     app.listen(PORT, () => {

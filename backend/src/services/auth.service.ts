@@ -30,6 +30,11 @@ export interface AuthResponse {
         id: string;
         name: string;
       };
+      branch?: {
+        id: string;
+        name: string;
+      };
+      permissions?: string[];
       studentId?: string | null;
       teacherId?: string | null;
     };
@@ -38,13 +43,14 @@ export interface AuthResponse {
 
 export class AuthService {
   /**
-   * Generate JWT token
+   * Generate JWT token with user ID and branch ID for stateless access
    */
   private static generateToken(
     userId: string,
+    branchId: string,
     expiresIn: string = JWT_EXPIRATION
   ): string {
-    return jwt.sign({ userId }, JWT_SECRET, { expiresIn } as SignOptions);
+    return jwt.sign({ userId, branchId }, JWT_SECRET, { expiresIn } as SignOptions);
   }
 
   /**
@@ -131,7 +137,7 @@ export class AuthService {
       }
 
       // Generate tokens
-      const access_token = this.generateToken(user.id);
+      const access_token = this.generateToken(user.id, user.branch_id);
       const refresh_token = this.generateRefreshToken(user.id);
 
       // Update last login
@@ -158,6 +164,22 @@ export class AuthService {
         entityId = teacher?.id || null;
       }
 
+      // Get RBAC permissions for the user (SuperAdmin gets all)
+      let permissions: string[] = [];
+      if (user.role.name === 'SuperAdmin') {
+        permissions = ['*']; // Special marker for all permissions
+      } else {
+        // Fetch actual RBAC permissions
+        const { RBACService } = require('./rbac.service');
+        permissions = await RBACService.getUserPermissions(user.id);
+      }
+
+      // Get branch data
+      const branch = await prisma.branch.findUnique({
+        where: { id: user.branch_id },
+        select: { id: true, name: true }
+      });
+
       return {
         success: true,
         message: "Login successful",
@@ -174,6 +196,8 @@ export class AuthService {
               id: user.role.id,
               name: user.role.name,
             },
+            branch: branch || undefined,
+            permissions,
             studentId: roleName === 'student' ? entityId : undefined,
             teacherId: roleName === 'teacher' ? entityId : undefined,
           },
@@ -225,7 +249,7 @@ export class AuthService {
       }
 
       // Generate new access token
-      const access_token = this.generateToken(user.id);
+      const access_token = this.generateToken(user.id, user.branch_id);
       const new_refresh_token = this.generateRefreshToken(user.id);
 
       return {

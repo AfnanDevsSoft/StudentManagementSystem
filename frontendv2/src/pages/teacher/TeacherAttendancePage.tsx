@@ -130,7 +130,8 @@ export const TeacherAttendancePage: React.FC = () => {
 
     const filteredStudents = students.filter((student: any) =>
         `${student.first_name} ${student.last_name} `.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        student.student_code?.toLowerCase().includes(searchQuery.toLowerCase())
+        student.student_code?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        student.admission_number?.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
     const stats = React.useMemo(() => {
@@ -217,7 +218,7 @@ export const TeacherAttendancePage: React.FC = () => {
                                 <div className="relative">
                                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                                     <Input
-                                        placeholder="Search by name or roll no..."
+                                        placeholder="Search by name or ID..."
                                         className="pl-8"
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
@@ -268,7 +269,7 @@ export const TeacherAttendancePage: React.FC = () => {
                                     <thead className="bg-muted/50">
                                         <tr>
                                             <th className="p-4 text-left font-medium">Student Name</th>
-                                            <th className="p-4 text-left font-medium hidden md:table-cell">Roll No</th>
+                                            <th className="p-4 text-left font-medium hidden md:table-cell">Student ID</th>
                                             <th className="p-4 text-center font-medium">Status</th>
                                         </tr>
                                     </thead>
@@ -279,7 +280,7 @@ export const TeacherAttendancePage: React.FC = () => {
                                                     <div className="font-medium">{student.first_name} {student.last_name}</div>
                                                 </td>
                                                 <td className="p-4 text-muted-foreground hidden md:table-cell">
-                                                    {student.student_code}
+                                                    {student.admission_number || student.student_code}
                                                 </td>
                                                 <td className="p-4">
                                                     <div className="flex justify-center gap-2">

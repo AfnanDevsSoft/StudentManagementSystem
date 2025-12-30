@@ -1,12 +1,17 @@
 import { api, endpoints } from '../lib/api';
 
+/**
+ * Student entity matching the Prisma schema field names.
+ * Note: Backend uses personal_email/personal_phone (snake_case)
+ */
 export interface Student {
     id: string;
     student_code: string;
+    admission_number?: string;
     first_name: string;
     last_name: string;
-    email?: string;
-    phone?: string;
+    personal_email?: string;  // Matches backend field
+    personal_phone?: string;  // Matches backend field
     date_of_birth: string;
     gender: string;
     blood_group?: string;
@@ -17,13 +22,20 @@ export interface Student {
     is_active: boolean;
     branch_id: string;
     user_id?: string;
+    // Joined relations
+    branch?: { id: string; name: string };
+    user?: { id: string; username: string };
 }
 
+/**
+ * DTO for creating a student.
+ * Uses snake_case to match backend expectations.
+ */
 export interface CreateStudentDto {
     first_name: string;
     last_name: string;
-    email?: string;
-    phone?: string;
+    personal_email?: string;  // Changed from 'email'
+    personal_phone?: string;  // Changed from 'phone'
     date_of_birth: string;
     gender: string;
     blood_group?: string;
@@ -92,8 +104,8 @@ export const studentService = {
         const backendData = {
             first_name: data.first_name,
             last_name: data.last_name,
-            personal_email: data.email || null,
-            personal_phone: data.phone || null,
+            personal_email: data.personal_email || null,
+            personal_phone: data.personal_phone || null,
             date_of_birth: data.date_of_birth,
             gender: data.gender,
             blood_group: data.blood_group || null,
@@ -117,8 +129,8 @@ export const studentService = {
 
         if (data.first_name) backendData.first_name = data.first_name;
         if (data.last_name) backendData.last_name = data.last_name;
-        if (data.email !== undefined) backendData.personal_email = data.email || null;
-        if (data.phone !== undefined) backendData.personal_phone = data.phone || null;
+        if (data.personal_email !== undefined) backendData.personal_email = data.personal_email || null;
+        if (data.personal_phone !== undefined) backendData.personal_phone = data.personal_phone || null;
         if (data.date_of_birth) backendData.date_of_birth = data.date_of_birth;
         if (data.gender) backendData.gender = data.gender;
         if (data.blood_group !== undefined) backendData.blood_group = data.blood_group || null;
@@ -150,6 +162,14 @@ export const studentService = {
      */
     async getAttendance(studentId: string) {
         const response = await api.get(endpoints.students.attendance(studentId));
+        return response.data;
+    },
+
+    /**
+     * Get attendance summary for a specific student
+     */
+    async getAttendanceSummary(studentId: string) {
+        const response = await api.get(`/attendance/summary/student/${studentId}`);
         return response.data;
     },
 

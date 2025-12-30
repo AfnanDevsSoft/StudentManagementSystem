@@ -2,7 +2,8 @@ import { prisma } from "../lib/db";
 
 export class AttendanceService {
     /**
-     * Mark attendance for a student
+     * Mark attendance for a student (course-independent)
+     * Now supports general daily attendance without requiring course enrollment
      */
     static async markAttendance(data: {
         student_id: string;
@@ -10,43 +11,26 @@ export class AttendanceService {
         date: string;
         status: string;
         remarks?: string;
-        recorded_by: string; // Made mandatory to match schema
-        course_id?: string;
+        recorded_by: string;
+        course_id?: string;  // Optional - for course-specific attendance
     }) {
         try {
             const { student_id, branch_id, date, status, remarks, recorded_by, course_id } = data;
 
-            let targetCourseId = course_id;
+            // Validate student exists
+            const student = await prisma.student.findUnique({
+                where: { id: student_id },
+            });
+            if (!student) throw new Error("Student not found");
 
-            // If course_id is missing, try to find the student's primary/first enrollment
-            if (!targetCourseId) {
-                const student = await prisma.student.findUnique({
-                    where: { id: student_id },
-                    include: {
-                        enrollments: {
-                            take: 1, // Just take the first one for now as default
-                            include: { course: true }
-                        }
-                    }
-                });
+            const attendanceDate = new Date(date);
 
-                if (!student) throw new Error("Student not found");
-
-                if (student.enrollments.length > 0) {
-                    targetCourseId = student.enrollments[0].course_id;
-                } else {
-                    // Fallback or error? For now, throw error as schema requires it.
-                    throw new Error("Student is not enrolled in any course. Cannot mark attendance.");
-                }
-            }
-
-            // Check if attendance already exists
+            // Check if attendance already exists for this student on this date
             const existingAttendance = await prisma.attendance.findUnique({
                 where: {
-                    student_id_course_id_date: {
+                    student_id_date: {
                         student_id,
-                        course_id: targetCourseId!,
-                        date: new Date(date),
+                        date: attendanceDate,
                     }
                 },
             });
@@ -58,7 +42,8 @@ export class AttendanceService {
                     data: {
                         status,
                         remarks,
-                        recorded_by, // Update recorded_by to current user
+                        recorded_by,
+                        course_id: course_id || null,  // Allow updating course association
                     },
                 });
                 return {
@@ -72,11 +57,12 @@ export class AttendanceService {
             const attendance = await prisma.attendance.create({
                 data: {
                     student_id,
-                    course_id: targetCourseId!, // Ensure we have it
-                    date: new Date(date),
+                    branch_id,
+                    date: attendanceDate,
                     status,
                     remarks,
                     recorded_by,
+                    course_id: course_id || null,  // Optional course association
                 },
             });
 
@@ -90,6 +76,117 @@ export class AttendanceService {
             return {
                 success: false,
                 message: error.message || "Failed to mark attendance",
+            };
+        }
+    }
+
+    /**
+     * Mark attendance for a teacher
+     */
+    static async markTeacherAttendance(data: {
+        teacher_id: string;
+        date: string;
+        status: string;
+        remarks?: string;
+        check_in?: string;
+        check_out?: string;
+    }) {
+        try {
+            const { teacher_id, date, status, remarks, check_in, check_out } = data;
+            const attendanceDate = new Date(date);
+
+            // Check if attendance already exists
+            const existingAttendance = await prisma.teacherAttendance.findUnique({
+                where: {
+                    teacher_id_date: {
+                        teacher_id,
+                        date: attendanceDate,
+                    }
+                },
+            });
+
+            // Handle Leave Logic
+            let leaveAdjustment = 0;
+            const isNewStatusLeave = status.toLowerCase() === 'leave';
+
+            if (existingAttendance) {
+                const isOldStatusLeave = existingAttendance.status.toLowerCase() === 'leave';
+
+                if (isOldStatusLeave && !isNewStatusLeave) {
+                    // Was leave, now present/absent -> Credit back a leave
+                    leaveAdjustment = -1;
+                } else if (!isOldStatusLeave && isNewStatusLeave) {
+                    // Was present/absent, now leave -> Deduct a leave
+                    leaveAdjustment = 1;
+                }
+
+                // Update existing
+                await prisma.teacherAttendance.update({
+                    where: { id: existingAttendance.id },
+                    data: {
+                        status,
+                        remarks,
+                        check_in: check_in ? new Date(check_in) : undefined,
+                        check_out: check_out ? new Date(check_out) : undefined,
+                    },
+                });
+            } else {
+                // New record
+                if (isNewStatusLeave) {
+                    leaveAdjustment = 1;
+                }
+
+                await prisma.teacherAttendance.create({
+                    data: {
+                        teacher_id,
+                        date: attendanceDate,
+                        status,
+                        remarks,
+                        check_in: check_in ? new Date(check_in) : null,
+                        check_out: check_out ? new Date(check_out) : null,
+                    },
+                });
+            }
+
+            // Apply leave adjustment if needed
+            if (leaveAdjustment !== 0) {
+                // We use increment with positive/negative values
+                // If leaveAdjustment is 1 (add to used_leaves), we increment
+                // If leaveAdjustment is -1 (subtract from used_leaves), we increment by -1
+                await prisma.teacher.update({
+                    where: { id: teacher_id },
+                    data: {
+                        used_leaves: {
+                            increment: leaveAdjustment
+                        }
+                    }
+                });
+            }
+
+            // Get updated teacher stats
+            const teacher = await prisma.teacher.findUnique({
+                where: { id: teacher_id },
+                select: { total_leaves: true, used_leaves: true }
+            });
+
+            return {
+                success: true,
+                message: "Teacher attendance marked successfully",
+                data: {
+                    teacher_id,
+                    status,
+                    leaves_info: teacher ? {
+                        total: teacher.total_leaves,
+                        used: teacher.used_leaves,
+                        remaining: teacher.total_leaves - teacher.used_leaves
+                    } : null
+                }
+            };
+        } catch (error: any) {
+            console.error("markTeacherAttendance error:", error);
+            return {
+                success: false,
+                message: error.message || "Failed to mark teacher attendance",
             };
         }
     }
@@ -307,8 +404,6 @@ export class AttendanceService {
             const workingDaysConfig = await prisma.workingDaysConfig.findFirst({
                 where: {
                     branch_id: branchId || student.branch_id,
-                    academic_year_id: academicYearId || null,
-                    grade_level_id: student.current_grade_level_id || null,
                     is_active: true,
                 },
                 orderBy: { created_at: "desc" },
@@ -356,7 +451,7 @@ export class AttendanceService {
                     entity_type_entity_id_academic_year_id: {
                         entity_type: "student",
                         entity_id: studentId,
-                        academic_year_id: academicYearId || null,
+                        academic_year_id: academicYearId || "",
                     },
                 },
                 create: {
@@ -419,7 +514,6 @@ export class AttendanceService {
             const workingDaysConfig = await prisma.workingDaysConfig.findFirst({
                 where: {
                     branch_id: branchId || teacher.branch_id,
-                    academic_year_id: academicYearId || null,
                     is_active: true,
                 },
                 orderBy: { created_at: "desc" },
@@ -440,7 +534,7 @@ export class AttendanceService {
                     entity_type_entity_id_academic_year_id: {
                         entity_type: "teacher",
                         entity_id: teacherId,
-                        academic_year_id: academicYearId || null,
+                        academic_year_id: academicYearId || "",
                     },
                 },
                 create: {
@@ -462,10 +556,23 @@ export class AttendanceService {
                 },
             });
 
+            // Re-fetch teacher to get latest leaves info (as it might have changed)
+            const teacherInfo = await prisma.teacher.findUnique({
+                where: { id: teacherId },
+                select: { total_leaves: true, used_leaves: true }
+            });
+
             return {
                 success: true,
-                data: summary,
-                message: "Teacher attendance tracking not fully implemented yet",
+                data: {
+                    ...summary,
+                    leaves_info: {
+                        total_leaves: teacherInfo?.total_leaves || 24,
+                        used_leaves: teacherInfo?.used_leaves || 0,
+                        leaves_remaining: (teacherInfo?.total_leaves || 24) - (teacherInfo?.used_leaves || 0)
+                    }
+                },
+                message: "Teacher attendance summary retrieved"
             };
         } catch (error: any) {
             return {
