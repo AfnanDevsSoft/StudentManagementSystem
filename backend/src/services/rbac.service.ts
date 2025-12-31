@@ -4,24 +4,56 @@ export class RBACService {
   // ============= Role Management =============
 
   static async defineRole(
-    branchId: string,
+    branchId: string | null,
     roleName: string,
-    permissions: string[],
+    permissionModules: string[],  // Module names like 'students', 'teachers'
     description?: string
   ) {
     try {
+      // Look up all permissions for the given module names (resources)
+      // e.g., 'students' -> ['students:read', 'students:create', 'students:update', 'students:delete']
+      let permissionIds: string[] = [];
+
+      if (permissionModules.length > 0) {
+        const permissions = await prisma.permission.findMany({
+          where: {
+            resource: { in: permissionModules }
+          },
+          select: { id: true }
+        });
+        permissionIds = permissions.map(p => p.id);
+      }
+
+      // Create RBAC role
       const role = await prisma.rBACRole.create({
         data: {
-          branch_id: branchId,
+          branch_id: branchId || undefined,  // null = global role
           role_name: roleName,
           description: description || "",
           is_system: false,
-          permissions: {
-            connect: permissions.map((id) => ({ id })),
-          },
+          permissions: permissionIds.length > 0 ? {
+            connect: permissionIds.map((id) => ({ id })),
+          } : undefined,
         },
         include: { permissions: true },
       });
+
+      // Also create legacy Role entry (for User assignment - FK constraint)
+      // This ensures roles appear in User dropdown
+      try {
+        await prisma.role.create({
+          data: {
+            name: roleName,
+            description: description || "",
+            is_system: false,
+            branch_id: branchId || undefined,
+          },
+        });
+      } catch (legacyError: any) {
+        // Ignore if legacy role already exists (unique constraint)
+        console.log("Legacy role may already exist:", legacyError.message);
+      }
+
       return {
         success: true,
         message: "Role created successfully",
@@ -78,15 +110,19 @@ export class RBACService {
 
   static async getRoles(branchId?: string, limit = 20, offset = 0) {
     try {
-      const where = branchId ? { branch_id: branchId } : {};
+      // Always include global roles (branch_id is null) along with branch-specific roles
+      const where = branchId
+        ? { OR: [{ branch_id: branchId }, { branch_id: { equals: null } }] }
+        : {};
       const roles = await prisma.rBACRole.findMany({
-        where,
+        where: where as any,  // Type assertion for complex OR with null
         include: { permissions: true },
         take: limit,
         skip: offset,
+        orderBy: { role_name: 'asc' },
       });
       const total = await prisma.rBACRole.count({
-        where,
+        where: where as any,
       });
       return { success: true, data: roles, total, limit, offset };
     } catch (error: any) {

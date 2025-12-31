@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MainLayout } from '../../components/layout/MainLayout';
 import { Card } from '../../components/ui/card';
@@ -8,8 +8,6 @@ import { Label } from '../../components/ui/label';
 import { Switch } from '../../components/ui/switch';
 import { useToast } from '../../hooks/use-toast';
 import { roleService } from '../../services/role.service';
-import { branchService } from '../../services/branch.service';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
 import { ArrowLeft, Save } from 'lucide-react';
 
 const availablePermissions = [
@@ -28,38 +26,12 @@ export const CreateRolePage: React.FC = () => {
     const navigate = useNavigate();
     const { toast } = useToast();
     const [isLoading, setIsLoading] = useState(false);
-    const [branches, setBranches] = useState<any[]>([]);
 
     const [formData, setFormData] = useState({
         roleName: '',
         description: '',
-        branchId: '',
         permissions: [] as string[]
     });
-
-    useEffect(() => {
-        const fetchBranches = async () => {
-            try {
-                const response = await branchService.getAll();
-                const fetchedBranches = (response as any)?.data || [];
-                setBranches(fetchedBranches);
-
-                // Default to current branch from localStorage if exists
-                const storedBranch = localStorage.getItem('current_branch');
-                const currentBranchId = storedBranch ? JSON.parse(storedBranch).id : undefined;
-
-                if (currentBranchId) {
-                    setFormData(prev => ({ ...prev, branchId: currentBranchId }));
-                } else if (fetchedBranches.length > 0) {
-                    // Default to first branch if no context (e.g. SuperAdmin global view)
-                    setFormData(prev => ({ ...prev, branchId: fetchedBranches[0].id }));
-                }
-            } catch (error) {
-                console.error("Failed to load branches");
-            }
-        };
-        fetchBranches();
-    }, []);
 
     const handlePermissionToggle = (permissionId: string) => {
         setFormData(prev => {
@@ -75,10 +47,10 @@ export const CreateRolePage: React.FC = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!formData.roleName || !formData.branchId) {
+        if (!formData.roleName) {
             toast({
                 title: "Validation Error",
-                description: "Role Name and Branch are required",
+                description: "Role Name is required",
                 variant: "destructive"
             });
             return;
@@ -87,12 +59,12 @@ export const CreateRolePage: React.FC = () => {
         setIsLoading(true);
 
         try {
-            // Using simple DTO structure
+            // Roles are global (no branchId)
             await roleService.create({
                 roleName: formData.roleName,
                 description: formData.description,
                 permissions: formData.permissions,
-                branchId: formData.branchId
+                branchId: ''  // Empty for global roles
             });
 
             toast({
@@ -137,25 +109,6 @@ export const CreateRolePage: React.FC = () => {
                                     value={formData.roleName}
                                     onChange={(e) => setFormData({ ...formData, roleName: e.target.value })}
                                 />
-                            </div>
-
-                            <div className="grid gap-2">
-                                <Label htmlFor="branch">Branch *</Label>
-                                <Select
-                                    value={formData.branchId}
-                                    onValueChange={(value) => setFormData({ ...formData, branchId: value })}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select Branch" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {branches.map((branch: any) => (
-                                            <SelectItem key={branch.id} value={branch.id}>
-                                                {branch.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
                             </div>
 
                             <div className="grid gap-2">

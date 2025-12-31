@@ -31,8 +31,8 @@ export interface CreateCourseDto {
 }
 
 export const courseService = {
-    async getAll() {
-        const response = await api.get(endpoints.courses.list);
+    async getAll(params?: { page?: number; limit?: number; search?: string }) {
+        const response = await api.get(endpoints.courses.list, { params });
         return response.data;
     },
 

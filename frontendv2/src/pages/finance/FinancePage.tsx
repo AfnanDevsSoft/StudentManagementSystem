@@ -26,15 +26,36 @@ export const FinancePage: React.FC = () => {
     const [editingItem, setEditingItem] = useState<any>(null);
     const [deleteId, setDeleteId] = useState<string | null>(null);
 
-    // Fetch data
-    const { data: feesData } = useQuery({ queryKey: ['fees'], queryFn: financeService.fees.getAll });
-    const { data: paymentsData } = useQuery({ queryKey: ['payments'], queryFn: financeService.payments.getAll });
-    const { data: scholarshipsData } = useQuery({ queryKey: ['scholarships'], queryFn: financeService.scholarships.getAll });
-    const { data: studentsData } = useQuery({ queryKey: ['students'], queryFn: studentService.getAll });
+    // Pagination state per tab
+    const [feesPage, setFeesPage] = useState(1);
+    const [paymentsPage, setPaymentsPage] = useState(1);
+    const [scholarshipsPage, setScholarshipsPage] = useState(1);
+    const limit = 20;
+
+    // Fetch data with pagination
+    const { data: feesData } = useQuery({
+        queryKey: ['fees', feesPage, limit],
+        queryFn: () => financeService.fees.getAll({ page: feesPage, limit })
+    });
+    const { data: paymentsData } = useQuery({
+        queryKey: ['payments', paymentsPage, limit],
+        queryFn: () => financeService.payments.getAll({ page: paymentsPage, limit })
+    });
+    const { data: scholarshipsData } = useQuery({
+        queryKey: ['scholarships', scholarshipsPage, limit],
+        queryFn: () => financeService.scholarships.getAll({ page: scholarshipsPage, limit })
+    });
+    const { data: studentsData } = useQuery({
+        queryKey: ['students-all'],
+        queryFn: () => studentService.getAll({ limit: 1000 })
+    });
 
     const fees = feesData?.data || [];
+    const feesPagination = feesData?.pagination || { total: fees.length, pages: 1 };
     const payments = paymentsData?.data || [];
+    const paymentsPagination = paymentsData?.pagination || { total: payments.length, pages: 1 };
     const scholarships = scholarshipsData?.data || [];
+    const scholarshipsPagination = scholarshipsData?.pagination || { total: scholarships.length, pages: 1 };
     const students = studentsData?.data || [];
 
     // Forms
@@ -299,6 +320,64 @@ export const FinancePage: React.FC = () => {
                                 </tbody>
                             </table>
                         )}
+
+                        {/* Pagination Controls */}
+                        <div className="flex items-center justify-between px-4 py-4 border-t">
+                            <div className="text-sm text-muted-foreground">
+                                {activeTab === 'fees' && (
+                                    <>Showing {((feesPage - 1) * limit) + 1} to {Math.min(feesPage * limit, feesPagination.total)} of {feesPagination.total} fees</>
+                                )}
+                                {activeTab === 'payments' && (
+                                    <>Showing {((paymentsPage - 1) * limit) + 1} to {Math.min(paymentsPage * limit, paymentsPagination.total)} of {paymentsPagination.total} payments</>
+                                )}
+                                {activeTab === 'scholarships' && (
+                                    <>Showing {((scholarshipsPage - 1) * limit) + 1} to {Math.min(scholarshipsPage * limit, scholarshipsPagination.total)} of {scholarshipsPagination.total} scholarships</>
+                                )}
+                            </div>
+                            <div className="flex gap-2">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                        if (activeTab === 'fees') setFeesPage(p => Math.max(1, p - 1));
+                                        else if (activeTab === 'payments') setPaymentsPage(p => Math.max(1, p - 1));
+                                        else setScholarshipsPage(p => Math.max(1, p - 1));
+                                    }}
+                                    disabled={
+                                        (activeTab === 'fees' && feesPage === 1) ||
+                                        (activeTab === 'payments' && paymentsPage === 1) ||
+                                        (activeTab === 'scholarships' && scholarshipsPage === 1)
+                                    }
+                                >
+                                    Previous
+                                </Button>
+                                <span className="flex items-center px-3 text-sm">
+                                    Page {
+                                        activeTab === 'fees' ? feesPage :
+                                            activeTab === 'payments' ? paymentsPage : scholarshipsPage
+                                    } of {
+                                        activeTab === 'fees' ? feesPagination.pages :
+                                            activeTab === 'payments' ? paymentsPagination.pages : scholarshipsPagination.pages
+                                    }
+                                </span>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                        if (activeTab === 'fees') setFeesPage(p => p + 1);
+                                        else if (activeTab === 'payments') setPaymentsPage(p => p + 1);
+                                        else setScholarshipsPage(p => p + 1);
+                                    }}
+                                    disabled={
+                                        (activeTab === 'fees' && feesPage >= feesPagination.pages) ||
+                                        (activeTab === 'payments' && paymentsPage >= paymentsPagination.pages) ||
+                                        (activeTab === 'scholarships' && scholarshipsPage >= scholarshipsPagination.pages)
+                                    }
+                                >
+                                    Next
+                                </Button>
+                            </div>
+                        </div>
                     </CardContent>
                 </Card>
 

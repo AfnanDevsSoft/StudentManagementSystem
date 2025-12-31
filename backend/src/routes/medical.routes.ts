@@ -5,6 +5,63 @@ import { requirePermission } from "../middleware/permission.middleware";
 
 const router: Router = express.Router();
 
+// ==================== RECORDS CRUD (for HealthPage) ====================
+
+// GET /records - List all health records with pagination
+router.get(
+    "/records",
+    authMiddleware,
+    requirePermission("health:read"),
+    async (req: Request, res: Response): Promise<void> => {
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 20;
+        const result = await HealthService.getAllRecords(page, limit, (req as any).user);
+
+        // Return with pagination format
+        res.status(result.success ? 200 : 500).json({
+            success: result.success,
+            message: result.message,
+            data: result.data,
+            pagination: (result as any).pagination,
+        });
+    }
+);
+
+// PUT /records/:id - Update a health record by ID
+router.put(
+    "/records/:id",
+    authMiddleware,
+    requirePermission("health:update"),
+    async (req: Request, res: Response): Promise<void> => {
+        const { id } = req.params;
+        const result = await HealthService.updateRecordById(id, req.body);
+        sendResponse(
+            res,
+            result.success ? 200 : 400,
+            result.success,
+            result.message,
+            result.data
+        );
+    }
+);
+
+// DELETE /records/:id - Delete a health record by ID
+router.delete(
+    "/records/:id",
+    authMiddleware,
+    requirePermission("health:delete"),
+    async (req: Request, res: Response): Promise<void> => {
+        const { id } = req.params;
+        const result = await HealthService.deleteRecordById(id);
+        sendResponse(
+            res,
+            result.success ? 200 : 400,
+            result.success,
+            result.message
+        );
+    }
+);
+
 // ==================== HEALTH RECORDS ====================
 
 // GET health record for a student

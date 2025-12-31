@@ -749,8 +749,8 @@ model Permission {
 
 model RBACRole {
   id          String       @id @default(uuid()) @db.Uuid
-  branch_id   String       @db.Uuid
-  role_name   String
+  branch_id   String?      @db.Uuid  // Optional - null means global role
+  role_name   String       @unique   // Role names must be unique globally
   description String?
   is_system   Boolean      @default(false)
   created_at  DateTime     @default(now())
@@ -758,7 +758,6 @@ model RBACRole {
   user_roles  UserRole[]
   permissions Permission[] @relation("PermissionToRBACRole")
 
-  @@unique([branch_id, role_name])
   @@index([branch_id])
   @@map("rbac_roles")
 }

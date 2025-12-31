@@ -4,10 +4,144 @@ interface ApiResponse<T = any> {
     success: boolean;
     message: string;
     data?: T;
+    pagination?: {
+        total: number;
+        pages: number;
+        page: number;
+        limit: number;
+    };
 }
 
 class HealthService {
     // ==================== HEALTH RECORDS ====================
+
+    /**
+     * Get all health records with pagination
+     */
+    static async getAllRecords(page: number = 1, limit: number = 20, userContext?: any): Promise<ApiResponse> {
+        try {
+            const skip = (page - 1) * limit;
+            const where: any = {};
+
+            // Data Scoping
+            if (userContext && userContext.role?.name !== 'SuperAdmin') {
+                where.student = { branch_id: userContext.branch_id };
+            }
+
+            const [records, total] = await Promise.all([
+                prisma.healthRecord.findMany({
+                    where,
+                    skip,
+                    take: limit,
+                    include: {
+                        student: {
+                            select: {
+                                id: true,
+                                first_name: true,
+                                last_name: true,
+                                student_code: true,
+                            },
+                        },
+                        medical_checkups: {
+                            orderBy: { checkup_date: 'desc' },
+                            take: 1,
+                        },
+                    },
+                    orderBy: { created_at: 'desc' },
+                }),
+                prisma.healthRecord.count({ where }),
+            ]);
+
+            // Transform records to match frontend HealthRecord interface
+            const transformedRecords = records.map((r: any) => ({
+                ...r,
+                last_checkup_date: r.medical_checkups?.[0]?.checkup_date || null,
+            }));
+
+            return {
+                success: true,
+                message: "Health records fetched successfully",
+                data: transformedRecords,
+                pagination: {
+                    total,
+                    pages: Math.ceil(total / limit),
+                    page,
+                    limit,
+                },
+            };
+        } catch (error: any) {
+            return {
+                success: false,
+                message: error.message || "Failed to fetch health records",
+            };
+        }
+    }
+
+    /**
+     * Update health record by ID
+     */
+    static async updateRecordById(id: string, data: any): Promise<ApiResponse> {
+        try {
+            const record = await prisma.healthRecord.update({
+                where: { id },
+                data: {
+                    blood_group: data.blood_group,
+                    height: data.height,
+                    weight: data.weight,
+                    allergies: data.allergies,
+                    chronic_conditions: data.chronic_conditions || data.medical_history,
+                    medications: data.medications,
+                    emergency_contact: data.emergency_contact,
+                    emergency_phone: data.emergency_phone,
+                    doctor_name: data.doctor_name,
+                    doctor_phone: data.doctor_phone,
+                    insurance_provider: data.insurance_provider,
+                    insurance_number: data.insurance_number,
+                    notes: data.notes,
+                },
+                include: {
+                    student: {
+                        select: {
+                            first_name: true,
+                            last_name: true,
+                        },
+                    },
+                },
+            });
+
+            return {
+                success: true,
+                message: "Health record updated successfully",
+                data: record,
+            };
+        } catch (error: any) {
+            return {
+                success: false,
+                message: error.message || "Failed to update health record",
+            };
+        }
+    }
+
+    /**
+     * Delete health record by ID
+     */
+    static async deleteRecordById(id: string): Promise<ApiResponse> {
+        try {
+            await prisma.healthRecord.delete({
+                where: { id },
+            });
+
+            return {
+                success: true,
+                message: "Health record deleted successfully",
+            };
+        } catch (error: any) {
+            return {
+                success: false,
+                message: error.message || "Failed to delete health record",
+            };
+        }
+    }
 
     /**
      * Get health record for a student

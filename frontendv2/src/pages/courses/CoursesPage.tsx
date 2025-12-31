@@ -31,17 +31,22 @@ export const CoursesPage: React.FC = () => {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingCourse, setEditingCourse] = useState<Course | null>(null);
     const [deleteId, setDeleteId] = useState<string | null>(null);
+    const [page, setPage] = useState(1);
+    const limit = 12; // 12 items per page for 3-column grid
 
-    // Fetch courses
+    // Fetch courses with pagination
     const { data: coursesData, isLoading: isLoadingCourses } = useQuery({
-        queryKey: ['courses'],
-        queryFn: courseService.getAll,
+        queryKey: ['courses', page, limit],
+        queryFn: () => courseService.getAll({ page, limit }),
     });
 
-    // Fetch teachers for dropdown
+    const courses = coursesData?.data || [];
+    const pagination = coursesData?.pagination || { total: 0, pages: 1 };
+
+    // Fetch teachers for dropdown (all teachers, not paginated)
     const { data: teachersData } = useQuery({
-        queryKey: ['teachers'],
-        queryFn: teacherService.getAll,
+        queryKey: ['teachers-all'],
+        queryFn: () => teacherService.getAll({ limit: 1000 }),
     });
 
     // Fetch branches for dropdown
@@ -68,7 +73,6 @@ export const CoursesPage: React.FC = () => {
         queryFn: subjectService.getAll,
     });
 
-    const courses = coursesData?.data || [];
     const teachers = teachersData?.data || [];
     const branches = branchesData?.data || [];
     const academicYears = academicYearsData?.data || [];
@@ -345,6 +349,34 @@ export const CoursesPage: React.FC = () => {
                             </p>
                         </div>
                     )}
+                </div>
+
+                {/* Pagination Controls */}
+                <div className="flex items-center justify-between">
+                    <div className="text-sm text-muted-foreground">
+                        Showing {((page - 1) * limit) + 1} to {Math.min(page * limit, pagination.total || courses.length)} of {pagination.total || courses.length} courses
+                    </div>
+                    <div className="flex gap-2">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setPage(p => Math.max(1, p - 1))}
+                            disabled={page === 1}
+                        >
+                            Previous
+                        </Button>
+                        <span className="flex items-center px-3 text-sm">
+                            Page {page} of {pagination.pages || 1}
+                        </span>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setPage(p => p + 1)}
+                            disabled={page >= (pagination.pages || 1)}
+                        >
+                            Next
+                        </Button>
+                    </div>
                 </div>
 
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>

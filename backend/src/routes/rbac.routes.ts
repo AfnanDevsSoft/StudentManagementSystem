@@ -59,7 +59,7 @@ router.get(
 
 /**
  * POST /api/v1/rbac/roles
- * Create new role
+ * Create new role (branchId optional for global roles)
  */
 router.post(
   "/roles",
@@ -67,13 +67,13 @@ router.post(
   async (req: Request, res: Response): Promise<void> => {
     const { branchId, roleName, permissions, description } = req.body;
 
-    if (!branchId || !roleName) {
-      sendResponse(res, 400, false, "Branch ID and role name required");
+    if (!roleName) {
+      sendResponse(res, 400, false, "Role name is required");
       return;
     }
 
     const result = await RBACService.defineRole(
-      branchId,
+      branchId || null,  // null for global roles
       roleName,
       permissions || [],
       description

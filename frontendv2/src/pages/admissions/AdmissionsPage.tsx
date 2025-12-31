@@ -26,14 +26,17 @@ export const AdmissionsPage: React.FC = () => {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingAdmission, setEditingAdmission] = useState<Admission | null>(null);
     const [deleteId, setDeleteId] = useState<string | null>(null);
+    const [page, setPage] = useState(1);
+    const limit = 12;
 
-    // Fetch admissions
+    // Fetch admissions with pagination
     const { data: admissionsData, isLoading } = useQuery({
-        queryKey: ['admissions'],
-        queryFn: admissionService.getAll,
+        queryKey: ['admissions', page, limit],
+        queryFn: () => admissionService.getAll({ page, limit }),
     });
 
     const admissions = admissionsData?.data || [];
+    const pagination = admissionsData?.pagination || { total: 0, pages: 1 };
 
     const { data: branchesData } = useQuery({
         queryKey: ['branches'],
@@ -344,6 +347,34 @@ export const AdmissionsPage: React.FC = () => {
                             </p>
                         </div>
                     )}
+                </div>
+
+                {/* Pagination Controls */}
+                <div className="flex items-center justify-between">
+                    <div className="text-sm text-muted-foreground">
+                        Showing {((page - 1) * limit) + 1} to {Math.min(page * limit, pagination.total || admissions.length)} of {pagination.total || admissions.length} applications
+                    </div>
+                    <div className="flex gap-2">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setPage(p => Math.max(1, p - 1))}
+                            disabled={page === 1}
+                        >
+                            Previous
+                        </Button>
+                        <span className="flex items-center px-3 text-sm">
+                            Page {page} of {pagination.pages || 1}
+                        </span>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setPage(p => p + 1)}
+                            disabled={page >= (pagination.pages || 1)}
+                        >
+                            Next
+                        </Button>
+                    </div>
                 </div>
 
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>

@@ -41,8 +41,8 @@ export interface CreateTeacherDto {
 }
 
 export const teacherService = {
-    async getAll() {
-        const response = await api.get(endpoints.teachers.list);
+    async getAll(params?: { page?: number; limit?: number; search?: string }) {
+        const response = await api.get(endpoints.teachers.list, { params });
         return response.data;
     },
 

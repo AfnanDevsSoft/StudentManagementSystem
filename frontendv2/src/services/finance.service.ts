@@ -84,8 +84,8 @@ export interface CreateScholarshipDto {
 export const financeService = {
     // Backwards-compatible 'fees' alias for feeStructures
     fees: {
-        async getAll() {
-            const response = await api.get(endpoints.finance.structures);
+        async getAll(params?: { page?: number; limit?: number }) {
+            const response = await api.get(endpoints.finance.structures, { params });
             return response.data;
         },
         async create(data: CreateFeeDto) {
@@ -124,8 +124,8 @@ export const financeService = {
 
     // Payments with full CRUD for backwards compatibility
     payments: {
-        async getAll() {
-            const response = await api.get(endpoints.finance.records);
+        async getAll(params?: { page?: number; limit?: number }) {
+            const response = await api.get(endpoints.finance.records, { params });
             return response.data;
         },
         async process(data: CreatePaymentDto) {
@@ -148,10 +148,10 @@ export const financeService = {
 
     // Scholarships (placeholder - backend may not have this)
     scholarships: {
-        async getAll() {
+        async getAll(params?: { page?: number; limit?: number }) {
             // Return empty array if no scholarships endpoint exists
             try {
-                const response = await api.get('/scholarships');
+                const response = await api.get('/scholarships', { params });
                 return response.data;
             } catch {
                 return { data: [] };

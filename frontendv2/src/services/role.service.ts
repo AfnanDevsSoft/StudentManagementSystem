@@ -24,9 +24,15 @@ export interface UpdateRoleDTO {
 }
 
 export const roleService = {
+    // RBAC roles - for Roles & Permissions page
     getAll: async () => {
-        // Currently fetches system roles
         const response = await api.get(endpoints.roles.list);
+        return response.data;
+    },
+
+    // Legacy roles - for User assignment (FK constraint requires legacy Role IDs)
+    getLegacyRoles: async () => {
+        const response = await api.get('/users/roles');
         return response.data;
     },
 

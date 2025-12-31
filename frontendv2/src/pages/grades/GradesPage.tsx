@@ -27,26 +27,29 @@ export const GradesPage: React.FC = () => {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingGrade, setEditingGrade] = useState<Grade | null>(null);
     const [deleteId, setDeleteId] = useState<string | null>(null);
+    const [page, setPage] = useState(1);
+    const limit = 20;
 
-    // Fetch grades
+    // Fetch grades with pagination
     const { data: gradesData, isLoading: isLoadingGrades } = useQuery({
-        queryKey: ['grades'],
-        queryFn: gradeService.getAll,
+        queryKey: ['grades', page, limit],
+        queryFn: () => gradeService.getAll({ page, limit }),
     });
 
-    // Fetch students
+    // Fetch students for dropdown (all students)
     const { data: studentsData } = useQuery({
-        queryKey: ['students'],
-        queryFn: studentService.getAll,
+        queryKey: ['students-all'],
+        queryFn: () => studentService.getAll({ limit: 1000 }),
     });
 
-    // Fetch courses
+    // Fetch courses for dropdown (all courses)
     const { data: coursesData } = useQuery({
-        queryKey: ['courses'],
-        queryFn: courseService.getAll,
+        queryKey: ['courses-all'],
+        queryFn: () => courseService.getAll({ limit: 1000 }),
     });
 
     const grades = gradesData?.data || [];
+    const pagination = gradesData?.pagination || { total: 0, pages: 1 };
     const students = studentsData?.data || [];
     const courses = coursesData?.data || [];
 
@@ -344,6 +347,33 @@ export const GradesPage: React.FC = () => {
                                     </p>
                                 </div>
                             )}
+                        </div>
+                        {/* Pagination Controls */}
+                        <div className="flex items-center justify-between px-4 py-4 border-t">
+                            <div className="text-sm text-muted-foreground">
+                                Showing {((page - 1) * limit) + 1} to {Math.min(page * limit, pagination.total || grades.length)} of {pagination.total || grades.length} grades
+                            </div>
+                            <div className="flex gap-2">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                                    disabled={page === 1}
+                                >
+                                    Previous
+                                </Button>
+                                <span className="flex items-center px-3 text-sm">
+                                    Page {page} of {pagination.pages || 1}
+                                </span>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setPage(p => p + 1)}
+                                    disabled={page >= (pagination.pages || 1)}
+                                >
+                                    Next
+                                </Button>
+                            </div>
                         </div>
                     </CardContent>
                 </Card>

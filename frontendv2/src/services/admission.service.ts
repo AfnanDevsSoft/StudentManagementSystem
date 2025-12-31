@@ -39,8 +39,8 @@ export interface CreateAdmissionDto {
 }
 
 export const admissionService = {
-    async getAll() {
-        const response = await api.get(endpoints.admissions.list);
+    async getAll(params?: { page?: number; limit?: number; search?: string }) {
+        const response = await api.get(endpoints.admissions.list, { params });
         return response.data;
     },
 

@@ -38,6 +38,7 @@ import gradeLevelRoutes from "./routes/grade-levels.routes";
 import subjectRoutes from "./routes/subjects.routes";
 import assignmentsRoutes from "./routes/assignments.routes";
 import workingDaysRoutes from "./routes/workingDays.routes";
+import scholarshipRoutes from "./routes/scholarship.routes";
 import { errorHandler } from "./middleware/error.middleware";
 
 const app: Express = express();
@@ -118,6 +119,9 @@ apiV1.use("/admission", admissionRoutes);
 
 // Phase 1 Routes - Fee Management
 apiV1.use("/fees", feeRoutes);
+
+// Scholarship Routes
+apiV1.use("/scholarships", scholarshipRoutes);
 
 // Phase 1 Routes - Notification Management
 apiV1.use("/notifications", notificationRoutes);

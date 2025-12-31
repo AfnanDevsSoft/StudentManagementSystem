@@ -56,9 +56,9 @@ export interface BulkGradeDto {
 }
 
 export const gradeService = {
-    // Backwards-compatible getAll - fetches all grades
-    async getAll() {
-        const response = await api.get('/grades');
+    // Backwards-compatible getAll - fetches grades with pagination
+    async getAll(params?: { page?: number; limit?: number }) {
+        const response = await api.get('/grades', { params });
         return response.data;
     },
 

@@ -43,8 +43,8 @@ export interface CreatePayrollDto {
 }
 
 export const payrollService = {
-    async getAll() {
-        const response = await api.get(endpoints.payroll.list);
+    async getAll(params?: { page?: number; limit?: number }) {
+        const response = await api.get(endpoints.payroll.list, { params });
         return response.data;
     },
 

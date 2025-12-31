@@ -41,10 +41,10 @@ export const UsersPage: React.FC = () => {
         queryFn: branchService.getAll,
     });
 
-    // Fetch roles
+    // Fetch roles (legacy roles for user assignment - FK constraint requires legacy Role IDs)
     const { data: rolesData } = useQuery({
-        queryKey: ['roles'],
-        queryFn: roleService.getAll,
+        queryKey: ['legacy-roles'],
+        queryFn: roleService.getLegacyRoles,
     });
 
     const users = usersData?.data || [];
@@ -184,8 +184,8 @@ export const UsersPage: React.FC = () => {
     const stats = {
         total: users.length,
         active: users.filter((u: User) => u.is_active).length,
-        admins: users.filter((u: User) => u.role?.name === 'Admin' || u.role?.name === 'Super Admin').length,
-        staff: users.filter((u: User) => u.role?.name !== 'Admin' && u.role?.name !== 'Super Admin').length,
+        admins: users.filter((u: User) => u.role?.name === 'Admin' || u.role?.name === 'Super Admin' || u.role?.name === 'SuperAdmin').length,
+        staff: users.filter((u: User) => u.role?.name !== 'Admin' && u.role?.name !== 'Super Admin' && u.role?.name !== 'SuperAdmin').length,
     };
 
     if (isLoadingUsers) {
@@ -481,7 +481,7 @@ export const UsersPage: React.FC = () => {
                                         <SelectContent>
                                             {roles.map((role: any) => (
                                                 <SelectItem key={role.id} value={role.id}>
-                                                    {role.name}
+                                                    {role.role_name || role.name}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>

@@ -25,14 +25,17 @@ export const StudentsPage: React.FC = () => {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingStudent, setEditingStudent] = useState<Student | null>(null);
     const [deleteId, setDeleteId] = useState<string | null>(null);
+    const [page, setPage] = useState(1);
+    const limit = 20;
 
-    // Fetch students
+    // Fetch students with pagination
     const { data: studentsData, isLoading } = useQuery({
-        queryKey: ['students'],
-        queryFn: () => studentService.getAll(),
+        queryKey: ['students', page, limit],
+        queryFn: () => studentService.getAll({ page, limit }),
     });
 
     const students = (studentsData as any)?.data || [];
+    const pagination = (studentsData as any)?.pagination || { total: 0, pages: 1 };
 
     // Form with validation
     const {
@@ -351,6 +354,33 @@ export const StudentsPage: React.FC = () => {
                                     </p>
                                 </div>
                             )}
+                        </div>
+                        {/* Pagination Controls */}
+                        <div className="flex items-center justify-between px-4 py-4 border-t">
+                            <div className="text-sm text-muted-foreground">
+                                Showing {((page - 1) * limit) + 1} to {Math.min(page * limit, pagination.total || students.length)} of {pagination.total || students.length} students
+                            </div>
+                            <div className="flex gap-2">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                                    disabled={page === 1}
+                                >
+                                    Previous
+                                </Button>
+                                <span className="flex items-center px-3 text-sm">
+                                    Page {page} of {pagination.pages || 1}
+                                </span>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setPage(p => p + 1)}
+                                    disabled={page >= (pagination.pages || 1)}
+                                >
+                                    Next
+                                </Button>
+                            </div>
                         </div>
                     </CardContent>
                 </Card>
