@@ -141,7 +141,9 @@ export const UsersPage: React.FC = () => {
 
     const onSubmit = (data: UserFormData) => {
         if (editingUser) {
-            updateMutation.mutate({ id: editingUser.id, data });
+            // For updates, exclude empty password
+            const { password, ...updateData } = data;
+            updateMutation.mutate({ id: editingUser.id, data: updateData });
         } else {
             if (!data.password) {
                 return;
@@ -151,15 +153,22 @@ export const UsersPage: React.FC = () => {
     };
 
     const handleEdit = (user: User) => {
+        console.log('Editing user:', user);
+        console.log('Available roles:', roles);
+        console.log('Available branches:', branches);
+
         setEditingUser(user);
-        setValue('username', user.username);
-        setValue('email', user.email);
-        setValue('first_name', user.first_name);
-        setValue('last_name', user.last_name);
-        setValue('phone', user.phone || '');
-        setValue('role_id', user.role_id);
-        setValue('branch_id', user.branch_id);
-        // Password is not set during edit
+        // Reset form first, then populate with user data
+        reset({
+            username: user.username,
+            email: user.email,
+            first_name: user.first_name,
+            last_name: user.last_name,
+            phone: user.phone || '',
+            role_id: user.role_id || '',
+            branch_id: user.branch_id || '',
+            password: '', // Clear password field for edit
+        });
         setIsDialogOpen(true);
     };
 

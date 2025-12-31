@@ -53,6 +53,8 @@ export class UserService {
             is_active: true,
             last_login: true,
             created_at: true,
+            role_id: true,
+            branch_id: true,
             role: { select: { id: true, name: true } },
             branch: { select: { id: true, name: true } },
           },
@@ -108,6 +110,8 @@ export class UserService {
           is_active: true,
           last_login: true,
           created_at: true,
+          role_id: true, // Added
+          branch_id: true, // Added
           role: { select: { id: true, name: true } },
           branch: { select: { id: true, name: true } },
         },
@@ -219,6 +223,28 @@ export class UserService {
         }
       }
 
+      // SYNC RBAC ROLE: Find matching RBAC role and assign to user
+      try {
+        const rbacRole = await prisma.rBACRole.findUnique({
+          where: { role_name: user.role.name }
+        });
+
+        if (rbacRole) {
+          await prisma.userRole.create({
+            data: {
+              user_id: user.id,
+              rbac_role_id: rbacRole.id,
+              branch_id: user.branch_id,
+              assigned_by: userContext?.id || user.id, // Fallback to self (e.g. seeding)
+            }
+          });
+        }
+      } catch (rbacError) {
+        console.error("Failed to sync RBAC role:", rbacError);
+        // Don't fail the request, but log it. 
+        // In strict mode we might want to fail, but for now allow user creation.
+      }
+
       return {
         success: true,
         data: { ...user, tempPassword: isTempPassword ? finalPassword : null },
@@ -241,9 +267,45 @@ export class UserService {
           last_name: userData.last_name,
           phone: userData.phone,
           email: userData.email,
+          role_id: userData.role_id,   // Added
+          branch_id: userData.branch_id, // Added
         },
         include: { role: true, branch: true },
       });
+
+      // SYNC RBAC ROLE if role or branch changed
+      if (userData.role_id || userData.branch_id) {
+        try {
+          // Get the latest role name
+          const currentRole = await prisma.role.findUnique({
+            where: { id: user.role_id }
+          });
+
+          if (currentRole) {
+            const rbacRole = await prisma.rBACRole.findUnique({
+              where: { role_name: currentRole.name }
+            });
+
+            if (rbacRole) {
+              // Remove existing user roles to strictly enforce single role for now (or manage accordingly)
+              await prisma.userRole.deleteMany({
+                where: { user_id: userId }
+              });
+
+              await prisma.userRole.create({
+                data: {
+                  user_id: userId,
+                  rbac_role_id: rbacRole.id,
+                  branch_id: user.branch_id,
+                  assigned_by: userId, // Using modified user's ID as fallback or we need current user context in update
+                }
+              });
+            }
+          }
+        } catch (rbacError) {
+          console.error("Failed to update RBAC role:", rbacError);
+        }
+      }
 
       return {
         success: true,
