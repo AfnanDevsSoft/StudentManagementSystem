@@ -1,35 +1,36 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { MainLayout } from '../../components/layout/MainLayout';
 import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { Switch } from '../../components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
 import { useToast } from '../../hooks/use-toast';
 import { roleService } from '../../services/role.service';
+import { branchService } from '../../services/branch.service';
 import { ArrowLeft, Save } from 'lucide-react';
 
-const availablePermissions = [
-    { id: 'students', label: 'Student Management' },
-    { id: 'teachers', label: 'Teacher Management' },
-    { id: 'courses', label: 'Course Management' },
-    { id: 'admissions', label: 'Admissions' },
-    { id: 'finance', label: 'Finance & Fees' },
-    { id: 'payroll', label: 'Payroll' },
-    { id: 'library', label: 'Library' },
-    { id: 'reports', label: 'Reports & Analytics' },
-    { id: 'settings', label: 'System Settings' }
-];
+import { availablePermissions } from '../../config/permissions';
 
 export const CreateRolePage: React.FC = () => {
     const navigate = useNavigate();
     const { toast } = useToast();
     const [isLoading, setIsLoading] = useState(false);
 
+    // Fetch branches for dropdown
+    const { data: branchesResponse } = useQuery({
+        queryKey: ['branches'],
+        queryFn: branchService.getAll,
+    });
+    const branches = (branchesResponse as any)?.data || [];
+
     const [formData, setFormData] = useState({
         roleName: '',
         description: '',
+        branchId: '',
         permissions: [] as string[]
     });
 
@@ -56,15 +57,23 @@ export const CreateRolePage: React.FC = () => {
             return;
         }
 
+        if (!formData.branchId) {
+            toast({
+                title: "Validation Error",
+                description: "Please select a branch",
+                variant: "destructive"
+            });
+            return;
+        }
+
         setIsLoading(true);
 
         try {
-            // Roles are global (no branchId)
             await roleService.create({
                 roleName: formData.roleName,
                 description: formData.description,
                 permissions: formData.permissions,
-                branchId: ''  // Empty for global roles
+                branchId: formData.branchId
             });
 
             toast({
@@ -119,6 +128,25 @@ export const CreateRolePage: React.FC = () => {
                                     value={formData.description}
                                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                 />
+                            </div>
+
+                            <div className="grid gap-2">
+                                <Label htmlFor="branch">Branch *</Label>
+                                <Select
+                                    value={formData.branchId}
+                                    onValueChange={(value) => setFormData({ ...formData, branchId: value })}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select a branch" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {branches.map((branch: any) => (
+                                            <SelectItem key={branch.id} value={branch.id}>
+                                                {branch.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                             </div>
                         </div>
 

@@ -17,6 +17,7 @@ import { AdminDashboardPage } from './pages/admin/AdminDashboardPage';
 import { BranchesPage } from './pages/branches/BranchesPage';
 import { RolesPage } from './pages/roles/RolesPage';
 import { CreateRolePage } from './pages/roles/CreateRolePage';
+import { EditRolePage } from './pages/roles/EditRolePage';
 import { UsersPage } from './pages/users/UsersPage';
 import { StudentsPage } from './pages/students/StudentsPage';
 import { TeachersPage } from './pages/teachers/TeachersPage';
@@ -120,6 +121,15 @@ function App() {
               element={
                 <ProtectedRoute allowedRoles={['superadmin']}>
                   <CreateRolePage />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/roles/:id/edit"
+              element={
+                <ProtectedRoute allowedRoles={['superadmin']}>
+                  <EditRolePage />
                 </ProtectedRoute>
               }
             />

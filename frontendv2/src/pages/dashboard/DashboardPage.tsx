@@ -9,6 +9,9 @@ export const DashboardPage: React.FC = () => {
     const { user } = useAuth();
     const roleName = user?.role?.name?.toLowerCase() || 'student';
 
+    // Check if user has any permissions (indicates a custom role with RBAC access)
+    const hasPermissions = user?.permissions && user.permissions.length > 0;
+
     // Route to role-specific dashboard
     const renderDashboard = () => {
         switch (roleName) {
@@ -19,7 +22,14 @@ export const DashboardPage: React.FC = () => {
             case 'teacher':
                 return <TeacherDashboard />;
             case 'student':
+                return <StudentDashboard />;
             default:
+                // Custom role - if user has permissions, treat as admin-like role
+                // Otherwise, show a helpful message
+                if (hasPermissions) {
+                    return <Navigate to="/admin" replace />;
+                }
+                // Fallback for users without permissions configured
                 return <StudentDashboard />;
         }
     };

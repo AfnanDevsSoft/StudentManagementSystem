@@ -108,8 +108,10 @@ export const branchAdminNavigation: NavigationItem[] = [
 
 /**
  * Get navigation items based on user role
+ * @param role - The role name (e.g., 'superadmin', 'teacher', 'student')
+ * @param permissions - Optional array of user permissions for custom roles
  */
-export function getNavigationByRole(role: string): NavigationItem[] {
+export function getNavigationByRole(role: string, permissions?: string[]): NavigationItem[] {
     const normalizedRole = role?.toLowerCase() || '';
 
     switch (normalizedRole) {
@@ -123,7 +125,12 @@ export function getNavigationByRole(role: string): NavigationItem[] {
         case 'student':
             return studentNavigation;
         default:
-            // Default to minimal navigation for unknown roles
+            // Custom role - if user has permissions, give admin-like navigation
+            // This allows custom roles with RBAC permissions to navigate the system
+            if (permissions && permissions.length > 0) {
+                return branchAdminNavigation; // Give admin-like navigation
+            }
+            // Default to minimal navigation for unknown roles without permissions
             return [
                 { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
                 { name: 'Settings', href: '/settings', icon: Settings },

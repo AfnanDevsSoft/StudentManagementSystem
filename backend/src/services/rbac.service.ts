@@ -1,5 +1,11 @@
 import { prisma } from "../lib/db";
 
+// Essential permissions that every role MUST have for the system to function
+// These are automatically added to every new role
+const ESSENTIAL_PERMISSIONS = [
+  'branches:read',  // Required for dashboard and most pages
+];
+
 export class RBACService {
   // ============= Role Management =============
 
@@ -24,6 +30,19 @@ export class RBACService {
         permissionIds = permissions.map(p => p.id);
       }
 
+      // Always add essential permissions that every role needs
+      const essentialPerms = await prisma.permission.findMany({
+        where: {
+          permission_name: { in: ESSENTIAL_PERMISSIONS }
+        },
+        select: { id: true }
+      });
+
+      // Merge essential permissions with selected permissions (avoid duplicates)
+      const essentialIds = essentialPerms.map(p => p.id);
+      const allPermissionIds = [...new Set([...permissionIds, ...essentialIds])];
+
+
       // Create RBAC role
       const role = await prisma.rBACRole.create({
         data: {
@@ -31,8 +50,8 @@ export class RBACService {
           role_name: roleName,
           description: description || "",
           is_system: false,
-          permissions: permissionIds.length > 0 ? {
-            connect: permissionIds.map((id) => ({ id })),
+          permissions: allPermissionIds.length > 0 ? {
+            connect: allPermissionIds.map((id) => ({ id })),
           } : undefined,
         },
         include: { permissions: true },

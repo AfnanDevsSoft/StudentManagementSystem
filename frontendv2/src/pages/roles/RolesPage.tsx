@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { roleService } from '../../services/role.service';
+import { availablePermissions } from '../../config/permissions';
 
 const permissions = [
     { category: 'Students', view: true, create: true, edit: true, delete: true },
@@ -136,50 +137,55 @@ export const RolesPage: React.FC = () => {
                                         <p className="text-sm text-muted-foreground mt-1">{selectedRole.description || 'No description'}</p>
                                     </div>
                                     <div className="flex gap-2">
-                                        {/* Disable Edit/Delete for now until fully RBAC implemented */}
-                                        <Button variant="outline" size="sm" disabled>
-                                            <Edit className="w-4 h-4 mr-2" />
-                                            Edit
-                                        </Button>
+                                        <Link to={`/roles/${selectedRole.id}/edit`}>
+                                            <Button variant="outline" size="sm">
+                                                <Edit className="w-4 h-4 mr-2" />
+                                                Edit
+                                            </Button>
+                                        </Link>
                                     </div>
                                 </div>
 
                                 <div className="border border-border rounded-lg overflow-hidden">
-                                    {/* Placeholder Static Permissions until Backend returns them */}
-                                    <div className="p-4 bg-muted/20 text-center text-sm text-muted-foreground">
-                                        Detailed permissions view coming soon with Full RBAC module.
-                                        <br />
-                                        Current permissions are defined in `seed.ts`.
-                                    </div>
-                                    <table className="w-full opacity-50">
+                                    <table className="w-full">
                                         <thead className="bg-muted">
                                             <tr>
-                                                <th className="text-left p-4 font-semibold">Resource</th>
-                                                <th className="text-center p-4 font-semibold">View</th>
-                                                <th className="text-center p-4 font-semibold">Create</th>
-                                                <th className="text-center p-4 font-semibold">Edit</th>
-                                                <th className="text-center p-4 font-semibold">Delete</th>
+                                                <th className="text-left p-4 font-semibold">Module</th>
+                                                <th className="text-center p-4 font-semibold">Access</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {permissions.map((perm, index) => (
-                                                <tr key={perm.category} className={index % 2 === 0 ? 'bg-background' : 'bg-muted/30'}>
-                                                    <td className="p-4 font-medium">{perm.category}</td>
-                                                    <td className="p-4 text-center">
-                                                        <CheckCircle2 className="w-5 h-5 text-green-500 mx-auto" />
-                                                    </td>
-                                                    <td className="p-4 text-center">
-                                                        {/* Simulate admin vs others */}
-                                                        {(selectedRole.role_name || selectedRole.name) === 'SuperAdmin' ? <CheckCircle2 className="w-5 h-5 text-green-500 mx-auto" /> : <XCircle className="w-5 h-5 text-gray-300 mx-auto" />}
-                                                    </td>
-                                                    <td className="p-4 text-center">
-                                                        {(selectedRole.role_name || selectedRole.name) === 'SuperAdmin' ? <CheckCircle2 className="w-5 h-5 text-green-500 mx-auto" /> : <XCircle className="w-5 h-5 text-gray-300 mx-auto" />}
-                                                    </td>
-                                                    <td className="p-4 text-center">
-                                                        {(selectedRole.role_name || selectedRole.name) === 'SuperAdmin' ? <CheckCircle2 className="w-5 h-5 text-green-500 mx-auto" /> : <XCircle className="w-5 h-5 text-gray-300 mx-auto" />}
-                                                    </td>
-                                                </tr>
-                                            ))}
+                                            {/* Dynamic Permissions Rendering */}
+                                            {(() => {
+                                                // Extract simple list of resources user has access to
+                                                // Backend returns permissions array of objects { resource: '...' }
+                                                // Map them to check existence
+                                                const rolePerms = selectedRole.permissions || [];
+                                                const validResources = new Set(rolePerms.map((p: any) => p.resource || p.permission_name?.split(':')[0]));
+
+                                                return availablePermissions.map((module, index) => {
+                                                    const hasAccess = validResources.has(module.id) || (selectedRole.role_name === 'SuperAdmin'); // SuperAdmin has all
+
+                                                    return (
+                                                        <tr key={module.id} className={index % 2 === 0 ? 'bg-background' : 'bg-muted/30'}>
+                                                            <td className="p-4 font-medium">{module.label}</td>
+                                                            <td className="p-4 text-center">
+                                                                {hasAccess ? (
+                                                                    <div className="flex items-center justify-center text-green-600 font-medium">
+                                                                        <CheckCircle2 className="w-5 h-5 mr-2" />
+                                                                        Enabled
+                                                                    </div>
+                                                                ) : (
+                                                                    <div className="flex items-center justify-center text-muted-foreground opacity-50">
+                                                                        <XCircle className="w-5 h-5 mr-2" />
+                                                                        Disabled
+                                                                    </div>
+                                                                )}
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                });
+                                            })()}
                                         </tbody>
                                     </table>
                                 </div>

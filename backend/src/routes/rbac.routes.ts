@@ -59,7 +59,7 @@ router.get(
 
 /**
  * POST /api/v1/rbac/roles
- * Create new role (branchId optional for global roles)
+ * Create new role (branchId REQUIRED for proper RBAC)
  */
 router.post(
   "/roles",
@@ -72,8 +72,14 @@ router.post(
       return;
     }
 
+    // Require branchId - empty string should be rejected
+    if (!branchId || branchId.trim() === '') {
+      sendResponse(res, 400, false, "Branch ID is required for role creation");
+      return;
+    }
+
     const result = await RBACService.defineRole(
-      branchId || null,  // null for global roles
+      branchId,  // Now guaranteed to be a valid string
       roleName,
       permissions || [],
       description

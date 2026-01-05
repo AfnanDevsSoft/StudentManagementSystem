@@ -14,9 +14,9 @@ export const Sidebar: React.FC = () => {
     const [collapsed, setCollapsed] = useState(false);
     const location = useLocation();
 
-    // Get navigation items based on user role
+    // Get navigation items based on user role and permissions
     const roleName = user?.role?.name || 'student';
-    const navigation = getNavigationByRole(roleName);
+    const navigation = getNavigationByRole(roleName, user?.permissions);
 
     // Group navigation items
     const groupedNavigation = navigation.reduce((groups, item) => {
