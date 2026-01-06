@@ -254,7 +254,7 @@ class StudentService {
           return { success: false, message: "Username already exists" };
         }
 
-        // Get Student Role
+        // Get Student Role (legacy)
         const studentRole = await prisma.role.findFirst({
           where: { name: 'Student' } // Global student role
         });
@@ -262,6 +262,11 @@ class StudentService {
         if (!studentRole) {
           return { success: false, message: "Student role configuration error" };
         }
+
+        // Get Student RBAC Role for permissions
+        const studentRbacRole = await prisma.rBACRole.findFirst({
+          where: { role_name: 'Student' }
+        });
 
         const bcryptjs = require("bcryptjs");
         const hashedPassword = await bcryptjs.hash(password, 10);
@@ -280,6 +285,23 @@ class StudentService {
           }
         });
         userId = newUser.id;
+
+        // Create UserRole entry for RBAC permissions
+        if (studentRbacRole && userId) {
+          try {
+            await prisma.userRole.create({
+              data: {
+                user_id: userId,
+                rbac_role_id: studentRbacRole.id,
+                branch_id: branch_id,
+                assigned_by: data.assignedBy || null,
+              }
+            });
+          } catch (rbacError) {
+            console.error("Warning: Failed to assign RBAC role to student:", rbacError);
+            // Continue - don't fail student creation for RBAC assignment issue
+          }
+        }
       }
 
       // Auto-generate Admission Number
