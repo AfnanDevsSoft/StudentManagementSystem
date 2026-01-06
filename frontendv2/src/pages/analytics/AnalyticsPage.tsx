@@ -3,27 +3,49 @@ import { useQuery } from '@tanstack/react-query';
 import { MainLayout } from '../../components/layout/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { analyticsService } from '../../services/analytics.service';
+import { studentService } from '../../services/student.service';
+import { teacherService } from '../../services/teacher.service';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
 import { Users, GraduationCap, DollarSign, Activity } from 'lucide-react';
 
 export const AnalyticsPage: React.FC = () => {
-    const { data: dashboardData, isLoading } = useQuery({
+    // Fetch dashboard data from analytics API
+    const { data: dashboardData, isLoading: dashboardLoading } = useQuery({
         queryKey: ['analytics-dashboard'],
         queryFn: analyticsService.getDashboardStats,
         retry: false
     });
 
-    // Fallback/Mock data if API is not ready
-    const stats = dashboardData?.data || {
-        totalStudents: 120,
-        totalTeachers: 12,
-        totalCourses: 8,
-        monthlyRevenue: 25000,
-        attendanceRate: 92,
-        avgGrade: 85
+    // Also fetch student and teacher counts directly as backup
+    const { data: studentsData } = useQuery({
+        queryKey: ['students-analytics'],
+        queryFn: () => studentService.getAll(),
+        retry: false
+    });
+
+    const { data: teachersData } = useQuery({
+        queryKey: ['teachers-analytics'],
+        queryFn: () => teacherService.getAll(),
+        retry: false
+    });
+
+    // Extract data from responses - handle nested structure
+    const apiStats = dashboardData?.data || {};
+    const studentsArray = Array.isArray(studentsData) ? studentsData : (studentsData as any)?.data || [];
+    const teachersArray = Array.isArray(teachersData) ? teachersData : (teachersData as any)?.data || [];
+
+    // Build stats object with real data, falling back to defaults if API fails
+    const stats = {
+        totalStudents: apiStats.totalStudents ?? (Array.isArray(studentsArray) ? studentsArray.length : 0),
+        totalTeachers: apiStats.totalTeachers ?? (Array.isArray(teachersArray) ? teachersArray.length : 0),
+        totalCourses: apiStats.totalCourses ?? 0,
+        monthlyRevenue: apiStats.monthlyRevenue ?? 25000,
+        attendanceRate: apiStats.attendanceRate ?? 92,
+        avgGrade: apiStats.avgGrade ?? 85
     };
 
-    const attendanceData = dashboardData?.attendanceHistory || [
+    // Use real attendance/revenue/grade data from API or defaults
+    const attendanceData = apiStats.attendanceHistory || dashboardData?.attendanceHistory || [
         { name: 'Mon', present: 110, absent: 10 },
         { name: 'Tue', present: 115, absent: 5 },
         { name: 'Wed', present: 108, absent: 12 },
@@ -31,7 +53,7 @@ export const AnalyticsPage: React.FC = () => {
         { name: 'Fri', present: 105, absent: 15 },
     ];
 
-    const gradeData = dashboardData?.gradeDistribution || [
+    const gradeData = apiStats.gradeDistribution || dashboardData?.gradeDistribution || [
         { name: 'A', count: 30 },
         { name: 'B', count: 45 },
         { name: 'C', count: 25 },
@@ -39,7 +61,7 @@ export const AnalyticsPage: React.FC = () => {
         { name: 'F', count: 5 },
     ];
 
-    const revenueData = dashboardData?.revenueHistory || [
+    const revenueData = apiStats.revenueHistory || dashboardData?.revenueHistory || [
         { name: 'Jan', income: 4000, expense: 2400 },
         { name: 'Feb', income: 3000, expense: 1398 },
         { name: 'Mar', income: 2000, expense: 9800 },
@@ -50,7 +72,7 @@ export const AnalyticsPage: React.FC = () => {
 
     const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#FF0000'];
 
-    if (isLoading) {
+    if (dashboardLoading) {
         return (
             <MainLayout>
                 <div className="flex items-center justify-center h-96">

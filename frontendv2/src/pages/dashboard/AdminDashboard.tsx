@@ -12,36 +12,47 @@ import {
     UserPlus,
     ClipboardCheck,
     AlertCircle,
-    Building2,
-    Clock
+    Building2
 } from 'lucide-react';
 import { PendingLeavesWidget } from '../../components/dashboard/PendingLeavesWidget';
 
 export const AdminDashboard: React.FC = () => {
-    // Fetch analytics data
+    // Fetch analytics dashboard data from backend
     const { data: analyticsData } = useQuery({
-        queryKey: ['analytics-overview'],
-        queryFn: () => analyticsService.getOverview(),
+        queryKey: ['analytics-dashboard'],
+        queryFn: () => analyticsService.getDashboardStats(),
+        retry: false,
     });
 
-    const { data: studentsData } = useQuery({
-        queryKey: ['students-count'],
+    // Fetch students list for count
+    const { data: studentsData, isLoading: studentsLoading } = useQuery({
+        queryKey: ['students-list'],
         queryFn: () => studentService.getAll(),
+        retry: false,
     });
 
-    const { data: teachersData } = useQuery({
-        queryKey: ['teachers-count'],
+    // Fetch teachers list for count
+    const { data: teachersData, isLoading: teachersLoading } = useQuery({
+        queryKey: ['teachers-list'],
         queryFn: () => teacherService.getAll(),
+        retry: false,
     });
 
-    const stats = analyticsData?.data || analyticsData || {};
-    const students = (studentsData as any)?.data || studentsData || [];
-    const teachers = (teachersData as any)?.data || teachersData || [];
+    // Extract data - handle nested response structure
+    const analyticsStats = analyticsData?.data || {};
+    const studentsArray = Array.isArray(studentsData) ? studentsData : (studentsData as any)?.data || [];
+    const teachersArray = Array.isArray(teachersData) ? teachersData : (teachersData as any)?.data || [];
+
+    // Get counts - prioritize direct counts from analytics API, fallback to array length
+    const totalStudents = analyticsStats.totalStudents ?? (Array.isArray(studentsArray) ? studentsArray.length : 0);
+    const totalTeachers = analyticsStats.totalTeachers ?? (Array.isArray(teachersArray) ? teachersArray.length : 0);
+    const monthlyRevenue = analyticsStats.monthlyRevenue ?? 25000;
+    const attendanceRate = analyticsStats.attendanceRate ?? 92;
 
     const dashboardStats = [
         {
             title: 'Total Students',
-            value: Array.isArray(students) ? students.length : stats.totalStudents || 0,
+            value: totalStudents,
             icon: GraduationCap,
             color: 'text-blue-500',
             bgColor: 'bg-blue-100 dark:bg-blue-900/30',
@@ -50,7 +61,7 @@ export const AdminDashboard: React.FC = () => {
         },
         {
             title: 'Total Teachers',
-            value: Array.isArray(teachers) ? teachers.length : stats.totalTeachers || 0,
+            value: totalTeachers,
             icon: Users,
             color: 'text-green-500',
             bgColor: 'bg-green-100 dark:bg-green-900/30',
@@ -59,7 +70,7 @@ export const AdminDashboard: React.FC = () => {
         },
         {
             title: 'Revenue This Month',
-            value: `$${(stats.monthlyRevenue || 125000).toLocaleString()}`,
+            value: `$${monthlyRevenue.toLocaleString()}`,
             icon: DollarSign,
             color: 'text-emerald-500',
             bgColor: 'bg-emerald-100 dark:bg-emerald-900/30',
@@ -68,7 +79,7 @@ export const AdminDashboard: React.FC = () => {
         },
         {
             title: 'Attendance Rate',
-            value: `${stats.attendanceRate || 94}%`,
+            value: `${attendanceRate}%`,
             icon: ClipboardCheck,
             color: 'text-purple-500',
             bgColor: 'bg-purple-100 dark:bg-purple-900/30',
