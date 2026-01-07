@@ -135,9 +135,30 @@ router.get("/records", authMiddleware, requirePermission("finance:read"), async 
 router.get(
   "/:studentId/outstanding",
   authMiddleware,
-  requirePermission("finance:read"),
   async (req: Request, res: Response) => {
-    const result = await FeeService.getOutstandingFees(req.params.studentId);
+    const { studentId } = req.params;
+    const user = (req as any).user;
+
+    if (!user) {
+      return sendResponse(res, 401, false, "Unauthorized");
+    }
+
+    // Check permissions: Owner (student profile id matches) OR Has finance:read
+    const isOwner = user.student?.id === studentId;
+
+    let hasPermission = false;
+    if (isOwner) {
+      hasPermission = true;
+    } else {
+      const { RBACService } = require("../services/rbac.service");
+      hasPermission = await RBACService.checkUserPermission(user.id, "finance:read");
+    }
+
+    if (!hasPermission) {
+      return sendResponse(res, 403, false, "Permission denied");
+    }
+
+    const result = await FeeService.getOutstandingFees(studentId);
     sendResponse(
       res,
       result.success ? 200 : 404,
@@ -152,20 +173,38 @@ router.get(
 router.get(
   "/:studentId/payment-history",
   authMiddleware,
-  requirePermission("finance:read"),
   async (req: Request, res: Response) => {
     const { studentId } = req.params;
     const limit = parseInt(req.query.limit as string) || 50;
     const offset = parseInt(req.query.offset as string) || 0;
+    const user = (req as any).user;
 
-    // Get fee records which includes payment history
+    if (!user) {
+      return sendResponse(res, 401, false, "Unauthorized");
+    }
+
+    // Check permissions: Owner (student profile id matches) OR Has finance:read
+    const isOwner = user.student?.id === studentId;
+
+    let hasPermission = false;
+    if (isOwner) {
+      hasPermission = true;
+    } else {
+      const { RBACService } = require("../services/rbac.service");
+      hasPermission = await RBACService.checkUserPermission(user.id, "finance:read");
+    }
+
+    if (!hasPermission) {
+      return sendResponse(res, 403, false, "Permission denied");
+    }
+
     const result = await FeeService.getFeeRecords(
       studentId,
-      undefined, // all statuses
+      undefined,
       limit,
       offset,
-      undefined, // branchId not needed for payment history of specific student
-      (req as any).user
+      undefined,
+      user
     );
 
     sendResponse(

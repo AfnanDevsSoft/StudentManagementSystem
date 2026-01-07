@@ -28,11 +28,16 @@ export const requirePermission = (requiredPermission: string) => {
                 return next();
             }
 
+            // DEBUG: Log permission check
+            console.log(`[PERM CHECK] User: ${user.username} (${user.id}), Role: ${user.role?.name}, Required: ${requiredPermission}`);
+
             // Check if user has the required permission
             const hasPermission = await RBACService.checkUserPermission(
                 user.id,
                 requiredPermission
             );
+
+            console.log(`[PERM CHECK] Result: ${hasPermission ? 'GRANTED' : 'DENIED'}`);
 
             if (!hasPermission) {
                 return res.status(403).json({

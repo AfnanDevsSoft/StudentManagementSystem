@@ -130,6 +130,27 @@ export class TeacherService {
         });
         userId = newUser.id;
         console.log("DEBUG: User created", userId);
+
+        // SYNC RBAC ROLE: Assign Teacher RBAC role to user
+        try {
+          const teacherRbacRole = await prisma.rBACRole.findUnique({
+            where: { role_name: 'Teacher' }
+          });
+
+          if (teacherRbacRole) {
+            await prisma.userRole.create({
+              data: {
+                user_id: newUser.id,
+                rbac_role_id: teacherRbacRole.id,
+                branch_id: teacherData.branch_id,
+                assigned_by: teacherData.assignedBy || newUser.id,
+              }
+            });
+            console.log("DEBUG: RBAC role assigned to teacher");
+          }
+        } catch (rbacError) {
+          console.error("Warning: Failed to assign RBAC role to teacher:", rbacError);
+        }
       }
 
       const { EmployeeIdService } = require('./employee-id.service');

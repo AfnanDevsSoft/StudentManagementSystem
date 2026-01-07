@@ -1,6 +1,6 @@
 import { Router, Request, Response } from "express";
 import { authMiddleware } from "../middleware/error.middleware";
-import { requirePermission } from "../middleware/permission.middleware";
+import { requirePermission, requireAnyPermission } from "../middleware/permission.middleware";
 
 const router = Router();
 
@@ -29,7 +29,7 @@ const router = Router();
  *       200:
  *         description: Grade records
  */
-router.get("/", authMiddleware, requirePermission("grades:read"), async (req: Request, res: Response) => {
+router.get("/", authMiddleware, requireAnyPermission(["grades:read", "grades:read_own"]), async (req: Request, res: Response) => {
     try {
         const branch_id = (req.query.branch_id || req.query.branchId) as string;
         const page = parseInt(req.query.page as string) || 1;

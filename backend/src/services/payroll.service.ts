@@ -235,9 +235,9 @@ export class PayrollService {
       const whereClause: any = {};
 
       // Data Scoping
-      // Data Scoping
       // If querying by specific teacher ID and user is that teacher, allow access regardless of branch
-      const isSelfQuery = userContext && userContext.teacherId && userContext.teacherId === teacherId;
+      const userTeacherId = userContext?.teacher?.id;
+      const isSelfQuery = userTeacherId && userTeacherId === teacherId;
 
       if (userContext && userContext.role?.name !== 'SuperAdmin' && !isSelfQuery) {
         branchId = userContext.branch_id;

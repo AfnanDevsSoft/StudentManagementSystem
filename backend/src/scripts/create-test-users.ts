@@ -61,9 +61,9 @@ async function createTestUsers() {
     for (const userData of testUsers) {
         try {
             // Find RBAC role
-            const rbacRole = await prisma.rBACRole.findFirst({
+            const rbacRole = await prisma.rBACRole.findUnique({
                 where: {
-                    name: userData.roleName
+                    role_name: userData.roleName
                 }
             });
 

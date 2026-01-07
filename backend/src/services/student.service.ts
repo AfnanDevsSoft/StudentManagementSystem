@@ -294,7 +294,7 @@ class StudentService {
                 user_id: userId,
                 rbac_role_id: studentRbacRole.id,
                 branch_id: branch_id,
-                assigned_by: data.assignedBy || null,
+                assigned_by: data.assignedBy || userId, // Use new user's ID as fallback
               }
             });
           } catch (rbacError) {

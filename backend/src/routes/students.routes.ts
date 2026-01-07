@@ -12,9 +12,31 @@ const router: Router = express.Router();
 router.get(
   "/:id/enrollment",
   authMiddleware,
-  requirePermission("students:read"),
   async (req: Request, res: Response): Promise<void> => {
     const { id } = req.params;
+    const user = (req as any).user;
+
+    if (!user) {
+      sendResponse(res, 401, false, "Unauthorized");
+      return;
+    }
+
+    // Check permissions: Owner (student profile id matches) OR Has students:read
+    const isOwner = user.student?.id === id;
+
+    let hasPermission = false;
+    if (isOwner) {
+      hasPermission = true;
+    } else {
+      const { RBACService } = require("../services/rbac.service");
+      hasPermission = await RBACService.checkUserPermission(user.id, "students:read");
+    }
+
+    if (!hasPermission) {
+      sendResponse(res, 403, false, "Permission denied");
+      return;
+    }
+
     const result = await StudentService.getStudentEnrollments(id);
     sendResponse(
       res,
@@ -30,9 +52,31 @@ router.get(
 router.get(
   "/:id/grades",
   authMiddleware,
-  requirePermission("students:read"),
   async (req: Request, res: Response): Promise<void> => {
     const { id } = req.params;
+    const user = (req as any).user;
+
+    if (!user) {
+      sendResponse(res, 401, false, "Unauthorized");
+      return;
+    }
+
+    // Check permissions: Owner (student profile id matches) OR Has students:read
+    const isOwner = user.student?.id === id;
+
+    let hasPermission = false;
+    if (isOwner) {
+      hasPermission = true;
+    } else {
+      const { RBACService } = require("../services/rbac.service");
+      hasPermission = await RBACService.checkUserPermission(user.id, "students:read");
+    }
+
+    if (!hasPermission) {
+      sendResponse(res, 403, false, "Permission denied");
+      return;
+    }
+
     const result = await StudentService.getStudentGrades(id);
     sendResponse(
       res,
@@ -60,7 +104,7 @@ router.get(
     }
 
     // Check permissions: Owner OR Has Permission
-    const isOwner = user.student_id === id || user.id === id;
+    const isOwner = user.student?.id === id;
 
     let hasPermission = false;
     if (isOwner) {

@@ -261,105 +261,96 @@ async function main() {
   const allPermissions = await prisma.permission.findMany();
   console.log(`✅ Created ${allPermissions.length} RBAC permissions!`);
 
-  // ==================== 4. RBAC ROLES ====================
-  console.log("🎭 Creating RBAC roles for branches...");
-  for (const branch of allBranches) {
-    // SuperAdmin RBAC Role (All Permissions)
-    await prisma.rBACRole.upsert({
-      where: { branch_id_role_name: { branch_id: branch.id, role_name: "SuperAdmin" } },
-      update: {},
-      create: {
-        branch_id: branch.id,
-        role_name: "SuperAdmin",
-        description: "System administrator with full access",
-        is_system: true,
-        permissions: { connect: allPermissions.map((p) => ({ id: p.id })) },
-      },
-    });
+  // ==================== 4. RBAC ROLES (GLOBAL) ====================
+  console.log("🎭 Creating global RBAC roles...");
 
-    // BranchAdmin RBAC Role
-    const branchAdminPermNames = [
-      "users:create", "users:read", "users:update",
-      "students:create", "students:read", "students:update", "students:delete",
-      "teachers:create", "teachers:read", "teachers:update", "teachers:delete",
-      "courses:create", "courses:read", "courses:update", "courses:delete",
-      "attendance:create", "attendance:read", "attendance:update",
-      "grades:create", "grades:read", "grades:update",
-      "admissions:create", "admissions:read", "admissions:update",
-      "finance:create", "finance:read", "finance:update",
-      "payroll:create", "payroll:read", "payroll:update",
-      "library:create", "library:read", "library:update",
-      "health:create", "health:read", "health:update",
-      "scholarships:create", "scholarships:read", "scholarships:update",
-      "analytics:read", "reports:generate", "reports:export",
-      "announcements:create", "announcements:read",
-      "messaging:send", "messaging:read",
-    ];
-    await prisma.rBACRole.upsert({
-      where: { branch_id_role_name: { branch_id: branch.id, role_name: "BranchAdmin" } },
-      update: {},
-      create: {
-        branch_id: branch.id,
-        role_name: "BranchAdmin",
-        description: "Branch administrator with management access",
-        is_system: true,
-        permissions: {
-          connect: allPermissions
-            .filter((p) => branchAdminPermNames.includes(p.permission_name))
-            .map((p) => ({ id: p.id })),
-        },
-      },
-    });
+  // SuperAdmin RBAC Role (All Permissions) - GLOBAL
+  await prisma.rBACRole.upsert({
+    where: { role_name: "SuperAdmin" },
+    update: { permissions: { set: allPermissions.map((p) => ({ id: p.id })) } },
+    create: {
+      role_name: "SuperAdmin",
+      description: "System administrator with full access",
+      is_system: true,
+      branch_id: null,
+      permissions: { connect: allPermissions.map((p) => ({ id: p.id })) },
+    },
+  });
 
-    // Teacher RBAC Role
-    const teacherPermNames = [
-      "students:read", "courses:read", "courses:update",
-      "attendance:create", "attendance:read", "attendance:update",
-      "grades:create", "grades:read", "grades:update",
-      "assignments:create", "assignments:read", "assignments:update",
-      "announcements:create", "announcements:read",
-      "messaging:send", "messaging:read", "library:read", "payroll:read_own",
-    ];
-    await prisma.rBACRole.upsert({
-      where: { branch_id_role_name: { branch_id: branch.id, role_name: "Teacher" } },
-      update: {},
-      create: {
-        branch_id: branch.id,
-        role_name: "Teacher",
-        description: "Teaching staff with class management access",
-        is_system: true,
-        permissions: {
-          connect: allPermissions
-            .filter((p) => teacherPermNames.includes(p.permission_name))
-            .map((p) => ({ id: p.id })),
-        },
-      },
-    });
+  // BranchAdmin RBAC Role - GLOBAL
+  const branchAdminPermNames = [
+    "users:create", "users:read", "users:update",
+    "students:create", "students:read", "students:update", "students:delete",
+    "teachers:create", "teachers:read", "teachers:update", "teachers:delete",
+    "courses:create", "courses:read", "courses:update", "courses:delete",
+    "attendance:create", "attendance:read", "attendance:update",
+    "grades:create", "grades:read", "grades:update",
+    "admissions:create", "admissions:read", "admissions:update",
+    "finance:create", "finance:read", "finance:update",
+    "payroll:create", "payroll:read", "payroll:update",
+    "library:create", "library:read", "library:update",
+    "health:create", "health:read", "health:update",
+    "scholarships:create", "scholarships:read", "scholarships:update",
+    "analytics:read", "reports:generate", "reports:export",
+    "announcements:create", "announcements:read",
+    "messaging:send", "messaging:read",
+  ];
+  const branchAdminPerms = allPermissions.filter((p) => branchAdminPermNames.includes(p.permission_name));
+  await prisma.rBACRole.upsert({
+    where: { role_name: "BranchAdmin" },
+    update: { permissions: { set: branchAdminPerms.map((p) => ({ id: p.id })) } },
+    create: {
+      role_name: "BranchAdmin",
+      description: "Branch administrator with management access",
+      is_system: true,
+      branch_id: null,
+      permissions: { connect: branchAdminPerms.map((p) => ({ id: p.id })) },
+    },
+  });
 
-    // Student RBAC Role
-    const studentPermNames = [
-      "students:read_own", "courses:read", "attendance:read_own", "grades:read_own",
-      "assignments:read", "assignments:submit", "announcements:read",
-      "messaging:read", "library:read", "finance:read_own",
-    ];
-    await prisma.rBACRole.upsert({
-      where: { branch_id_role_name: { branch_id: branch.id, role_name: "Student" } },
-      update: {},
-      create: {
-        branch_id: branch.id,
-        role_name: "Student",
-        description: "Student with access to own academic records",
-        is_system: true,
-        permissions: {
-          connect: allPermissions
-            .filter((p) => studentPermNames.includes(p.permission_name))
-            .map((p) => ({ id: p.id })),
-        },
-      },
-    });
-  }
+  // Teacher RBAC Role - GLOBAL
+  const teacherPermNames = [
+    "students:read", "courses:read", "courses:update",
+    "attendance:create", "attendance:read", "attendance:update",
+    "grades:create", "grades:read", "grades:update",
+    "assignments:create", "assignments:read", "assignments:update",
+    "announcements:create", "announcements:read",
+    "messaging:send", "messaging:read", "library:read", "payroll:read_own",
+  ];
+  const teacherPerms = allPermissions.filter((p) => teacherPermNames.includes(p.permission_name));
+  await prisma.rBACRole.upsert({
+    where: { role_name: "Teacher" },
+    update: { permissions: { set: teacherPerms.map((p) => ({ id: p.id })) } },
+    create: {
+      role_name: "Teacher",
+      description: "Teaching staff with class management access",
+      is_system: true,
+      branch_id: null,
+      permissions: { connect: teacherPerms.map((p) => ({ id: p.id })) },
+    },
+  });
+
+  // Student RBAC Role - GLOBAL
+  const studentPermNames = [
+    "students:read_own", "courses:read", "attendance:read_own", "grades:read_own",
+    "assignments:read", "assignments:submit", "announcements:read",
+    "messaging:read", "library:read", "finance:read_own",
+  ];
+  const studentPerms = allPermissions.filter((p) => studentPermNames.includes(p.permission_name));
+  await prisma.rBACRole.upsert({
+    where: { role_name: "Student" },
+    update: { permissions: { set: studentPerms.map((p) => ({ id: p.id })) } },
+    create: {
+      role_name: "Student",
+      description: "Student with access to own academic records",
+      is_system: true,
+      branch_id: null,
+      permissions: { connect: studentPerms.map((p) => ({ id: p.id })) },
+    },
+  });
+
   const rbacRoles = await prisma.rBACRole.count();
-  console.log(`✅ Created ${rbacRoles} RBAC roles!`);
+  console.log(`✅ Created ${rbacRoles} global RBAC roles!`);
 
   // ==================== 5. USERS ====================
   const hashedPassword = await bcryptjs.hash("password123", 10);
@@ -661,26 +652,14 @@ async function main() {
       }
     );
   }
-  await prisma.feeStructure.createMany({ data: feeData });
+  await prisma.fee.createMany({ data: feeData });
   console.log(`✅ Created ${feeData.length} fee structures!`);
 
   // ==================== 16. WORKING DAYS ====================
-  console.log("📆 Creating working days configuration...");
-  const workingDaysData = [];
-  for (const branch of allBranches) {
-    const branchYear = academicYears.find((y) => y.branch_id === branch.id)!;
-    workingDaysData.push(
-      { branch_id: branch.id, academic_year_id: branchYear.id, day_of_week: 0, is_working_day: false, day_name: "Sunday" },
-      { branch_id: branch.id, academic_year_id: branchYear.id, day_of_week: 1, is_working_day: true, day_name: "Monday" },
-      { branch_id: branch.id, academic_year_id: branchYear.id, day_of_week: 2, is_working_day: true, day_name: "Tuesday" },
-      { branch_id: branch.id, academic_year_id: branchYear.id, day_of_week: 3, is_working_day: true, day_name: "Wednesday" },
-      { branch_id: branch.id, academic_year_id: branchYear.id, day_of_week: 4, is_working_day: true, day_name: "Thursday" },
-      { branch_id: branch.id, academic_year_id: branchYear.id, day_of_week: 5, is_working_day: true, day_name: "Friday" },
-      { branch_id: branch.id, academic_year_id: branchYear.id, day_of_week: 6, is_working_day: false, day_name: "Saturday" }
-    );
-  }
-  await prisma.workingDayConfig.createMany({ data: workingDaysData });
-  console.log(`✅ Created ${workingDaysData.length} working day configurations!`);
+  // NOTE: WorkingDaysConfig schema changed - skipping for now
+  console.log("📆 Skipping working days configuration (schema mismatch)...");
+  // The WorkingDaysConfig model now requires: total_days, start_date, end_date
+  // This seed file needs to be updated when those values are known
 
   // ==================== 17. PAYROLL ====================
   console.log("💵 Creating payroll records...");
@@ -711,7 +690,7 @@ async function main() {
   console.log(`   • Students: ${allStudents.length}`);
   console.log(`   • Courses: ${allCourses.length}`);
   console.log(`   • Fee Structures: ${feeData.length}`);
-  console.log(`   • Working Days: ${workingDaysData.length}`);
+  console.log(`   • Working Days: (skipped - schema mismatch)`);
   console.log("\n🔑 Login Credentials:");
   console.log("   SuperAdmin: superadmin@koolhub.edu / SuperAdmin@123");
   console.log("   Admin: admin1@koolhub.edu / password123");

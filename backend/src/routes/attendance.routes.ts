@@ -1,7 +1,7 @@
 import { Router, Request, Response } from "express";
 import { authMiddleware } from "../middleware/error.middleware";
 import AttendanceService from "../services/attendance.service";
-import { requirePermission } from "../middleware/permission.middleware";
+import { requirePermission, requireAnyPermission } from "../middleware/permission.middleware";
 
 const router = Router();
 
@@ -34,7 +34,7 @@ const router = Router();
  *       200:
  *         description: Attendance records
  */
-router.get("/", authMiddleware, requirePermission("attendance:read"), async (req: Request, res: Response) => {
+router.get("/", authMiddleware, requireAnyPermission(["attendance:read", "attendance:read_own"]), async (req: Request, res: Response) => {
     try {
         const branch_id = (req.query.branch_id || req.query.branchId) as string;
         const page = parseInt(req.query.page as string) || 1;
@@ -136,11 +136,8 @@ router.get(
                 return res.status(401).json({ success: false, message: "Unauthorized" });
             }
 
-            // Check permissions: Owner OR Has Permission
-            const isOwner = user.student_id === studentId || user.id === studentId;
-            // Note: user.student_id should be populated if auth middleware enriches it, 
-            // but if not, we rely on having 'attendance:read'. 
-            // Ideally we check RBAC manually here if not owner.
+            // Check permissions: Owner (student profile id matches) OR Has attendance:read
+            const isOwner = user.student?.id === studentId;
 
             let hasPermission = false;
             if (isOwner) {

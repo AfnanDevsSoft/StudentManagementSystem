@@ -2,7 +2,7 @@ import express, { Router, Request, Response } from "express";
 import CourseService from "../services/course.service";
 import EnrollmentService from "../services/enrollment.service";
 import { authMiddleware, sendResponse } from "../middleware/error.middleware";
-import { requirePermission } from "../middleware/permission.middleware";
+import { requirePermission, requireAnyPermission } from "../middleware/permission.middleware";
 
 const router: Router = express.Router();
 
@@ -81,7 +81,7 @@ router.delete(
 router.get(
   "/:id/attendance",
   authMiddleware,
-  requirePermission("attendance:read"),
+  requireAnyPermission(["attendance:read", "attendance:read_own"]),
   async (req: Request, res: Response): Promise<void> => {
     const { id } = req.params;
     const { date } = req.query;
@@ -184,7 +184,7 @@ router.post(
 router.get(
   "/:id/grades",
   authMiddleware,
-  requirePermission("grades:read"),
+  requireAnyPermission(["grades:read", "grades:read_own"]),
   async (req: Request, res: Response): Promise<void> => {
     const { id } = req.params;
 

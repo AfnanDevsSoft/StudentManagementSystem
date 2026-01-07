@@ -1,12 +1,12 @@
 import { Router, Request, Response } from "express";
 import { PayrollService } from "../services/payroll.service";
 import { sendResponse, authMiddleware } from "../middleware/error.middleware";
-import { requirePermission } from "../middleware/permission.middleware";
+import { requirePermission, requireAnyPermission } from "../middleware/permission.middleware";
 
 const router = Router();
 
 // Get salaries for a month/year
-router.get("/salaries", authMiddleware, requirePermission("payroll:read"), async (req: Request, res: Response) => {
+router.get("/salaries", authMiddleware, requireAnyPermission(["payroll:read", "payroll:read_own"]), async (req: Request, res: Response) => {
   const branchId = (req.query.branch_id || req.query.branchId) as string;
   const month = req.query.month
     ? parseInt(req.query.month as string)
@@ -125,7 +125,7 @@ router.post("/process", authMiddleware, requirePermission("payroll:create"), asy
 router.get(
   "/teacher/:teacherId",
   authMiddleware,
-  requirePermission("payroll:read"),
+  requireAnyPermission(["payroll:read", "payroll:read_own"]),
   async (req: Request, res: Response) => {
     const { teacherId } = req.params;
     const status = req.query.status as string;
@@ -152,7 +152,7 @@ router.get(
 );
 
 // Get payroll records
-router.get("/records", authMiddleware, requirePermission("payroll:read"), async (req: Request, res: Response) => {
+router.get("/records", authMiddleware, requireAnyPermission(["payroll:read", "payroll:read_own"]), async (req: Request, res: Response) => {
   const branchId = (req.query.branch_id || req.query.branchId) as string;
   const teacherId = req.query.teacherId as string;
   const status = req.query.status as string;

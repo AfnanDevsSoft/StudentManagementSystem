@@ -51,8 +51,28 @@ export class GradeService {
             const whereClause: any = {};
 
             // Data Scoping
-            if (userContext && userContext.role?.name !== 'SuperAdmin') {
-                branchId = userContext.branch_id;
+            if (userContext) {
+                const roleName = userContext.role?.name;
+                if (roleName === 'SuperAdmin') {
+                    // SuperAdmin sees all - no filter
+                } else if (roleName === 'Student') {
+                    // Student only sees their own grades
+                    const studentId = userContext.student?.id;
+                    if (studentId) {
+                        whereClause.student_id = studentId;
+                    } else {
+                        // No student profile linked - return empty
+                        return {
+                            success: true,
+                            message: "No student profile found",
+                            data: [],
+                            pagination: { page, limit, total: 0, pages: 0 }
+                        };
+                    }
+                } else {
+                    // BranchAdmin/Teacher sees branch data
+                    branchId = userContext.branch_id;
+                }
             }
 
             if (branchId) {

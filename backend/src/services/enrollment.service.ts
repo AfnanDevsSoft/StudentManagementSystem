@@ -63,24 +63,34 @@ export class EnrollmentService {
     date: Date
   ) {
     try {
-      const attendance = await prisma.attendance.upsert({
+      // Find existing attendance record
+      const existing = await prisma.attendance.findFirst({
         where: {
-          student_id_course_id_date: {
-            student_id: studentId,
-            course_id: courseId,
-            date,
-          },
-        },
-        update: { status },
-        create: {
           student_id: studentId,
           course_id: courseId,
           date,
-          status,
-          recorded_by: "system", // Should be teacher ID in reality
         },
-        include: { course: true, student: true },
       });
+
+      let attendance;
+      if (existing) {
+        attendance = await prisma.attendance.update({
+          where: { id: existing.id },
+          data: { status },
+          include: { course: true, student: true },
+        });
+      } else {
+        attendance = await prisma.attendance.create({
+          data: {
+            student_id: studentId,
+            course_id: courseId,
+            date,
+            status,
+            recorded_by: "system", // Should be teacher ID in reality
+          },
+          include: { course: true, student: true },
+        });
+      }
 
       return {
         success: true,
