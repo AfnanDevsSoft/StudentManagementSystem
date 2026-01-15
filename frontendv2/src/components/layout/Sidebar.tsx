@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { getNavigationByRole } from '../../config/roleConfig';
@@ -8,11 +8,32 @@ import {
     ChevronRight,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
+import { useChatStore } from '../../stores/chat.store';
+import { useUnreadCount } from '../../hooks/useChat';
 
 export const Sidebar: React.FC = () => {
     const { user } = useAuth();
     const [collapsed, setCollapsed] = useState(false);
     const location = useLocation();
+    const { connect, connected, unreadCount, updateUnreadCount } = useChatStore();
+
+    // Fetch unread count from API
+    const { data: apiUnreadCount } = useUnreadCount();
+
+    // Connect to chat socket when user is logged in
+    useEffect(() => {
+        const token = localStorage.getItem('access_token');
+        if (token && user && !connected) {
+            connect(token);
+        }
+    }, [user, connect, connected]);
+
+    // Sync unread count from API to store
+    useEffect(() => {
+        if (apiUnreadCount !== undefined) {
+            updateUnreadCount(apiUnreadCount);
+        }
+    }, [apiUnreadCount, updateUnreadCount]);
 
     // Get navigation items based on user role and permissions
     const roleName = user?.role?.name || 'student';
@@ -99,21 +120,33 @@ export const Sidebar: React.FC = () => {
                             {items.map((item) => {
                                 const isActive = location.pathname === item.href ||
                                     location.pathname.startsWith(item.href + '/');
+                                const isChatItem = item.href === '/chat';
+                                const showBadge = isChatItem && unreadCount > 0;
                                 return (
                                     <Link
                                         key={item.name}
                                         to={item.href}
                                         className={cn(
-                                            'flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all duration-200',
+                                            'flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all duration-200 relative',
                                             isActive
                                                 ? 'bg-primary text-primary-foreground shadow-md'
                                                 : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                                         )}
                                         title={collapsed ? item.name : undefined}
                                     >
-                                        <item.icon className="w-5 h-5 flex-shrink-0" />
+                                        <div className="relative">
+                                            <item.icon className="w-5 h-5 flex-shrink-0" />
+                                            {showBadge && collapsed && (
+                                                <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full" />
+                                            )}
+                                        </div>
                                         {!collapsed && (
-                                            <span className="font-medium text-sm">{item.name}</span>
+                                            <span className="font-medium text-sm flex-1">{item.name}</span>
+                                        )}
+                                        {showBadge && !collapsed && (
+                                            <span className="ml-auto bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
+                                                {unreadCount > 99 ? '99+' : unreadCount}
+                                            </span>
                                         )}
                                     </Link>
                                 );

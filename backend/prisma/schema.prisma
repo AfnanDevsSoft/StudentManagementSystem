@@ -61,39 +61,44 @@ model Role {
 }
 
 model User {
-  id                 String             @id @default(uuid()) @db.Uuid
-  branch_id          String             @db.Uuid
-  role_id            String             @db.Uuid
-  username           String             @unique
-  employee_id        String?            @unique
-  email              String             @unique
-  password_hash      String
-  first_name         String
-  last_name          String
-  phone              String?
-  profile_photo      String?
-  is_active          Boolean            @default(true)
-  last_login         DateTime?
-  login_attempts     Int                @default(0)
-  locked_until       DateTime?
-  created_at         DateTime           @default(now())
-  updated_at         DateTime           @updatedAt
-  created_by_id      String?            @db.Uuid
-  updated_by_id      String?            @db.Uuid
-  audit_logs         AuditLog[]
-  communication_logs CommunicationLog[]
-  received_messages  DirectMessage[]    @relation("received_messages")
-  sent_messages      DirectMessage[]    @relation("sent_messages")
-  student            Student?
-  teacher            Teacher?
-  user_branches      UserBranch[]
-  user_roles         UserRole[]
-  branch             Branch             @relation(fields: [branch_id], references: [id])
-  user_created_by    User?              @relation("CreatedBy", fields: [created_by_id], references: [id])
-  created_by_users   User[]             @relation("CreatedBy")
-  role               Role               @relation(fields: [role_id], references: [id])
-  user_updated_by    User?              @relation("UpdatedBy", fields: [updated_by_id], references: [id])
-  updated_by_users   User[]             @relation("UpdatedBy")
+  id                        String                    @id @default(uuid()) @db.Uuid
+  branch_id                 String                    @db.Uuid
+  role_id                   String                    @db.Uuid
+  username                  String                    @unique
+  employee_id               String?                   @unique
+  email                     String                    @unique
+  password_hash             String
+  first_name                String
+  last_name                 String
+  phone                     String?
+  profile_photo             String?
+  is_active                 Boolean                   @default(true)
+  last_login                DateTime?
+  login_attempts            Int                       @default(0)
+  locked_until              DateTime?
+  created_at                DateTime                  @default(now())
+  updated_at                DateTime                  @updatedAt
+  created_by_id             String?                   @db.Uuid
+  updated_by_id             String?                   @db.Uuid
+  audit_logs                AuditLog[]
+  communication_logs        CommunicationLog[]
+  received_messages         DirectMessage[]           @relation("received_messages")
+  sent_messages             DirectMessage[]           @relation("sent_messages")
+  student                   Student?
+  teacher                   Teacher?
+  user_branches             UserBranch[]
+  user_roles                UserRole[]
+  branch                    Branch                    @relation(fields: [branch_id], references: [id])
+  user_created_by           User?                     @relation("CreatedBy", fields: [created_by_id], references: [id])
+  created_by_users          User[]                    @relation("CreatedBy")
+  role                      Role                      @relation(fields: [role_id], references: [id])
+  user_updated_by           User?                     @relation("UpdatedBy", fields: [updated_by_id], references: [id])
+  updated_by_users          User[]                    @relation("UpdatedBy")
+  // Chat system relations
+  conversation_participants ConversationParticipant[]
+  chat_messages             ChatMessage[]
+  message_read_receipts     MessageReadReceipt[]
+  presence                  UserPresence?
 
   @@index([email])
   @@index([branch_id])
@@ -1253,4 +1258,137 @@ model AttendanceSummary {
   @@index([branch_id])
   @@index([academic_year_id])
   @@map("attendance_summaries")
+}
+
+// ============= CHAT SYSTEM MODELS =============
+
+model Conversation {
+  id              String                    @id @default(uuid()) @db.Uuid
+  type            String                    @default("direct") // "direct" | "group"
+  name            String?                   // Group name (null for direct)
+  description     String?                   // Group description
+  avatar_url      String?                   // Group avatar
+  created_by      String                    @db.Uuid
+  is_active       Boolean                   @default(true)
+  last_message_at DateTime?
+  created_at      DateTime                  @default(now())
+  updated_at      DateTime                  @updatedAt
+
+  messages     ChatMessage[]
+  participants ConversationParticipant[]
+
+  @@index([type])
+  @@index([last_message_at])
+  @@index([created_by])
+  @@map("conversations")
+}
+
+model ConversationParticipant {
+  id              String    @id @default(uuid()) @db.Uuid
+  conversation_id String    @db.Uuid
+  user_id         String    @db.Uuid
+  role            String    @default("member") // "admin" | "member"
+  nickname        String?   // User's display name in this conversation
+  is_muted        Boolean   @default(false)
+  muted_until     DateTime?
+  last_read_at    DateTime? // Last time user read messages
+  joined_at       DateTime  @default(now())
+  left_at         DateTime? // null if still in conversation
+
+  conversation Conversation @relation(fields: [conversation_id], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([conversation_id, user_id])
+  @@index([user_id])
+  @@index([conversation_id])
+  @@map("conversation_participants")
+}
+
+model ChatMessage {
+  id              String    @id @default(uuid()) @db.Uuid
+  conversation_id String    @db.Uuid
+  sender_id       String    @db.Uuid
+  content         String    // Message text content
+  message_type    String    @default("text") // "text" | "file" | "image" | "system"
+  reply_to_id     String?   @db.Uuid // For threaded replies
+  is_edited       Boolean   @default(false)
+  edited_at       DateTime?
+  is_deleted      Boolean   @default(false)
+  deleted_at      DateTime?
+  created_at      DateTime  @default(now())
+
+  conversation  Conversation         @relation(fields: [conversation_id], references: [id], onDelete: Cascade)
+  sender        User                 @relation(fields: [sender_id], references: [id])
+  reply_to      ChatMessage?         @relation("MessageReplies", fields: [reply_to_id], references: [id])
+  replies       ChatMessage[]        @relation("MessageReplies")
+  attachments   MessageAttachment[]
+  read_receipts MessageReadReceipt[]
+
+  @@index([conversation_id])
+  @@index([sender_id])
+  @@index([created_at])
+  @@map("chat_messages")
+}
+
+model MessageAttachment {
+  id            String   @id @default(uuid()) @db.Uuid
+  message_id    String   @db.Uuid
+  file_name     String
+  file_url      String
+  file_type     String   // MIME type
+  file_size     Int      // bytes
+  thumbnail_url String?  // For images/videos
+  created_at    DateTime @default(now())
+
+  message ChatMessage @relation(fields: [message_id], references: [id], onDelete: Cascade)
+
+  @@index([message_id])
+  @@map("message_attachments")
+}
+
+model MessageReadReceipt {
+  id         String   @id @default(uuid()) @db.Uuid
+  message_id String   @db.Uuid
+  user_id    String   @db.Uuid
+  read_at    DateTime @default(now())
+
+  message ChatMessage @relation(fields: [message_id], references: [id], onDelete: Cascade)
+  user    User        @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([message_id, user_id])
+  @@index([message_id])
+  @@index([user_id])
+  @@map("message_read_receipts")
+}
+
+model UserPresence {
+  id           String   @id @default(uuid()) @db.Uuid
+  user_id      String   @unique @db.Uuid
+  status       String   @default("offline") // "online" | "away" | "busy" | "offline"
+  last_seen_at DateTime @default(now())
+  socket_id    String?  // Current socket connection ID
+  device_info  String?  // Browser/device info
+  updated_at   DateTime @updatedAt
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([last_seen_at])
+  @@map("user_presence")
+}
+
+model ChatAttachment {
+  id             String   @id @default(uuid()) @db.Uuid
+  file_name      String
+  file_url       String
+  file_type      String   // MIME type
+  file_size      Int      // bytes
+  thumbnail_url  String?  // For images/videos
+  uploaded_by_id String   @db.Uuid
+  message_id     String?  @db.Uuid // Linked when message is sent
+  created_at     DateTime @default(now())
+
+  @@index([uploaded_by_id])
+  @@index([message_id])
+  @@map("chat_attachments")
 }

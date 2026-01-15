@@ -53,6 +53,9 @@ import { TeacherGradesPage } from './pages/teacher/TeacherGradesPage';
 import { TeacherLeavePage } from './pages/teacher/TeacherLeavePage';
 import { AdminLeaveRequestsPage } from './pages/admin/AdminLeaveRequestsPage';
 
+// Chat
+import { ChatPage } from './pages/chat/ChatPage';
+
 import { Toaster } from './components/ui/toaster';
 
 // Create a client
@@ -270,6 +273,16 @@ function App() {
               element={
                 <ProtectedRoute allowedRoles={['superadmin', 'branchadmin', 'teacher', 'student']}>
                   <SettingsPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Chat - Available to all authenticated users */}
+            <Route
+              path="/chat"
+              element={
+                <ProtectedRoute allowedRoles={['superadmin', 'branchadmin', 'teacher', 'student']}>
+                  <ChatPage />
                 </ProtectedRoute>
               }
             />

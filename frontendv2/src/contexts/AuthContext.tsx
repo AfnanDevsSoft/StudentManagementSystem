@@ -45,7 +45,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             if (token) {
                 try {
                     const response = await api.get(endpoints.auth.me);
-                    setUser(response.data.user);
+                    const userData = response.data.user;
+                    setUser(userData);
+                    // Ensure user_id is in localStorage for chat
+                    if (userData?.id) {
+                        localStorage.setItem('user_id', userData.id);
+                    }
                 } catch (error) {
                     localStorage.removeItem('access_token');
                     localStorage.removeItem('refresh_token');
@@ -99,6 +104,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             };
 
             localStorage.setItem('user', JSON.stringify(user));
+            localStorage.setItem('user_id', user.id);
 
             // Store branch separately for easy access by services
             if (branchData) {
@@ -115,6 +121,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
         localStorage.removeItem('user');
+        localStorage.removeItem('user_id');
         localStorage.removeItem('current_branch');
         setUser(null);
         window.location.href = '/login';

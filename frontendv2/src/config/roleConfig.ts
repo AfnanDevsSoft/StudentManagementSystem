@@ -19,6 +19,7 @@ import {
     Shield,
     Receipt,
     Calendar,
+    MessageSquare,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -52,7 +53,7 @@ export const adminNavigation: NavigationItem[] = [
     { name: 'Payroll', href: '/payroll', icon: Receipt, group: 'Finance' },
 
     { name: 'Health Records', href: '/health', icon: Heart, group: 'Operations' },
-
+    { name: 'Chat', href: '/chat', icon: MessageSquare, group: 'Communication' },
     { name: 'Analytics', href: '/analytics', icon: BarChart3 },
     { name: 'Settings', href: '/settings', icon: Settings },
 ];
@@ -68,7 +69,7 @@ export const teacherNavigation: NavigationItem[] = [
     { name: 'Assignments', href: '/teacher/assignments', icon: FileText, group: 'Content' },
     { name: 'Leave Requests', href: '/teacher/leave', icon: Calendar, group: 'HR' },
     { name: 'My Payroll', href: '/teacher/payroll', icon: DollarSign, group: 'HR' },
-
+    { name: 'Chat', href: '/chat', icon: MessageSquare, group: 'Communication' },
     { name: 'Settings', href: '/settings', icon: Settings },
 ];
 
@@ -81,7 +82,7 @@ export const studentNavigation: NavigationItem[] = [
     { name: 'My Grades', href: '/student/grades', icon: Award, group: 'Performance' },
     { name: 'My Attendance', href: '/student/attendance', icon: ClipboardCheck, group: 'Performance' },
     { name: 'Fee Status', href: '/student/fees', icon: DollarSign, group: 'Finance' },
-
+    { name: 'Chat', href: '/chat', icon: MessageSquare, group: 'Communication' },
 
     { name: 'Settings', href: '/settings', icon: Settings },
 ];
@@ -101,7 +102,7 @@ export const branchAdminNavigation: NavigationItem[] = [
     { name: 'Payroll', href: '/payroll', icon: Receipt, group: 'Finance' },
 
     { name: 'Health Records', href: '/health', icon: Heart, group: 'Operations' },
-
+    { name: 'Chat', href: '/chat', icon: MessageSquare, group: 'Communication' },
     { name: 'Analytics', href: '/analytics', icon: BarChart3 },
     { name: 'Settings', href: '/settings', icon: Settings },
 ];

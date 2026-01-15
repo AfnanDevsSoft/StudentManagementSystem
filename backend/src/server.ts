@@ -6,9 +6,11 @@ dotenv.config({
   path: path.resolve(__dirname, "../.env"),
 });
 
+import http from "http";
 import app from "./app";
 import { PrismaClient } from "@prisma/client";
 import { initializePermissions } from "./lib/init-permissions";
+import { initializeSocketIO } from "./socket";
 
 console.log('--- SERVER RESTARTED WITH AUTO PERMISSION INITIALIZATION ---');
 
@@ -24,14 +26,22 @@ async function startServer() {
     // Initialize permissions system (auto-creates if empty)
     await initializePermissions();
 
+    // Create HTTP server from Express app
+    const httpServer = http.createServer(app);
+
+    // Initialize Socket.io with HTTP server
+    initializeSocketIO(httpServer);
+    console.log("✓ Socket.io initialized");
+
     // Start server
-    app.listen(PORT, () => {
+    httpServer.listen(PORT, () => {
       console.log(`
 ╔════════════════════════════════════════════════════════════════╗
 ║                                                                ║
 ║         KoolHub Student Management System - API Server        ║
 ║                                                                ║
 ║  🚀 Server running on http://localhost:${PORT}                   ║
+║  🔌 Socket.io on ws://localhost:${PORT}                          ║
 ║  📚 API Documentation: http://localhost:${PORT}/api/docs       ║
 ║  🔗 API Base URL: http://localhost:${PORT}/api/v1              ║
 ║                                                                ║

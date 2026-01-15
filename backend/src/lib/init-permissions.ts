@@ -120,6 +120,10 @@ const ALL_PERMISSIONS = [
     { permission_name: "messaging:send", resource: "messaging", action: "send", description: "Send messages" },
     { permission_name: "messaging:read", resource: "messaging", action: "read", description: "Read messages" },
 
+    // CHAT (Real-time messaging)
+    { permission_name: "chat:read", resource: "chat", action: "read", description: "View chat conversations and messages" },
+    { permission_name: "chat:send", resource: "chat", action: "send", description: "Send chat messages and create conversations" },
+
     // ASSIGNMENTS
     { permission_name: "assignments:create", resource: "assignments", action: "create", description: "Create assignments" },
     { permission_name: "assignments:read", resource: "assignments", action: "read", description: "View assignments" },
@@ -169,6 +173,7 @@ const BRANCH_ADMIN_PERMISSIONS = [
     "analytics:read", "reports:generate", "reports:export",
     "announcements:create", "announcements:read",
     "messaging:send", "messaging:read",
+    "chat:read", "chat:send",
     "assignments:create", "assignments:read", "assignments:update",
     "leave:create", "leave:read", "leave:update", "leave:delete",
     "events:create", "events:read", "events:update", "events:delete",
@@ -187,6 +192,7 @@ const TEACHER_PERMISSIONS = [
     "assignments:create", "assignments:read", "assignments:update",
     "announcements:create", "announcements:read",
     "messaging:send", "messaging:read",
+    "chat:read", "chat:send",
     "library:read",
     "payroll:read_own",
     "leave:create", "leave:read",
@@ -202,6 +208,7 @@ const STUDENT_PERMISSIONS = [
     "assignments:read", "assignments:submit",
     "announcements:read",
     "messaging:read",
+    "chat:read", "chat:send",
     "library:read",
     "finance:read_own",
 ];

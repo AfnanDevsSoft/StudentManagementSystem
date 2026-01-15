@@ -1,6 +1,7 @@
 import express, { Express, Request, Response, NextFunction } from "express";
 import cors from "cors";
 import helmet from "helmet";
+import path from "path";
 import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "./config/swagger";
 import authRoutes from "./routes/auth.routes";
@@ -39,6 +40,7 @@ import subjectRoutes from "./routes/subjects.routes";
 import assignmentsRoutes from "./routes/assignments.routes";
 import workingDaysRoutes from "./routes/workingDays.routes";
 import scholarshipRoutes from "./routes/scholarship.routes";
+import chatRoutes from "./routes/chat.routes";
 import { errorHandler } from "./middleware/error.middleware";
 
 const app: Express = express();
@@ -58,6 +60,9 @@ app.use(
 
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ limit: "10mb", extended: true }));
+
+// Serve uploaded files as static
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 // Swagger Documentation
 app.use(
@@ -172,6 +177,9 @@ apiV1.use("/assignments", assignmentsRoutes);
 
 // Working Days Configuration Routes
 apiV1.use("/working-days", workingDaysRoutes);
+
+// Chat Routes (Real-time messaging with Socket.io)
+apiV1.use("/chat", chatRoutes);
 
 // Mount v1 routes
 app.use("/api/v1", apiV1);
