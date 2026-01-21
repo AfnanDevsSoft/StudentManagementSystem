@@ -38,7 +38,7 @@ async function startServer() {
       console.log(`
 ╔════════════════════════════════════════════════════════════════╗
 ║                                                                ║
-║         KoolHub Student Management System - API Server        ║
+║         Afnan Devs SMS - API Server                   ║
 ║                                                                ║
 ║  🚀 Server running on http://localhost:${PORT}                   ║
 ║  🔌 Socket.io on ws://localhost:${PORT}                          ║

@@ -73,7 +73,7 @@ app.use(
       url: "/api/swagger.json",
     },
     customCss: `.swagger-ui .topbar { display: none }`,
-    customSiteTitle: "KoolHub Student Management System - API Documentation",
+    customSiteTitle: "Afnan Devs SMS - API Documentation",
   })
 );
 

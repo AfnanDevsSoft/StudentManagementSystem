@@ -38,7 +38,7 @@ export const LoginPage: React.FC = () => {
                         <GraduationCap className="w-10 h-10 text-white" />
                     </div>
                     <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                        Welcome to KoolHub
+                        Welcome to Afnan Devs SMS
                     </h1>
                     <p className="text-muted-foreground mt-2">Sign in to your account to continue</p>
                 </div>
@@ -112,7 +112,7 @@ export const LoginPage: React.FC = () => {
 
                 {/* Footer */}
                 <p className="text-center text-sm text-muted-foreground mt-8">
-                    © 2024 EduHub. All rights reserved.
+                    © 2024 Afnan Devs SMS. All rights reserved.
                 </p>
             </div>
         </div>

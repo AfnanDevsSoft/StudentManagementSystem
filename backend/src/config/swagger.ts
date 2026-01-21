@@ -4,12 +4,12 @@ const options = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'KoolHub Student Management System API',
+      title: 'Afnan Devs SMS API',
       version: '1.0.0',
       description: 'Comprehensive REST API for managing educational institutions with multi-branch support, student enrollment, academic management, and administrative functions.',
       contact: {
-        name: 'KoolHub Support',
-        email: 'support@koolhub.com',
+        name: 'Afnan Devs SMS Support',
+        email: 'support@afnandevssms.com',
       },
     },
     servers: [

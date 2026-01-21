@@ -1,8 +1,8 @@
-# KoolHub Student Management System - Backend API
+# Afnan Devs SMS - Backend API
 
 ## 🎯 Overview
 
-This is the Node.js/Express.js backend for the KoolHub Student Management System. It provides a comprehensive REST API for managing educational institutions with multi-branch support, student enrollment, academic management, teacher administration, and more.
+This is the Node.js/Express.js backend for the Afnan Devs SMS. It provides a comprehensive REST API for managing educational institutions with multi-branch support, student enrollment, academic management, teacher administration, and more.
 
 **API Documentation:** Available at `http://localhost:3000/api/docs` (Swagger UI)
 
@@ -124,7 +124,7 @@ Expected output:
 ```
 ╔════════════════════════════════════════════════════════════════╗
 ║                                                                ║
-║         KoolHub Student Management System - API Server        ║
+║         Afnan Devs SMS - API Server                   ║
 ║                                                                ║
 ║  🚀 Server running on http://localhost:3000                   ║
 ║  📚 API Documentation: http://localhost:3000/api/docs         ║
@@ -309,7 +309,7 @@ Response:
   "user": {
     "id": "uuid",
     "username": "admin",
-    "email": "admin@koolhub.com"
+    "email": "admin@afnandevssms.com"
   }
 }
 ```

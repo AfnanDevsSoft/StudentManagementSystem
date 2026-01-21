@@ -93,7 +93,7 @@ async function runVerification() {
     "\n╔════════════════════════════════════════════════════════════╗",
     "blue"
   );
-  log("║       KoolHub Backend - Setup Verification Script         ║", "blue");
+  log("║       Afnan Devs SMS Backend - Setup Verification Script  ║", "blue");
   log(
     "╚════════════════════════════════════════════════════════════╝\n",
     "blue"
