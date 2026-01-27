@@ -15,8 +15,8 @@ export default defineConfig({
     port: 3000,
     strictPort: false,
     allowedHosts: [
-      'panel.ukstudypartners.com',
-      '.ukstudypartners.com', // Allow all subdomains
+      'panel.oxfordglobalhub.com',
+      '.oxfordglobalhub.com', // Allow all subdomains
       'localhost',
       '.localhost'
     ]
