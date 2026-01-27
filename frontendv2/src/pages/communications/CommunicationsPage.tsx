@@ -38,7 +38,7 @@ export const CommunicationsPage: React.FC = () => {
         queryKey: ['announcements'],
         queryFn: () => communicationService.announcements.getAll()
     });
-    const { data: usersData } = useQuery({ queryKey: ['users'], queryFn: userService.getAll });
+    const { data: usersData } = useQuery({ queryKey: ['users'], queryFn: () => userService.getAll() });
 
     const messages = messagesData?.data || [];
     const announcements = announcementsData?.data || [];

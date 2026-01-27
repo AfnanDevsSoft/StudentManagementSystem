@@ -18,7 +18,7 @@ export const HRTeacherAttendancePage: React.FC = () => {
     // Fetch All Teachers
     const { data: teachersData, isLoading: loadingTeachers } = useQuery({
         queryKey: ['teachers'],
-        queryFn: teacherService.getAll,
+        queryFn: () => teacherService.getAll(),
     });
 
     const teachers = teachersData?.data || [];

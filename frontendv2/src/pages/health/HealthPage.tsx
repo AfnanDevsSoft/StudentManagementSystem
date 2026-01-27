@@ -30,13 +30,13 @@ export const HealthPage: React.FC = () => {
     // Fetch health records
     const { data: healthData, isLoading } = useQuery({
         queryKey: ['health-records'],
-        queryFn: healthService.getAll,
+        queryFn: () => healthService.getAll(),
     });
 
     // Fetch students
     const { data: studentsData } = useQuery({
         queryKey: ['students'],
-        queryFn: studentService.getAll,
+        queryFn: () => studentService.getAll(),
     });
 
     const records = healthData?.data || [];

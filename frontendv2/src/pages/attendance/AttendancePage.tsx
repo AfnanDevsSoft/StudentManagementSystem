@@ -30,13 +30,13 @@ export const AttendancePage: React.FC = () => {
     // Fetch attendance
     const { data: attendanceData, isLoading: isLoadingAttendance } = useQuery({
         queryKey: ['attendance'],
-        queryFn: attendanceService.getAll,
+        queryFn: () => attendanceService.getAll(),
     });
 
     // Fetch students
     const { data: studentsData } = useQuery({
         queryKey: ['students'],
-        queryFn: studentService.getAll,
+        queryFn: () => studentService.getAll(),
     });
 
     const attendanceList = attendanceData?.data || [];
