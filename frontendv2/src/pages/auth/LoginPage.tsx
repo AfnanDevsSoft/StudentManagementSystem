@@ -112,7 +112,7 @@ export const LoginPage: React.FC = () => {
 
                 {/* Footer */}
                 <p className="text-center text-sm text-muted-foreground mt-8">
-                    © 2024 Afnan Devs SMS. All rights reserved.
+                    © 2026 Afnan Devs SMS. All rights reserved.
                 </p>
             </div>
         </div>
