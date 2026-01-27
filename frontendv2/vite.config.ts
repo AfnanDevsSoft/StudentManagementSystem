@@ -10,6 +10,17 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  preview: {
+    host: '0.0.0.0',
+    port: 3000,
+    strictPort: false,
+    allowedHosts: [
+      'panel.ukstudypartners.com',
+      '.ukstudypartners.com', // Allow all subdomains
+      'localhost',
+      '.localhost'
+    ]
+  },
   server: {
     port: 3001,
     proxy: {
