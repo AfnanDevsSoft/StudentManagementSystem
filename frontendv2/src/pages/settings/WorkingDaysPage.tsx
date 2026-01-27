@@ -9,7 +9,8 @@ import { Label } from '../../components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../components/ui/dialog';
 import { Badge } from '../../components/ui/badge';
 import { useToast } from '../../hooks/use-toast';
-import { workingDaysService, WorkingDaysConfig, CreateWorkingDaysConfigDto } from '../../services/workingDays.service';
+import { workingDaysService } from '../../services/workingDays.service';
+import type { WorkingDaysConfig, CreateWorkingDaysConfigDto } from '../../services/workingDays.service';
 import { Plus, Calendar, Edit, Trash2, Calculator } from 'lucide-react';
 
 export const WorkingDaysPage: React.FC = () => {

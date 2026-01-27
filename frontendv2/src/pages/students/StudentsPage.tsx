@@ -50,8 +50,8 @@ export const StudentsPage: React.FC = () => {
         defaultValues: {
             first_name: '',
             last_name: '',
-            email: '',
-            phone: '',
+            personal_email: '',
+            personal_phone: '',
             date_of_birth: '',
             gender: 'Male',
             blood_group: '',
@@ -138,8 +138,8 @@ export const StudentsPage: React.FC = () => {
         setEditingStudent(student);
         setValue('first_name', student.first_name);
         setValue('last_name', student.last_name);
-        setValue('email', student.email || '');
-        setValue('phone', student.phone || '');
+        setValue('personal_email', student.personal_email || '');
+        setValue('personal_phone', student.personal_phone || '');
         setValue('date_of_birth', student.date_of_birth?.split('T')[0] || '');
         setValue('gender', student.gender as 'Male' | 'Female' | 'Other');
         setValue('blood_group', student.blood_group || '');
@@ -308,13 +308,13 @@ export const StudentsPage: React.FC = () => {
                                                     <p className="font-medium">
                                                         {student.first_name} {student.last_name}
                                                     </p>
-                                                    {student.email && (
-                                                        <p className="text-sm text-muted-foreground">{student.email}</p>
+                                                    {student.personal_email && (
+                                                        <p className="text-sm text-muted-foreground">{student.personal_email}</p>
                                                     )}
                                                 </div>
                                             </td>
                                             <td className="p-4 text-sm">{student.gender}</td>
-                                            <td className="p-4 text-sm">{student.phone || 'N/A'}</td>
+                                            <td className="p-4 text-sm">{student.personal_phone || 'N/A'}</td>
                                             <td className="p-4 text-sm">
                                                 {new Date(student.admission_date).toLocaleDateString()}
                                             </td>
@@ -423,15 +423,15 @@ export const StudentsPage: React.FC = () => {
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <Label htmlFor="email">Email</Label>
-                                    <Input id="email" type="email" {...register('email')} />
-                                    {errors.email && (
-                                        <p className="text-sm text-destructive mt-1">{errors.email.message}</p>
+                                    <Label htmlFor="personal_email">Email</Label>
+                                    <Input id="personal_email" type="email" {...register('personal_email')} />
+                                    {errors.personal_email && (
+                                        <p className="text-sm text-destructive mt-1">{errors.personal_email.message}</p>
                                     )}
                                 </div>
                                 <div>
-                                    <Label htmlFor="phone">Phone</Label>
-                                    <Input id="phone" {...register('phone')} />
+                                    <Label htmlFor="personal_phone">Phone</Label>
+                                    <Input id="personal_phone" {...register('personal_phone')} />
                                 </div>
                             </div>
 
