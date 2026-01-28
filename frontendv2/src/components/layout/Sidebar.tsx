@@ -67,7 +67,7 @@ export const Sidebar: React.FC = () => {
                             <GraduationCap className="w-5 h-5 text-white" />
                         </div>
                         <span className="font-bold text-lg bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                            Afnan Devs SMS
+                            Oxford Global Hub
                         </span>
                     </Link>
                 )}

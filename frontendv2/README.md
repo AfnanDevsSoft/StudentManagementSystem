@@ -230,7 +230,7 @@ This is a comprehensive student management system. When adding new features:
 
 ## 📄 License
 
-Copyright © 2024 Afnan Devs SMS. All rights reserved.
+Copyright © 2026 Oxford Global Hub. All rights reserved.
 
 ## 🙏 Acknowledgments
 

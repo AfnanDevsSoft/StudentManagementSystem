@@ -15,7 +15,7 @@ export default defineConfig({
     port: 3000,
     strictPort: false,
     allowedHosts: [
-      'panel.oxfordglobalhub.com',
+      'oxfordglobalhub.com',
       '.oxfordglobalhub.com', // Allow all subdomains
       'localhost',
       '.localhost'
