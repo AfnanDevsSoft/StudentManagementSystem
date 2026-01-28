@@ -177,7 +177,19 @@ const BRANCH_ADMIN_PERMISSIONS = [
     "assignments:create", "assignments:read", "assignments:update",
     "leave:create", "leave:read", "leave:update", "leave:delete",
     "events:create", "events:read", "events:update", "events:delete",
+    "leave:create", "leave:read", "leave:update", "leave:delete",
+    "events:create", "events:read", "events:update", "events:delete",
     "system:settings",
+];
+
+// Admission Agent: Focus on admission management for the branch
+const ADMISSION_AGENT_PERMISSIONS = [
+    "branches:read",
+    "admissions:create", "admissions:read", "admissions:update",
+    "students:read", // Needed to check existing students or convert applicants?
+    "announcements:read",
+    "messaging:read",
+    "chat:read",
 ];
 
 // Teacher: Assigned courses, enrolled students, attendance, grades, assignments
@@ -345,6 +357,13 @@ async function seedGlobalRBACRoles() {
         getPermIds(STUDENT_PERMISSIONS)
     );
 
+    // Admission Agent
+    await upsertGlobalRole(
+        "Admission Agent",
+        "Admission agent with ability to manage branch admission applications",
+        getPermIds(ADMISSION_AGENT_PERMISSIONS)
+    );
+
     console.log("   ✅ Global RBAC roles configured");
 }
 
@@ -374,6 +393,23 @@ async function upsertGlobalRole(roleName: string, description: string, permissio
             }
         });
         console.log(`   ✅ Created global RBAC role: ${roleName}`);
+    }
+
+    // Also ensure legacy Role exists (for User Dropdown)
+    const existingLegacy = await prisma.role.findFirst({
+        where: { name: roleName, branch_id: null }
+    });
+
+    if (!existingLegacy) {
+        await prisma.role.create({
+            data: {
+                name: roleName,
+                description,
+                is_system: true,
+                branch_id: null,
+            }
+        });
+        console.log(`   ✅ Synced legacy role: ${roleName}`);
     }
 }
 

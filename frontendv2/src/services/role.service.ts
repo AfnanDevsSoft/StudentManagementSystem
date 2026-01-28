@@ -27,7 +27,11 @@ export const roleService = {
     // RBAC roles - for Roles & Permissions page
     getAll: async () => {
         const response = await api.get(endpoints.roles.list);
-        return response.data;
+        const responseData = response.data;
+        // Roles might be returned as direct array or { data: [], success: true }
+        const rolesList = Array.isArray(responseData) ? responseData :
+            (Array.isArray(responseData?.data) ? responseData.data : []);
+        return { data: rolesList };
     },
 
     // Legacy roles - for User assignment (FK constraint requires legacy Role IDs)

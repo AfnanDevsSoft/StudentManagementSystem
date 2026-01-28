@@ -125,6 +125,13 @@ export function getNavigationByRole(role: string, permissions?: string[]): Navig
             return teacherNavigation;
         case 'student':
             return studentNavigation;
+        case 'admission agent':
+        case 'admission_agent':
+            return [
+                { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+                { name: 'Admissions', href: '/admissions', icon: FileText, group: 'Academic' },
+                { name: 'Settings', href: '/settings', icon: Settings },
+            ];
         default:
             // Custom role - if user has permissions, give admin-like navigation
             // This allows custom roles with RBAC permissions to navigate the system
@@ -240,6 +247,13 @@ export function getRolePermissions(role: string): Record<string, boolean> {
             return rolePermissions.teacher;
         case 'student':
             return rolePermissions.student;
+        case 'admission agent':
+        case 'admission_agent':
+            return {
+                ...rolePermissions.student, // Base permissions
+                canManageAdmissions: true,
+                canViewAllStudents: true, // Needed to see students? Maybe restricted to admission view
+            };
         default:
             return {};
     }
