@@ -245,6 +245,71 @@ export class UserService {
         // In strict mode we might want to fail, but for now allow user creation.
       }
 
+      // 4. Auto-Create Profile based on Role
+      // If role is Teacher, create Teacher profile
+      if (user.role.name === 'Teacher') {
+        try {
+          // Check if profile already exists (unlikely for new user but safe to check)
+          const existingProfile = await prisma.teacher.findFirst({
+            where: { user_id: user.id }
+          });
+
+          if (!existingProfile) {
+            await prisma.teacher.create({
+              data: {
+                user_id: user.id,
+                branch_id: user.branch_id,
+                first_name: user.first_name,
+                last_name: user.last_name,
+                email: user.email,
+                phone: user.phone,
+                employee_code: (user as any).employee_id || `TR-${Math.floor(1000 + Math.random() * 9000)}`,
+                hire_date: new Date(),
+                employment_type: "full-time",
+                designation: "General Teacher",
+                qualification: "Not Specified",
+                employment_status: "active"
+              }
+            });
+            console.log(`   ✅ Auto-created Teacher profile for user: ${user.username}`);
+          }
+        } catch (profileError) {
+          console.error("Failed to auto-create Teacher profile:", profileError);
+        }
+      }
+
+      // If role is Student, create Student profile
+      if (user.role.name === 'Student') {
+        try {
+          const existingProfile = await prisma.student.findFirst({
+            where: { user_id: user.id }
+          });
+
+          if (!existingProfile) {
+            // Generate admission number
+            const admissionNumber = `ST-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
+
+            await prisma.student.create({
+              data: {
+                user_id: user.id,
+                branch_id: user.branch_id,
+                first_name: user.first_name,
+                last_name: user.last_name,
+                date_of_birth: new Date(),
+                student_code: admissionNumber,
+                admission_number: admissionNumber,
+                admission_date: new Date(),
+                admission_status: "active",
+                current_grade_level_id: null
+              }
+            });
+            console.log(`   ✅ Auto-created Student profile for user: ${user.username}`);
+          }
+        } catch (profileError) {
+          console.error("Failed to auto-create Student profile:", profileError);
+        }
+      }
+
       return {
         success: true,
         data: { ...user, tempPassword: isTempPassword ? finalPassword : null },
