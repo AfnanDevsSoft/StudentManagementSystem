@@ -18,11 +18,13 @@ import type { UserFormData } from '../../schemas/user.schema';
 import { branchService } from '../../services/branch.service';
 import { roleService } from '../../services/role.service';
 import { useToast } from '../../hooks/use-toast';
+import { useAuth } from '../../contexts/AuthContext';
 import { Plus, Search, Edit, Trash2, Shield, Building, User as UserIcon, Lock, Users } from 'lucide-react';
 
 export const UsersPage: React.FC = () => {
     const queryClient = useQueryClient();
     const { toast } = useToast();
+    const { user: currentUser } = useAuth();
     const [searchQuery, setSearchQuery] = useState('');
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingUser, setEditingUser] = useState<User | null>(null);
@@ -50,6 +52,13 @@ export const UsersPage: React.FC = () => {
     const users = usersData?.data || [];
     const branches = branchesData?.data || [];
     const roles = rolesData?.data || [];
+
+    // Branch Admin can only assign: Admission Agent, Teacher, Student
+    const isBranchAdmin = currentUser?.role?.name?.toLowerCase() === 'branchadmin' || currentUser?.role?.name?.toLowerCase() === 'admin';
+    const restrictedRoleNames = ['superadmin', 'super admin', 'branchadmin', 'branch admin'];
+    const availableRoles = isBranchAdmin
+        ? roles.filter((role: any) => !restrictedRoleNames.includes((role.role_name || role.name || '').toLowerCase()))
+        : roles;
 
     const {
         register,
@@ -488,7 +497,7 @@ export const UsersPage: React.FC = () => {
                                             <SelectValue placeholder="Select role" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {roles.map((role: any) => (
+                                            {availableRoles.map((role: any) => (
                                                 <SelectItem key={role.id} value={role.id}>
                                                     {role.role_name || role.name}
                                                 </SelectItem>

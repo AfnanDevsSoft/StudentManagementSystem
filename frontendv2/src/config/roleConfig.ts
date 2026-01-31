@@ -46,13 +46,11 @@ export const adminNavigation: NavigationItem[] = [
     { name: 'Students', href: '/students', icon: GraduationCap, group: 'Management' },
     { name: 'Teachers', href: '/teachers', icon: Users, group: 'Management' },
     { name: 'Courses', href: '/courses', icon: BookOpen, group: 'Academic' },
-    { name: 'Admissions', href: '/admissions', icon: FileText, group: 'Academic' },
     { name: 'Attendance', href: '/attendance', icon: ClipboardCheck, group: 'Academic' },
-    { name: 'Grades', href: '/grades', icon: Award, group: 'Academic' },
     { name: 'Finance', href: '/finance', icon: DollarSign, group: 'Finance' },
     { name: 'Payroll', href: '/payroll', icon: Receipt, group: 'Finance' },
 
-    { name: 'Health Records', href: '/health', icon: Heart, group: 'Operations' },
+    // { name: 'Health Records', href: '/health', icon: Heart, group: 'Operations' },
     { name: 'Chat', href: '/chat', icon: MessageSquare, group: 'Communication' },
     { name: 'Analytics', href: '/analytics', icon: BarChart3 },
     { name: 'Settings', href: '/settings', icon: Settings },
@@ -101,7 +99,7 @@ export const branchAdminNavigation: NavigationItem[] = [
     { name: 'Finance', href: '/finance', icon: DollarSign, group: 'Finance' },
     { name: 'Payroll', href: '/payroll', icon: Receipt, group: 'Finance' },
 
-    { name: 'Health Records', href: '/health', icon: Heart, group: 'Operations' },
+    // { name: 'Health Records', href: '/health', icon: Heart, group: 'Operations' },
     { name: 'Chat', href: '/chat', icon: MessageSquare, group: 'Communication' },
     { name: 'Analytics', href: '/analytics', icon: BarChart3 },
     { name: 'Settings', href: '/settings', icon: Settings },

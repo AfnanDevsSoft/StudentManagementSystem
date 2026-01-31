@@ -17,7 +17,7 @@ import type { Admission } from '../../services/admission.service';
 import { admissionSchema } from '../../schemas/admission.schema';
 import type { AdmissionFormData } from '../../schemas/admission.schema';
 import { useToast } from '../../hooks/use-toast';
-import { Plus, Search, Edit, Trash2, FileText, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, FileText, CheckCircle, XCircle, Clock, Upload, X } from 'lucide-react';
 
 export const AdmissionsPage: React.FC = () => {
     const queryClient = useQueryClient();
@@ -26,6 +26,7 @@ export const AdmissionsPage: React.FC = () => {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingAdmission, setEditingAdmission] = useState<Admission | null>(null);
     const [deleteId, setDeleteId] = useState<string | null>(null);
+    const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
     const [page, setPage] = useState(1);
     const limit = 12;
 
@@ -65,6 +66,10 @@ export const AdmissionsPage: React.FC = () => {
             city: '',
             state: '',
             previous_school: '',
+            previous_institution_type: undefined,
+            previous_marks: '',
+            previous_percentage: '',
+            previous_grade: '',
             grade_applying_for: '',
             application_date: new Date().toISOString().split('T')[0],
             status: 'Pending',
@@ -75,6 +80,7 @@ export const AdmissionsPage: React.FC = () => {
 
     const selectedGender = watch('gender');
     const selectedStatus = watch('status');
+    const selectedInstitutionType = watch('previous_institution_type');
 
     const createMutation = useMutation({
         mutationFn: admissionService.create,
@@ -85,6 +91,7 @@ export const AdmissionsPage: React.FC = () => {
                 description: 'Application created successfully',
             });
             setIsDialogOpen(false);
+            setUploadedFiles([]);
             reset();
         },
         onError: (error: any) => {
@@ -110,6 +117,7 @@ export const AdmissionsPage: React.FC = () => {
             });
             setIsDialogOpen(false);
             setEditingAdmission(null);
+            setUploadedFiles([]);
             reset();
         },
         onError: (error: any) => {
@@ -163,6 +171,10 @@ export const AdmissionsPage: React.FC = () => {
         setValue('city', admission.city || '');
         setValue('state', admission.state || '');
         setValue('previous_school', admission.previous_school || '');
+        setValue('previous_institution_type', (admission as any).previous_institution_type || undefined);
+        setValue('previous_marks', (admission as any).previous_marks || '');
+        setValue('previous_percentage', (admission as any).previous_percentage || '');
+        setValue('previous_grade', (admission as any).previous_grade || '');
         setValue('grade_applying_for', admission.grade_applying_for);
         setValue('application_date', admission.application_date.split('T')[0]);
         setValue('status', admission.status);
@@ -173,6 +185,7 @@ export const AdmissionsPage: React.FC = () => {
 
     const handleAdd = () => {
         setEditingAdmission(null);
+        setUploadedFiles([]);
         reset();
         setIsDialogOpen(true);
     };
@@ -192,8 +205,7 @@ export const AdmissionsPage: React.FC = () => {
     const stats = {
         total: admissions.length,
         pending: admissions.filter((a: Admission) => a.status?.toLowerCase() === 'pending').length,
-        reviewing: admissions.filter((a: Admission) => a.status?.toLowerCase() === 'reviewing').length,
-        accepted: admissions.filter((a: Admission) => a.status?.toLowerCase() === 'accepted').length,
+        approved: admissions.filter((a: Admission) => a.status?.toLowerCase() === 'approved').length,
         rejected: admissions.filter((a: Admission) => a.status?.toLowerCase() === 'rejected').length,
     };
 
@@ -224,7 +236,7 @@ export const AdmissionsPage: React.FC = () => {
                     </Button>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <Card>
                         <CardContent className="p-6">
                             <div className="flex items-center justify-between">
@@ -251,19 +263,8 @@ export const AdmissionsPage: React.FC = () => {
                         <CardContent className="p-6">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-sm text-muted-foreground">Reviewing</p>
-                                    <h3 className="text-2xl font-bold mt-1 text-blue-600">{stats.reviewing}</h3>
-                                </div>
-                                <FileText className="w-8 h-8 text-blue-500" />
-                            </div>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardContent className="p-6">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-sm text-muted-foreground">Accepted</p>
-                                    <h3 className="text-2xl font-bold mt-1 text-green-600">{stats.accepted}</h3>
+                                    <p className="text-sm text-muted-foreground">Approved</p>
+                                    <h3 className="text-2xl font-bold mt-1 text-green-600">{stats.approved}</h3>
                                 </div>
                                 <CheckCircle className="w-8 h-8 text-green-500" />
                             </div>
@@ -305,13 +306,11 @@ export const AdmissionsPage: React.FC = () => {
                                 </CardTitle>
                                 <Badge
                                     variant={
-                                        admission.status === 'Accepted'
+                                        admission.status === 'Approved'
                                             ? 'success'
                                             : admission.status === 'Rejected'
                                                 ? 'destructive'
-                                                : admission.status === 'Waitlisted'
-                                                    ? 'warning'
-                                                    : 'secondary'
+                                                : 'secondary'
                                     }
                                 >
                                     {admission.status}
@@ -504,7 +503,7 @@ export const AdmissionsPage: React.FC = () => {
                                 <Input id="address" {...register('address')} />
                             </div>
 
-                            <div className="grid grid-cols-3 gap-4">
+                            <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <Label htmlFor="city">City</Label>
                                     <Input id="city" {...register('city')} />
@@ -513,10 +512,49 @@ export const AdmissionsPage: React.FC = () => {
                                     <Label htmlFor="state">State</Label>
                                     <Input id="state" {...register('state')} />
                                 </div>
-                                <div>
-                                    <Label htmlFor="previous_school">Previous School</Label>
-                                    <Input id="previous_school" {...register('previous_school')} />
+                            </div>
+
+                            {/* Previous Education Section */}
+                            <div className="space-y-4 border rounded-lg p-4">
+                                <h3 className="text-sm font-semibold">Previous Education</h3>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <Label htmlFor="previous_school">Institution Name</Label>
+                                        <Input id="previous_school" {...register('previous_school')} />
+                                    </div>
+                                    <div>
+                                        <Label htmlFor="previous_institution_type">Institution Type</Label>
+                                        <Select
+                                            value={selectedInstitutionType || ''}
+                                            onValueChange={(value) => setValue('previous_institution_type', value as any)}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select type" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="College">College</SelectItem>
+                                                <SelectItem value="School">School</SelectItem>
+                                                <SelectItem value="University">University</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
                                 </div>
+                                {selectedInstitutionType && (
+                                    <div className="grid grid-cols-3 gap-4">
+                                        <div>
+                                            <Label htmlFor="previous_marks">Marks</Label>
+                                            <Input id="previous_marks" {...register('previous_marks')} placeholder="e.g. 450" />
+                                        </div>
+                                        <div>
+                                            <Label htmlFor="previous_percentage">Percentage</Label>
+                                            <Input id="previous_percentage" {...register('previous_percentage')} placeholder="e.g. 85%" />
+                                        </div>
+                                        <div>
+                                            <Label htmlFor="previous_grade">Grade</Label>
+                                            <Input id="previous_grade" {...register('previous_grade')} placeholder="e.g. A+" />
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
                             <div className="grid grid-cols-3 gap-4">
@@ -555,10 +593,8 @@ export const AdmissionsPage: React.FC = () => {
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="Pending">Pending</SelectItem>
-                                            <SelectItem value="Reviewing">Reviewing</SelectItem>
-                                            <SelectItem value="Accepted">Accepted</SelectItem>
+                                            <SelectItem value="Approved">Approved</SelectItem>
                                             <SelectItem value="Rejected">Rejected</SelectItem>
-                                            <SelectItem value="Waitlisted">Waitlisted</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -567,6 +603,58 @@ export const AdmissionsPage: React.FC = () => {
                             <div>
                                 <Label htmlFor="notes">Notes</Label>
                                 <Input id="notes" {...register('notes')} />
+                            </div>
+
+                            {/* File Upload Section */}
+                            <div className="space-y-3 border rounded-lg p-4">
+                                <h3 className="text-sm font-semibold">Attachments (Optional)</h3>
+                                <p className="text-xs text-muted-foreground">Upload supporting documents such as transcripts, certificates, ID copies, etc.</p>
+                                <div>
+                                    <label
+                                        htmlFor="file-upload"
+                                        className="flex items-center justify-center gap-2 border-2 border-dashed rounded-lg p-4 cursor-pointer hover:border-primary hover:bg-muted/50 transition-colors"
+                                    >
+                                        <Upload className="w-5 h-5 text-muted-foreground" />
+                                        <span className="text-sm text-muted-foreground">Click to upload files</span>
+                                    </label>
+                                    <input
+                                        id="file-upload"
+                                        type="file"
+                                        multiple
+                                        className="hidden"
+                                        accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                                        onChange={(e) => {
+                                            if (e.target.files) {
+                                                setUploadedFiles(prev => [...prev, ...Array.from(e.target.files!)]);
+                                            }
+                                            e.target.value = '';
+                                        }}
+                                    />
+                                </div>
+                                {uploadedFiles.length > 0 && (
+                                    <div className="space-y-2">
+                                        {uploadedFiles.map((file, index) => (
+                                            <div key={index} className="flex items-center justify-between bg-muted/50 rounded-md px-3 py-2">
+                                                <div className="flex items-center gap-2 min-w-0">
+                                                    <FileText className="w-4 h-4 text-muted-foreground shrink-0" />
+                                                    <span className="text-sm truncate">{file.name}</span>
+                                                    <span className="text-xs text-muted-foreground shrink-0">
+                                                        ({(file.size / 1024).toFixed(1)} KB)
+                                                    </span>
+                                                </div>
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="h-6 w-6 p-0 shrink-0"
+                                                    onClick={() => setUploadedFiles(prev => prev.filter((_, i) => i !== index))}
+                                                >
+                                                    <X className="w-3 h-3" />
+                                                </Button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
 
                             <div className="flex gap-2 pt-4">
@@ -579,6 +667,7 @@ export const AdmissionsPage: React.FC = () => {
                                     onClick={() => {
                                         setIsDialogOpen(false);
                                         setEditingAdmission(null);
+                                        setUploadedFiles([]);
                                         reset();
                                     }}
                                 >
