@@ -23,6 +23,7 @@ import { StudentsPage } from './pages/students/StudentsPage';
 import { TeachersPage } from './pages/teachers/TeachersPage';
 import { CoursesPage } from './pages/courses/CoursesPage';
 import { AdmissionsPage } from './pages/admissions/AdmissionsPage';
+import { AdmissionAgentsPage } from './pages/admission-agents/AdmissionAgentsPage';
 import { AttendancePage } from './pages/attendance/AttendancePage';
 import { HRTeacherAttendancePage } from './pages/attendance/HRTeacherAttendancePage';
 import { GradesPage } from './pages/grades/GradesPage';
@@ -93,7 +94,7 @@ function App() {
             <Route
               path="/dashboard"
               element={
-                <ProtectedRoute allowedRoles={['superadmin', 'branchadmin', 'teacher', 'student']}>
+                <ProtectedRoute allowedRoles={['superadmin', 'branchadmin', 'teacher', 'student', 'admission agent', 'admission_agent']}>
                   <DashboardPage />
                 </ProtectedRoute>
               }
@@ -141,7 +142,7 @@ function App() {
             <Route
               path="/students"
               element={
-                <ProtectedRoute allowedRoles={['superadmin', 'branchadmin']}>
+                <ProtectedRoute allowedRoles={['superadmin', 'branchadmin', 'admission agent', 'admission_agent']}>
                   <StudentsPage />
                 </ProtectedRoute>
               }
@@ -159,8 +160,17 @@ function App() {
             <Route
               path="/admissions"
               element={
-                <ProtectedRoute allowedRoles={['superadmin', 'branchadmin']}>
+                <ProtectedRoute allowedRoles={['superadmin', 'branchadmin', 'admission agent', 'admission_agent']}>
                   <AdmissionsPage />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/admission-agents"
+              element={
+                <ProtectedRoute allowedRoles={['superadmin', 'branchadmin']}>
+                  <AdmissionAgentsPage />
                 </ProtectedRoute>
               }
             />
@@ -271,7 +281,7 @@ function App() {
             <Route
               path="/settings"
               element={
-                <ProtectedRoute allowedRoles={['superadmin', 'branchadmin', 'teacher', 'student']}>
+                <ProtectedRoute allowedRoles={['superadmin', 'branchadmin', 'teacher', 'student', 'admission agent', 'admission_agent']}>
                   <SettingsPage />
                 </ProtectedRoute>
               }

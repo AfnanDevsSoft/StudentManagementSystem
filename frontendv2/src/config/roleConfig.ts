@@ -20,6 +20,7 @@ import {
     Receipt,
     Calendar,
     MessageSquare,
+    UserPlus,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -45,7 +46,9 @@ export const adminNavigation: NavigationItem[] = [
     { name: 'Users', href: '/users', icon: Users, group: 'Management' },
     { name: 'Students', href: '/students', icon: GraduationCap, group: 'Management' },
     { name: 'Teachers', href: '/teachers', icon: Users, group: 'Management' },
+    { name: 'Admission Agents', href: '/admission-agents', icon: UserPlus, group: 'Management' },
     { name: 'Courses', href: '/courses', icon: BookOpen, group: 'Academic' },
+    { name: 'Admissions', href: '/admissions', icon: FileText, group: 'Academic' },
     { name: 'Attendance', href: '/attendance', icon: ClipboardCheck, group: 'Academic' },
     { name: 'Finance', href: '/finance', icon: DollarSign, group: 'Finance' },
     { name: 'Payroll', href: '/payroll', icon: Receipt, group: 'Finance' },
@@ -92,6 +95,7 @@ export const branchAdminNavigation: NavigationItem[] = [
     { name: 'Users', href: '/users', icon: Users, group: 'Management' },
     { name: 'Students', href: '/students', icon: GraduationCap, group: 'Management' },
     { name: 'Teachers', href: '/teachers', icon: Users, group: 'Management' },
+    { name: 'Admission Agents', href: '/admission-agents', icon: UserPlus, group: 'Management' },
     { name: 'Courses', href: '/courses', icon: BookOpen, group: 'Academic' },
     { name: 'Admissions', href: '/admissions', icon: FileText, group: 'Academic' },
     { name: 'Attendance', href: '/attendance', icon: ClipboardCheck, group: 'Academic' },
@@ -127,7 +131,7 @@ export function getNavigationByRole(role: string, permissions?: string[]): Navig
         case 'admission_agent':
             return [
                 { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-                { name: 'Admissions', href: '/admissions', icon: FileText, group: 'Academic' },
+                { name: 'Admissions', href: '/admissions', icon: FileText, group: 'Management' },
                 { name: 'Settings', href: '/settings', icon: Settings },
             ];
         default:

@@ -17,7 +17,6 @@ export const admissionSchema = z.object({
     previous_grade: z.string().optional(),
     grade_applying_for: z.string().min(1, 'Grade is required'),
     application_date: z.string().min(1, 'Application date is required'),
-    status: z.enum(['Pending', 'Approved', 'Rejected']),
     notes: z.string().optional(),
     branch_id: z.string().min(1, 'Branch is required'),
 });

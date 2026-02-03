@@ -455,12 +455,32 @@ model AdmissionApplication {
   reviewed_by        String?   @db.Uuid
   review_date        DateTime?
   payment_status     String    @default("pending")
+  rejection_reason   String?
+  student_username   String?
+  student_id         String?   @db.Uuid
+  created_by         String?   @db.Uuid
   created_at         DateTime  @default(now())
   updated_at         DateTime  @updatedAt
   branch             Branch    @relation(fields: [branch_id], references: [id])
+  documents          AdmissionDocument[] @relation("ApplicationDocuments")
 
   @@index([application_number])
   @@map("admission_applications")
+}
+
+model AdmissionDocument {
+  id              String   @id @default(uuid()) @db.Uuid
+  file_name       String
+  file_type       String
+  file_size       Int
+  file_data       Bytes
+  document_type   String   @default("attachment")
+  application_id  String   @db.Uuid
+  application     AdmissionApplication @relation("ApplicationDocuments", fields: [application_id], references: [id], onDelete: Cascade)
+  uploaded_by     String?  @db.Uuid
+  created_at      DateTime @default(now())
+
+  @@map("admission_documents")
 }
 
 model Notification {

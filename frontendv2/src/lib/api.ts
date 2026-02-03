@@ -155,6 +155,10 @@ export const endpoints = {
         approve: (id: string) => `/admission/${id}/approve`,
         reject: (id: string) => `/admission/${id}/reject`,
         statistics: '/admission/statistics',
+        setCredentials: (id: string) => `/admission/${id}/set-credentials`,
+        suggestUsername: (id: string) => `/admission/${id}/suggest-username`,
+        downloadDocument: (docId: string) => `/admission/documents/${docId}/download`,
+        agentStats: '/admission/agent-stats',
     },
     // Payroll - Backend uses /payroll/*
     payroll: {

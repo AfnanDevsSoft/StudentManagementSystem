@@ -9,7 +9,8 @@ export class UserService {
     page: number = 1,
     limit: number = 20,
     search?: string,
-    userContext?: any
+    userContext?: any,
+    roleName_filter?: string
   ) {
     try {
       const skip = (page - 1) * limit;
@@ -35,6 +36,11 @@ export class UserService {
           { first_name: { contains: search, mode: "insensitive" } },
           { last_name: { contains: search, mode: "insensitive" } },
         ];
+      }
+
+      // Filter by role name if provided
+      if (roleName_filter) {
+        where.role = { name: { equals: roleName_filter, mode: "insensitive" } };
       }
 
       const [users, total] = await Promise.all([
