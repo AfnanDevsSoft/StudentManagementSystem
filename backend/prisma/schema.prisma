@@ -88,7 +88,7 @@ model User {
   teacher                   Teacher?
   user_branches             UserBranch[]
   user_roles                UserRole[]
-  branch                    Branch                    @relation(fields: [branch_id], references: [id])
+  branch                    Branch                    @relation(fields: [branch_id], references: [id], onDelete: Cascade)
   user_created_by           User?                     @relation("CreatedBy", fields: [created_by_id], references: [id])
   created_by_users          User[]                    @relation("CreatedBy")
   role                      Role                      @relation(fields: [role_id], references: [id])
@@ -156,7 +156,7 @@ model Student {
   medical_incidents      MedicalIncident[]
   scholarships           Scholarship[]
   enrollments            StudentEnrollment[]
-  branch                 Branch              @relation(fields: [branch_id], references: [id])
+  branch                 Branch              @relation(fields: [branch_id], references: [id], onDelete: Cascade)
   user                   User?               @relation(fields: [user_id], references: [id])
   parents                ParentGuardian[]    @relation("StudentParents")
   submissions            Submission[]
@@ -223,7 +223,7 @@ model Teacher {
   payroll_records   PayrollRecord[]
   assignments       Assignment[]
   attendance        TeacherAttendance[]
-  branch            Branch              @relation(fields: [branch_id], references: [id])
+  branch            Branch              @relation(fields: [branch_id], references: [id], onDelete: Cascade)
   user              User?               @relation(fields: [user_id], references: [id])
 
   @@unique([branch_id, employee_code])
@@ -239,7 +239,7 @@ model AcademicYear {
   end_date             DateTime
   is_current           Boolean                @default(false)
   created_at           DateTime               @default(now())
-  branch               Branch                 @relation(fields: [branch_id], references: [id])
+  branch               Branch                 @relation(fields: [branch_id], references: [id], onDelete: Cascade)
   courses              Course[]
   grades               Grade[]
   working_days_configs WorkingDaysConfig[]
@@ -301,7 +301,7 @@ model Course {
   course_contents   CourseContent[]
   assignments       Assignment[]
   academic_year     AcademicYear        @relation(fields: [academic_year_id], references: [id])
-  branch            Branch              @relation(fields: [branch_id], references: [id])
+  branch            Branch              @relation(fields: [branch_id], references: [id], onDelete: Cascade)
   grade_level       GradeLevel          @relation(fields: [grade_level_id], references: [id])
   subject           Subject             @relation(fields: [subject_id], references: [id])
   teacher           Teacher             @relation(fields: [teacher_id], references: [id])
@@ -406,7 +406,7 @@ model PayrollRecord {
   paid_date    DateTime?
   approved_by  String?   @db.Uuid
   created_at   DateTime  @default(now())
-  branch       Branch    @relation(fields: [branch_id], references: [id])
+  branch       Branch    @relation(fields: [branch_id], references: [id], onDelete: Cascade)
   teacher      Teacher   @relation(fields: [teacher_id], references: [id])
 
   @@unique([teacher_id, month, year])
@@ -461,7 +461,7 @@ model AdmissionApplication {
   created_by         String?   @db.Uuid
   created_at         DateTime  @default(now())
   updated_at         DateTime  @updatedAt
-  branch             Branch    @relation(fields: [branch_id], references: [id])
+  branch             Branch    @relation(fields: [branch_id], references: [id], onDelete: Cascade)
   documents          AdmissionDocument[] @relation("ApplicationDocuments")
 
   @@index([application_number])
@@ -509,7 +509,7 @@ model CommunicationLog {
   status             String          @default("pending")
   created_at         DateTime        @default(now())
   updated_at         DateTime        @updatedAt
-  branch             Branch          @relation(fields: [branch_id], references: [id])
+  branch             Branch          @relation(fields: [branch_id], references: [id], onDelete: Cascade)
   created_by_user    User            @relation(fields: [created_by], references: [id])
   parent             ParentGuardian? @relation(fields: [parent_id], references: [id])
   student            Student         @relation(fields: [student_id], references: [id], onDelete: Cascade)
@@ -630,7 +630,7 @@ model AuditLog {
   status        String   @default("success")
   error_message String?
   created_at    DateTime @default(now())
-  branch        Branch   @relation(fields: [branch_id], references: [id])
+  branch        Branch   @relation(fields: [branch_id], references: [id], onDelete: Cascade)
   user          User?    @relation(fields: [user_id], references: [id])
 
   @@index([user_id])
@@ -658,7 +658,7 @@ model Report {
   is_public        Boolean   @default(false)
   created_at       DateTime  @default(now())
   updated_at       DateTime  @updatedAt
-  branch           Branch    @relation(fields: [branch_id], references: [id])
+  branch           Branch    @relation(fields: [branch_id], references: [id], onDelete: Cascade)
 
   @@index([branch_id])
   @@index([report_type])
@@ -679,7 +679,7 @@ model AnalyticsMetric {
   filters          Json?
   created_at       DateTime @default(now())
   updated_at       DateTime @updatedAt
-  branch           Branch   @relation(fields: [branch_id], references: [id])
+  branch           Branch   @relation(fields: [branch_id], references: [id], onDelete: Cascade)
 
   @@index([branch_id])
   @@index([metric_type])

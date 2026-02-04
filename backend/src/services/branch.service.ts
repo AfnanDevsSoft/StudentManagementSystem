@@ -201,13 +201,16 @@ export class BranchService {
   }
 
   /**
-   * Delete branch
+   * Delete branch (cascade deletion handled by database)
    */
   static async deleteBranch(branchId: string) {
     try {
       await prisma.branch.delete({ where: { id: branchId } });
-      return { success: true, message: "Branch deleted successfully" };
+      return { success: true, message: "Branch and all related data deleted successfully" };
     } catch (error: any) {
+      if (error.code === 'P2025') {
+        return { success: false, message: "Branch not found" };
+      }
       return { success: false, message: error.message };
     }
   }
