@@ -5,7 +5,7 @@ async function fixFailedMigration() {
     const prisma = new PrismaClient();
     try {
         const deleted = await prisma.$executeRawUnsafe(
-            `DELETE FROM "_prisma_migrations" WHERE migration_name = '20260204080335_add_cascade_delete_to_branch' AND finished_at IS NULL`
+            `DELETE FROM "_prisma_migrations" WHERE migration_name = '20260204080335_add_cascade_delete_to_branch' AND (finished_at IS NULL OR logs IS NOT NULL)`
         );
         if (deleted > 0) {
             console.log('✓ Removed failed migration record, will re-apply');
