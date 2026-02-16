@@ -1,381 +1,271 @@
-import { prisma } from "../lib/db";
+/**
+ * Cache Service using Redis
+ * Production-ready caching with TTL, stats, and error handling
+ */
+
+import { redis } from "../lib/redis";
 
 interface CacheEntry<T> {
-  key: string;
   value: T;
-  expiresAt: Date;
+  expiresAt: number; // Unix timestamp in milliseconds
   hitCount: number;
-  createdAt: Date;
+  createdAt: number; // Unix timestamp in milliseconds
 }
 
+interface CacheStats {
+  hits: number;
+  misses: number;
+  sets: number;
+  deletes: number;
+}
+
+// In-memory stats (these are per-instance, which is fine for stats)
+let cacheStats: CacheStats = {
+  hits: 0,
+  misses: 0,
+  sets: 0,
+  deletes: 0,
+};
+
 export class CacheService {
-  private static cache = new Map<string, CacheEntry<any>>();
-  private static stats = {
-    hits: 0,
-    misses: 0,
-    sets: 0,
-  };
+  private static readonly PREFIX = "sms:cache:";
+  private static readonly STATS_KEY = "sms:cache:stats";
 
-  // ============= Basic Cache Operations =============
+  /**
+   * Generate cache key with prefix
+   */
+  private static generateKey(key: string): string {
+    return `${this.PREFIX}${key}`;
+  }
 
-  static set<T>(key: string, value: T, ttlSeconds = 3600): void {
+  /**
+   * Set value in cache with TTL
+   * @param key - Cache key
+   * @param value - Value to cache
+   * @param ttlSeconds - Time to live in seconds (default: 1 hour)
+   */
+  static async set<T>(key: string, value: T, ttlSeconds = 3600): Promise<boolean> {
     try {
-      const expiresAt = new Date(Date.now() + ttlSeconds * 1000);
-      this.cache.set(key, {
-        key,
+      const cacheKey = this.generateKey(key);
+      const now = Date.now();
+      const expiresAt = now + (ttlSeconds * 1000);
+
+      const entry: CacheEntry<T> = {
         value,
         expiresAt,
         hitCount: 0,
-        createdAt: new Date(),
-      });
-      this.stats.sets++;
-    } catch (error) {
-      console.error(`Cache set error for key ${key}:`, error);
-    }
-  }
+        createdAt: now
+      };
 
-  static get<T>(key: string): T | null {
-    try {
-      const entry = this.cache.get(key);
-      if (!entry) {
-        this.stats.misses++;
-        return null;
+      // Store in Redis with TTL
+      const result = await redis.setex(
+        cacheKey,
+        ttlSeconds,
+        JSON.stringify(entry)
+      );
+
+      if (result === 'OK') {
+        cacheStats.sets++;
+        // Persist stats to Redis periodically
+        await this.persistStats();
+        return true;
       }
-
-      if (new Date() > entry.expiresAt) {
-        this.cache.delete(key);
-        this.stats.misses++;
-        return null;
-      }
-
-      entry.hitCount++;
-      this.stats.hits++;
-      return entry.value as T;
+      
+      return false;
     } catch (error) {
-      console.error(`Cache get error for key ${key}:`, error);
-      return null;
-    }
-  }
-
-  static delete(key: string): boolean {
-    return this.cache.delete(key);
-  }
-
-  static exists(key: string): boolean {
-    const entry = this.cache.get(key);
-    if (!entry) return false;
-    if (new Date() > entry.expiresAt) {
-      this.cache.delete(key);
+      console.error(`[CACHE] Error setting key ${key}:`, error);
       return false;
     }
-    return true;
   }
 
-  static clear(): void {
-    this.cache.clear();
-    this.stats = { hits: 0, misses: 0, sets: 0 };
-  }
+  /**
+   * Get value from cache
+   * @param key - Cache key
+   * @returns Cached value or null if not found/expired
+   */
+  static async get<T>(key: string): Promise<T | null> {
+    try {
+      const cacheKey = this.generateKey(key);
+      const data = await redis.get(cacheKey);
 
-  static flush(): void {
-    // Remove only expired entries
-    const now = new Date();
-    for (const [key, entry] of this.cache.entries()) {
-      if (now > entry.expiresAt) {
-        this.cache.delete(key);
+      if (!data) {
+        cacheStats.misses++;
+        await this.persistStats();
+        return null;
       }
-    }
-  }
 
-  // ============= Query Result Caching =============
+      const entry: CacheEntry<T> = JSON.parse(data);
+      const now = Date.now();
 
-  static async cacheStudentsList(branchId: string, page = 1, limit = 20) {
-    const cacheKey = `students:${branchId}:${page}:${limit}`;
-    const cached = this.get(cacheKey);
-    if (cached) return cached;
+      // Check if expired
+      if (now > entry.expiresAt) {
+        // Delete expired key
+        await redis.del(cacheKey);
+        cacheStats.misses++;
+        await this.persistStats();
+        return null;
+      }
 
-    try {
-      const students = await prisma.student.findMany({
-        where: { branch_id: branchId },
-        skip: (page - 1) * limit,
-        take: limit,
-        include: {
-          user: { select: { first_name: true, last_name: true, email: true } },
-        },
-      });
-
-      this.set(cacheKey, students, 1800); // 30 minutes
-      return students;
+      // Increment hit count
+      entry.hitCount++;
+      
+      // Update the entry with new hit count (but don't reset TTL)
+      await redis.set(cacheKey, JSON.stringify(entry), 'KEEPTTL');
+      
+      cacheStats.hits++;
+      await this.persistStats();
+      
+      return entry.value;
     } catch (error) {
-      console.error("Error caching students list:", error);
+      console.error(`[CACHE] Error getting key ${key}:`, error);
       return null;
     }
   }
 
-  static async cacheTeachersList(branchId: string) {
-    const cacheKey = `teachers:${branchId}`;
-    const cached = this.get(cacheKey);
-    if (cached) return cached;
-
+  /**
+   * Check if key exists in cache
+   */
+  static async exists(key: string): Promise<boolean> {
     try {
-      const teachers = await prisma.teacher.findMany({
-        where: { branch_id: branchId },
-        include: {
-          user: { select: { first_name: true, last_name: true, email: true } },
-        },
-      });
-
-      this.set(cacheKey, teachers, 1800);
-      return teachers;
+      const cacheKey = this.generateKey(key);
+      const exists = await redis.exists(cacheKey);
+      return exists === 1;
     } catch (error) {
-      console.error("Error caching teachers list:", error);
-      return null;
+      console.error(`[CACHE] Error checking key ${key}:`, error);
+      return false;
     }
   }
 
-  static async cacheCoursesList(branchId: string) {
-    const cacheKey = `courses:${branchId}`;
-    const cached = this.get(cacheKey);
-    if (cached) return cached;
-
+  /**
+   * Delete key from cache
+   */
+  static async delete(key: string): Promise<boolean> {
     try {
-      const courses = await prisma.course.findMany({
-        where: { branch_id: branchId },
-      });
-
-      this.set(cacheKey, courses, 3600); // 1 hour
-      return courses;
+      const cacheKey = this.generateKey(key);
+      const result = await redis.del(cacheKey);
+      
+      if (result === 1) {
+        cacheStats.deletes++;
+        await this.persistStats();
+        return true;
+      }
+      
+      return false;
     } catch (error) {
-      console.error("Error caching courses list:", error);
-      return null;
+      console.error(`[CACHE] Error deleting key ${key}:`, error);
+      return false;
     }
   }
 
-  static async cacheBranchList() {
-    const cacheKey = "branches:all";
-    const cached = this.get(cacheKey);
-    if (cached) return cached;
-
+  /**
+   * Delete multiple keys by pattern
+   * @param pattern - Pattern to match keys (e.g., "users:*")
+   */
+  static async deleteByPattern(pattern: string): Promise<number> {
     try {
-      const branches = await prisma.branch.findMany();
-      this.set(cacheKey, branches, 7200); // 2 hours
-      return branches;
+      const fullPattern = `${this.PREFIX}${pattern}`;
+      const deletedCount = await this.deleteRedisKeysByPattern(fullPattern);
+      return deletedCount;
     } catch (error) {
-      console.error("Error caching branches list:", error);
-      return null;
+      console.error(`[CACHE] Error deleting keys by pattern ${pattern}:`, error);
+      return 0;
     }
   }
 
-  static async cacheDashboardData(userId: string) {
-    const cacheKey = `dashboard:${userId}`;
-    const cached = this.get(cacheKey);
-    if (cached) return cached;
-
+  /**
+   * Clear all cache entries for this service
+   */
+  static async clear(): Promise<void> {
     try {
-      // Aggregate dashboard data
-      const dashboardData = {
-        cached_at: new Date(),
-        userId,
-      };
-
-      this.set(cacheKey, dashboardData, 900); // 15 minutes
-      return dashboardData;
+      await this.deleteByPattern('*');
+      cacheStats = { hits: 0, misses: 0, sets: 0, deletes: 0 };
+      await this.persistStats();
+      console.log('[CACHE] Cache cleared successfully');
     } catch (error) {
-      console.error("Error caching dashboard data:", error);
-      return null;
+      console.error('[CACHE] Error clearing cache:', error);
     }
   }
 
-  static async cacheUserPermissions(userId: string) {
-    const cacheKey = `permissions:${userId}`;
-    const cached = this.get(cacheKey);
-    if (cached) return cached;
+  /**
+   * Get cache statistics
+   */
+  static getStats(): CacheStats {
+    return { ...cacheStats };
+  }
 
+  /**
+   * Persist stats to Redis (call periodically)
+   */
+  private static async persistStats(): Promise<void> {
     try {
-      const userRoles = await prisma.userRole.findMany({
-        where: { user_id: userId },
-        include: {
-          rbac_role: {
-            include: { permissions: true },
-          },
-        },
-      });
-
-      const permissions = userRoles.flatMap(
-        (ur: any) => ur.rbac_role.permissions
+      await redis.setex(
+        this.STATS_KEY,
+        3600, // 1 hour TTL for stats
+        JSON.stringify(cacheStats)
       );
-      this.set(cacheKey, permissions, 1800);
-      return permissions;
     } catch (error) {
-      console.error("Error caching user permissions:", error);
-      return null;
+      console.error('[CACHE] Error persisting stats:', error);
     }
   }
 
-  // ============= Cache Invalidation =============
-
-  static invalidateStudentCache(branchId?: string) {
-    if (branchId) {
-      this.cache.forEach((_, key) => {
-        if (key.startsWith(`students:${branchId}`)) this.cache.delete(key);
-      });
-    } else {
-      this.cache.forEach((_, key) => {
-        if (key.startsWith("students:")) this.cache.delete(key);
-      });
-    }
-  }
-
-  static invalidateTeacherCache(branchId?: string) {
-    if (branchId) {
-      this.cache.delete(`teachers:${branchId}`);
-    } else {
-      this.cache.forEach((_, key) => {
-        if (key.startsWith("teachers:")) this.cache.delete(key);
-      });
-    }
-  }
-
-  static invalidateCourseCache(branchId?: string) {
-    if (branchId) {
-      this.cache.delete(`courses:${branchId}`);
-    } else {
-      this.cache.forEach((_, key) => {
-        if (key.startsWith("courses:")) this.cache.delete(key);
-      });
-    }
-  }
-
-  static invalidateBranchCache() {
-    this.cache.delete("branches:all");
-  }
-
-  static invalidateDashboardCache(userId?: string) {
-    if (userId) {
-      this.cache.delete(`dashboard:${userId}`);
-    } else {
-      this.cache.forEach((_, key) => {
-        if (key.startsWith("dashboard:")) this.cache.delete(key);
-      });
-    }
-  }
-
-  static invalidatePermissionsCache(userId?: string) {
-    if (userId) {
-      this.cache.delete(`permissions:${userId}`);
-    } else {
-      this.cache.forEach((_, key) => {
-        if (key.startsWith("permissions:")) this.cache.delete(key);
-      });
-    }
-  }
-
-  static invalidateUserCache(userId: string) {
-    this.invalidatePermissionsCache(userId);
-    this.invalidateDashboardCache(userId);
-  }
-
-  static invalidateAllCache() {
-    this.clear();
-  }
-
-  // ============= Performance Metrics =============
-
-  static getStats() {
+  /**
+   * Load stats from Redis (on startup)
+   */
+  static async loadStats(): Promise<void> {
     try {
-      const totalRequests = this.stats.hits + this.stats.misses;
-      const hitRate =
-        totalRequests > 0
-          ? ((this.stats.hits / totalRequests) * 100).toFixed(2)
-          : "0.00";
-      const missRate =
-        totalRequests > 0
-          ? ((this.stats.misses / totalRequests) * 100).toFixed(2)
-          : "0.00";
-
-      return {
-        success: true,
-        data: {
-          cache_size: this.cache.size,
-          hits: this.stats.hits,
-          misses: this.stats.misses,
-          sets: this.stats.sets,
-          total_requests: totalRequests,
-          hit_rate: `${hitRate}%`,
-          miss_rate: `${missRate}%`,
-          memory_usage: process.memoryUsage().heapUsed,
-        },
-      };
-    } catch (error: any) {
-      return { success: false, message: error.message };
+      const statsData = await redis.get(this.STATS_KEY);
+      if (statsData) {
+        const savedStats = JSON.parse(statsData);
+        cacheStats.hits = savedStats.hits || 0;
+        cacheStats.misses = savedStats.misses || 0;
+        cacheStats.sets = savedStats.sets || 0;
+        cacheStats.deletes = savedStats.deletes || 0;
+      }
+    } catch (error) {
+      console.error('[CACHE] Error loading stats:', error);
     }
   }
 
-  static getDetailedStats() {
-    try {
-      const stats: any = {
-        total_entries: this.cache.size,
-        entries_by_type: {},
-        most_accessed: [],
-        expiring_soon: [],
-      };
+  /**
+   * Get cache hit rate
+   */
+  static getHitRate(): number {
+    const total = cacheStats.hits + cacheStats.misses;
+    if (total === 0) return 0;
+    return (cacheStats.hits / total) * 100;
+  }
 
-      const now = new Date();
-      const topAccessed: CacheEntry<any>[] = [];
-      const expiringSoon: CacheEntry<any>[] = [];
+  /**
+   * Private helper to delete keys by pattern
+   */
+  private static async deleteRedisKeysByPattern(pattern: string): Promise<number> {
+    let deletedCount = 0;
+    const stream = redis.scanStream({
+      match: pattern,
+      count: 100
+    });
 
-      this.cache.forEach((entry) => {
-        const type = entry.key.split(":")[0];
-        stats.entries_by_type[type] = (stats.entries_by_type[type] || 0) + 1;
-
-        topAccessed.push(entry);
-
-        const timeToExpiry = entry.expiresAt.getTime() - now.getTime();
-        if (timeToExpiry > 0 && timeToExpiry < 300000) {
-          // Less than 5 minutes
-          expiringSoon.push(entry);
+    return new Promise((resolve, reject) => {
+      stream.on('data', async (keys: string[]) => {
+        if (keys.length > 0) {
+          const pipeline = redis.pipeline();
+          keys.forEach(key => pipeline.del(key));
+          const results = await pipeline.exec();
+          deletedCount += results?.filter((r: any) => r[1] === 1).length || 0;
         }
       });
 
-      stats.most_accessed = topAccessed
-        .sort((a, b) => b.hitCount - a.hitCount)
-        .slice(0, 5)
-        .map((e) => ({ key: e.key, hits: e.hitCount }));
+      stream.on('end', () => {
+        console.log(`[CACHE] Deleted ${deletedCount} keys matching pattern: ${pattern}`);
+        resolve(deletedCount);
+      });
 
-      stats.expiring_soon = expiringSoon
-        .slice(0, 5)
-        .map((e) => ({
-          key: e.key,
-          expires_in_seconds: Math.round(
-            (e.expiresAt.getTime() - now.getTime()) / 1000
-          ),
-        }));
-
-      return { success: true, data: stats };
-    } catch (error: any) {
-      return { success: false, message: error.message };
-    }
-  }
-
-  static resetStats() {
-    this.stats = { hits: 0, misses: 0, sets: 0 };
-    return { success: true, message: "Cache stats reset" };
-  }
-
-  static getCacheEntry(key: string) {
-    const entry = this.cache.get(key);
-    if (!entry) return { success: false, message: "Cache entry not found" };
-
-    return {
-      success: true,
-      data: {
-        key: entry.key,
-        hit_count: entry.hitCount,
-        created_at: entry.createdAt,
-        expires_at: entry.expiresAt,
-        ttl_seconds: Math.round(
-          (entry.expiresAt.getTime() - new Date().getTime()) / 1000
-        ),
-      },
-    };
+      stream.on('error', (error: Error) => {
+        console.error(`[CACHE] Error in keys deletion stream:`, error);
+        reject(error);
+      });
+    });
   }
 }
+
+export default CacheService;

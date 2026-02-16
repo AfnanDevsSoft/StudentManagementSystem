@@ -41,28 +41,98 @@ import assignmentsRoutes from "./routes/assignments.routes";
 import workingDaysRoutes from "./routes/workingDays.routes";
 import scholarshipRoutes from "./routes/scholarship.routes";
 import chatRoutes from "./routes/chat.routes";
+import metricsRoutes from "./routes/metrics.routes";
+import healthRoutes from "./routes/health.routes";
 import { errorHandler } from "./middleware/error.middleware";
+import { requestLogger, errorLogger, slowRequestLogger } from "./middleware/requestLogger.middleware";
+import { timeoutMiddleware } from "./middleware/timeout.middleware";
+import { generalRateLimiter } from "./middleware/rateLimit.middleware";
+import { collectHttpMetrics } from "./lib/metrics";
+import { tracingMiddleware } from "./lib/tracing";
 
 const app: Express = express();
 
-// Middleware
-app.use(helmet());
-app.use(
-  cors({
-    origin: process.env.CORS_ORIGINS?.split(",") || [
-      "http://localhost:3000",
-      "http://localhost:3001",
-      "http://localhost:5173",
-    ],
-    credentials: true,
-  })
-);
+// Middleware - Security Headers
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'", process.env.VITE_API_BASE_URL || "http://localhost:3000"],
+    },
+  },
+  hsts: {
+    maxAge: 31536000, // 1 year
+    includeSubDomains: true,
+    preload: true
+  },
+  noSniff: true,
+  frameguard: {
+    action: 'deny'
+  },
+  xssFilter: true,
+  referrerPolicy: {
+    policy: 'strict-origin-when-cross-origin'
+  }
+}));
+
+// CORS Configuration - Stricter in production
+if (process.env.NODE_ENV === 'production') {
+  app.use(
+    cors({
+      origin: (origin, callback) => {
+        const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [];
+        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+          callback(null, true);
+        } else {
+          logger.warn('CORS blocked request from unauthorized origin', { origin });
+          callback(new Error('Not allowed by CORS'));
+        }
+      },
+      credentials: true,
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-ID'],
+      exposedHeaders: ['X-Request-ID', 'RateLimit-*'],
+      maxAge: 86400 // 24 hours
+    })
+  );
+} else {
+  // Development: More permissive
+  app.use(
+    cors({
+      origin: process.env.CORS_ORIGINS?.split(",") || [
+        "http://localhost:3000",
+        "http://localhost:3001",
+        "http://localhost:5173",
+      ],
+      credentials: true,
+    })
+  );
+}
 
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ limit: "10mb", extended: true }));
 
+// Request Timeout - Must be before other middleware
+app.use(timeoutMiddleware); // 30 second timeout for all requests
+
+// Distributed Tracing (must be early in the chain)
+app.use(tracingMiddleware);
+
+// Metrics Collection (must be after timeout, before request logger)
+app.use(collectHttpMetrics);
+
+// HTTP Request Logging
+app.use(requestLogger);
+app.use(slowRequestLogger(1000)); // Log requests slower than 1 second
+
 // Serve uploaded files as static
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
+
+// Error logging (must be after routes)
+app.use(errorLogger);
 
 // Swagger Documentation
 app.use(
@@ -85,6 +155,9 @@ app.get("/api/swagger.json", (req: Request, res: Response) => {
 
 // Health Check
 app.use("/health", healthRoutes);
+
+// Metrics Endpoint (for Prometheus)
+app.use("/metrics", metricsRoutes);
 
 // API Routes v1
 const apiV1 = express.Router();

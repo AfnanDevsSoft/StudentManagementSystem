@@ -4,6 +4,8 @@ import { sendResponse } from "../middleware/error.middleware";
 import { prisma } from "../lib/db";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { JWT_SECRET } from "../config/jwt.config";
+import { authRateLimiter } from "../middleware/rateLimit.middleware";
 
 const router: Router = express.Router();
 
@@ -33,7 +35,7 @@ const router: Router = express.Router();
  *       400:
  *         description: Validation error
  */
-router.post("/login", async (req: Request, res: Response): Promise<void> => {
+router.post("/login", authRateLimiter, async (req: Request, res: Response): Promise<void> => {
   try {
     const { username, password } = req.body;
 
@@ -91,7 +93,7 @@ router.post("/login", async (req: Request, res: Response): Promise<void> => {
  *       401:
  *         description: Unauthorized - invalid or expired token
  */
-router.post("/refresh", async (req: Request, res: Response): Promise<void> => {
+router.post("/refresh", authRateLimiter, async (req: Request, res: Response): Promise<void> => {
   try {
     const { refresh_token } = req.body;
 
@@ -124,7 +126,7 @@ router.post("/refresh", async (req: Request, res: Response): Promise<void> => {
  *       409:
  *         description: User already exists
  */
-router.post("/register", async (req: Request, res: Response): Promise<void> => {
+router.post("/register", authRateLimiter, async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, username, password, first_name, last_name, phone, branch_id, role_id } = req.body;
 
@@ -245,7 +247,7 @@ router.get("/me", async (req: Request, res: Response): Promise<void> => {
     let decoded: any;
     try {
       console.log('Verifying token in /me endpoint');
-      decoded = jwt.verify(token, process.env.JWT_SECRET || "your-secret-key");
+      decoded = jwt.verify(token, JWT_SECRET);
       console.log('Token decoded:', decoded);
     } catch (err) {
       console.error('Token verification failed:', err);
@@ -337,7 +339,7 @@ router.get("/permissions", async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
-    const decoded: any = jwt.verify(token, process.env.JWT_SECRET || "your-secret-key");
+    const decoded: any = jwt.verify(token, JWT_SECRET);
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
       include: { role: true },

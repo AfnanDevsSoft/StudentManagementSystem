@@ -2,6 +2,7 @@ import { Socket } from "socket.io";
 import jwt from "jsonwebtoken";
 import { prisma } from "../../lib/db";
 import { RBACService } from "../../services/rbac.service";
+import { JWT_SECRET } from "../../config/jwt.config";
 
 export interface AuthenticatedSocket extends Socket {
   data: {
@@ -37,7 +38,7 @@ export async function verifySocketToken(
     // Verify JWT
     const decoded = jwt.verify(
       token,
-      process.env.JWT_SECRET || "your-secret-key"
+      JWT_SECRET
     ) as { userId: string };
 
     if (!decoded.userId) {
